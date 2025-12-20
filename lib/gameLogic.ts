@@ -6,6 +6,39 @@ import { TOTAL_SEATS, MIN_NPCS, MAX_NPCS, STATIONS } from "./constants";
 import { GameState, NPC, Seat } from "./types";
 
 /**
+ * Advances the train to the next station.
+ * Removes NPCs whose destination is the new station or earlier.
+ * Checks for game end conditions.
+ *
+ * @param state - Current game state
+ * @returns Updated game state with new station, departed NPCs removed, and game status updated
+ */
+export function advanceStation(state: GameState): GameState {
+  const newStation = state.currentStation + 1;
+
+  // Remove NPCs whose destination is the new station or earlier
+  const updatedSeats = state.seats.map((seat) => {
+    if (seat.occupant && seat.occupant.destination <= newStation) {
+      return { ...seat, occupant: null };
+    }
+    return seat;
+  });
+
+  // Check for game end
+  let newStatus: "playing" | "won" | "lost" = "playing";
+  if (newStation >= state.playerDestination) {
+    newStatus = state.playerSeated ? "won" : "lost";
+  }
+
+  return {
+    ...state,
+    currentStation: newStation,
+    seats: updatedSeats,
+    gameStatus: newStatus,
+  };
+}
+
+/**
  * Claims an empty seat for the player.
  *
  * @param state - Current game state

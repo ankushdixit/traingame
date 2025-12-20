@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Claim empty seat action: click empty seats to claim and become seated
 - `claimSeat()` function for claiming seats with immutable state updates
 - Seated player cannot interact with other seats (game simplification for win state)
+- Advance to next station: "Next Station" button to progress the train journey
+- `advanceStation()` function for turn-based station progression
+- NextStationButton component showing "Next: [station]" or "Arrive at [station]"
+- NPC exit mechanic: NPCs leave when train reaches their destination, freeing seats
+- Win/lose conditions: player wins if seated at destination, loses if standing
+- Game result display with "You Won!" or "You Lost!" messages
 
 ### Changed
 
