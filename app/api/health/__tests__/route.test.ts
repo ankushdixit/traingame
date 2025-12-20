@@ -23,19 +23,37 @@ describe("Health Check API", () => {
     jest.clearAllMocks();
   });
 
-  it("returns healthy status", async () => {
+  it("returns ok status with 200 status code", async () => {
     const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data.status).toBe("healthy");
+    expect(data.status).toBe("ok");
   });
 
-  it("includes timestamp in response", async () => {
+  it("includes valid ISO 8601 timestamp in response", async () => {
     const response = await GET();
     const data = await response.json();
 
     expect(data.timestamp).toBeDefined();
-    expect(new Date(data.timestamp).getTime()).not.toBeNaN();
+    // Verify it's a valid ISO 8601 date
+    const parsedDate = new Date(data.timestamp);
+    expect(parsedDate.getTime()).not.toBeNaN();
+    // Verify the format is ISO 8601
+    expect(data.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/);
+  });
+
+  it("returns correct response structure", async () => {
+    const response = await GET();
+    const data = await response.json();
+
+    // Verify exact shape matches spec: { status: "ok", timestamp: "<ISO date>" }
+    expect(Object.keys(data).sort()).toEqual(["status", "timestamp"]);
+  });
+
+  it("returns application/json content type", async () => {
+    const response = await GET();
+
+    expect(response.headers.get("content-type")).toBe("application/json");
   });
 });
