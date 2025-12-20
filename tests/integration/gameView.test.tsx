@@ -4,14 +4,23 @@
  * Tests the complete game view rendering with generated state.
  */
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { Compartment } from "@/components/game/Compartment";
 import { GameHeader } from "@/components/game/GameHeader";
 import { PlayerStatus } from "@/components/game/PlayerStatus";
-import { generateInitialState } from "@/lib/gameLogic";
+import { generateInitialState, revealDestination } from "@/lib/gameLogic";
 import { STATIONS } from "@/lib/constants";
 
+const defaultHandlers = {
+  onRevealDestination: jest.fn(),
+  onClaimSeat: jest.fn(),
+};
+
 describe("Game View Integration", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe("full game view with generated state", () => {
     it("renders all components with state from generateInitialState", () => {
       const state = generateInitialState(0, 5);
@@ -22,7 +31,12 @@ describe("Game View Integration", () => {
             currentStation={state.currentStation}
             playerDestination={state.playerDestination}
           />
-          <Compartment seats={state.seats} playerSeatId={state.seatId} />
+          <Compartment
+            seats={state.seats}
+            playerSeatId={state.seatId}
+            isPlayerSeated={state.playerSeated}
+            {...defaultHandlers}
+          />
           <PlayerStatus isSeated={state.playerSeated} />
         </>
       );
@@ -45,7 +59,14 @@ describe("Game View Integration", () => {
     it("correctly reflects occupied seats from generated state", () => {
       const state = generateInitialState(0, 5);
 
-      render(<Compartment seats={state.seats} playerSeatId={state.seatId} />);
+      render(
+        <Compartment
+          seats={state.seats}
+          playerSeatId={state.seatId}
+          isPlayerSeated={state.playerSeated}
+          {...defaultHandlers}
+        />
+      );
 
       const occupiedCount = state.seats.filter((s) => s.occupant !== null).length;
       const emptyCount = state.seats.filter((s) => s.occupant === null).length;
@@ -85,7 +106,12 @@ describe("Game View Integration", () => {
 
       render(
         <>
-          <Compartment seats={seatedState.seats} playerSeatId={seatedState.seatId} />
+          <Compartment
+            seats={seatedState.seats}
+            playerSeatId={seatedState.seatId}
+            isPlayerSeated={seatedState.playerSeated}
+            {...defaultHandlers}
+          />
           <PlayerStatus isSeated={seatedState.playerSeated} />
         </>
       );
@@ -110,7 +136,14 @@ describe("Game View Integration", () => {
           : s
       );
 
-      render(<Compartment seats={revealedSeats} playerSeatId={null} />);
+      render(
+        <Compartment
+          seats={revealedSeats}
+          playerSeatId={null}
+          isPlayerSeated={false}
+          {...defaultHandlers}
+        />
+      );
 
       expect(screen.getByTestId(`seat-${occupiedSeat!.id}`)).toHaveAttribute(
         "data-state",
@@ -155,7 +188,12 @@ describe("Game View Integration", () => {
               currentStation={state.currentStation}
               playerDestination={state.playerDestination}
             />
-            <Compartment seats={state.seats} playerSeatId={state.seatId} />
+            <Compartment
+              seats={state.seats}
+              playerSeatId={state.seatId}
+              isPlayerSeated={state.playerSeated}
+              {...defaultHandlers}
+            />
             <PlayerStatus isSeated={state.playerSeated} />
           </>
         );
@@ -165,6 +203,150 @@ describe("Game View Integration", () => {
 
         unmount();
       }
+    });
+  });
+
+  describe("reveal destination flow integration", () => {
+    it("full reveal flow: click seat → click ask → state updates", () => {
+      let state = generateInitialState(0, 5);
+
+      // Find an occupied seat
+      const occupiedSeat = state.seats.find((s) => s.occupant !== null);
+      expect(occupiedSeat).toBeDefined();
+      const seatId = occupiedSeat!.id;
+
+      const onRevealDestination = jest.fn((id: number) => {
+        state = revealDestination(state, id);
+      });
+
+      const { rerender } = render(
+        <Compartment
+          seats={state.seats}
+          playerSeatId={null}
+          isPlayerSeated={false}
+          onRevealDestination={onRevealDestination}
+          onClaimSeat={jest.fn()}
+        />
+      );
+
+      // Initial state: seat is occupied but destination not revealed
+      expect(screen.getByTestId(`seat-${seatId}`)).toHaveAttribute("data-state", "occupied");
+
+      // Click the seat to open popover
+      fireEvent.click(screen.getByTestId(`seat-${seatId}`));
+
+      // Popover should show "Ask destination?" button
+      expect(screen.getByTestId("ask-destination-button")).toBeInTheDocument();
+
+      // Click the button
+      fireEvent.click(screen.getByTestId("ask-destination-button"));
+
+      // Handler should be called with seat id
+      expect(onRevealDestination).toHaveBeenCalledWith(seatId);
+
+      // Rerender with updated state
+      rerender(
+        <Compartment
+          seats={state.seats}
+          playerSeatId={null}
+          isPlayerSeated={false}
+          onRevealDestination={onRevealDestination}
+          onClaimSeat={jest.fn()}
+        />
+      );
+
+      // Now the seat should show "occupied-known" state
+      expect(screen.getByTestId(`seat-${seatId}`)).toHaveAttribute("data-state", "occupied-known");
+
+      // And the destination should be displayed on the seat
+      expect(screen.getByTestId(`seat-${seatId}-destination`)).toBeInTheDocument();
+    });
+
+    it("revealed state persists across interactions", () => {
+      let state = generateInitialState(0, 5);
+
+      // Find first two occupied seats
+      const occupiedSeats = state.seats.filter((s) => s.occupant !== null);
+      expect(occupiedSeats.length).toBeGreaterThanOrEqual(2);
+
+      const seat1Id = occupiedSeats[0].id;
+      const seat2Id = occupiedSeats[1].id;
+
+      const onRevealDestination = jest.fn((id: number) => {
+        state = revealDestination(state, id);
+      });
+
+      const { rerender } = render(
+        <Compartment
+          seats={state.seats}
+          playerSeatId={null}
+          isPlayerSeated={false}
+          onRevealDestination={onRevealDestination}
+          onClaimSeat={jest.fn()}
+        />
+      );
+
+      // Reveal first seat's destination
+      fireEvent.click(screen.getByTestId(`seat-${seat1Id}`));
+      fireEvent.click(screen.getByTestId("ask-destination-button"));
+
+      rerender(
+        <Compartment
+          seats={state.seats}
+          playerSeatId={null}
+          isPlayerSeated={false}
+          onRevealDestination={onRevealDestination}
+          onClaimSeat={jest.fn()}
+        />
+      );
+
+      // First seat should be revealed
+      expect(screen.getByTestId(`seat-${seat1Id}`)).toHaveAttribute("data-state", "occupied-known");
+
+      // Reveal second seat's destination
+      fireEvent.click(screen.getByTestId(`seat-${seat2Id}`));
+      fireEvent.click(screen.getByTestId("ask-destination-button"));
+
+      rerender(
+        <Compartment
+          seats={state.seats}
+          playerSeatId={null}
+          isPlayerSeated={false}
+          onRevealDestination={onRevealDestination}
+          onClaimSeat={jest.fn()}
+        />
+      );
+
+      // Both seats should now be revealed
+      expect(screen.getByTestId(`seat-${seat1Id}`)).toHaveAttribute("data-state", "occupied-known");
+      expect(screen.getByTestId(`seat-${seat2Id}`)).toHaveAttribute("data-state", "occupied-known");
+    });
+
+    it("multiple NPCs can have different reveal states", () => {
+      let state = generateInitialState(0, 5);
+
+      // Find first two occupied seats
+      const occupiedSeats = state.seats.filter((s) => s.occupant !== null);
+      expect(occupiedSeats.length).toBeGreaterThanOrEqual(2);
+
+      const seat1Id = occupiedSeats[0].id;
+      const seat2Id = occupiedSeats[1].id;
+
+      // Reveal only the first seat
+      state = revealDestination(state, seat1Id);
+
+      render(
+        <Compartment
+          seats={state.seats}
+          playerSeatId={null}
+          isPlayerSeated={false}
+          {...defaultHandlers}
+        />
+      );
+
+      // First seat revealed, second not revealed
+      expect(screen.getByTestId(`seat-${seat1Id}`)).toHaveAttribute("data-state", "occupied-known");
+      expect(screen.getByTestId(`seat-${seat2Id}`)).toHaveAttribute("data-state", "occupied");
     });
   });
 });

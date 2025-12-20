@@ -20,8 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GameHeader component showing current station, next station, destination, and remaining stations
 - Seat component with 4 display states (empty, occupied, occupied-known, player)
 - PlayerStatus component showing standing/seated status
+- Request NPC destination action: click occupied seats to ask where NPCs are getting off
+- SeatPopover component for seat interactions (claim seat, ask destination)
+- `revealDestination()` function for immutable game state updates
+- Clickable seats with keyboard accessibility support
 
 ### Changed
+
+- Game page now uses useState for mutable state management
+- Seat component displays revealed destination directly on the seat
+- ESLint config updated to properly handle TypeScript type annotations
 
 ### Fixed
 
