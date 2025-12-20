@@ -4,7 +4,7 @@
  * Game page - main game UI with compartment view
  */
 
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useMemo, useState, useCallback } from "react";
 import {
   generateInitialState,
@@ -13,13 +13,16 @@ import {
   advanceStation,
 } from "@/lib/gameLogic";
 import { GameState } from "@/lib/types";
+import { STATIONS } from "@/lib/constants";
 import { GameHeader } from "@/components/game/GameHeader";
 import { Compartment } from "@/components/game/Compartment";
 import { PlayerStatus } from "@/components/game/PlayerStatus";
 import { NextStationButton } from "@/components/game/NextStationButton";
+import { GameEndModal } from "@/components/game/GameEndModal";
 
 export default function GamePage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const initialState: GameState | null = useMemo(() => {
     const boardingParam = searchParams.get("boarding");
@@ -62,6 +65,10 @@ export default function GamePage() {
     });
   }, []);
 
+  const handlePlayAgain = useCallback(() => {
+    router.push("/");
+  }, [router]);
+
   if (gameState === null) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -73,47 +80,39 @@ export default function GamePage() {
   const isGameOver = gameState.gameStatus !== "playing";
 
   return (
-    <main className="flex min-h-screen flex-col items-center gap-6 p-8">
-      <GameHeader
-        currentStation={gameState.currentStation}
-        playerDestination={gameState.playerDestination}
-      />
-
-      <Compartment
-        seats={gameState.seats}
-        playerSeatId={gameState.seatId}
-        isPlayerSeated={gameState.playerSeated}
-        onRevealDestination={handleRevealDestination}
-        onClaimSeat={handleClaimSeat}
-      />
-
-      <PlayerStatus isSeated={gameState.playerSeated} />
-
-      {isGameOver ? (
-        <div
-          className={`rounded-lg p-6 text-center ${
-            gameState.gameStatus === "won"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-          data-testid="game-result"
-        >
-          <p className="text-xl font-bold" data-testid="game-result-message">
-            {gameState.gameStatus === "won" ? "You Won!" : "You Lost!"}
-          </p>
-          <p className="mt-2 text-sm">
-            {gameState.gameStatus === "won"
-              ? "Congratulations! You got a seat before reaching your destination."
-              : "You arrived at your destination without a seat."}
-          </p>
-        </div>
-      ) : (
-        <NextStationButton
+    <>
+      <main className="flex min-h-screen flex-col items-center gap-6 p-8">
+        <GameHeader
           currentStation={gameState.currentStation}
-          onAdvance={handleAdvanceStation}
-          disabled={false}
+          playerDestination={gameState.playerDestination}
+        />
+
+        <Compartment
+          seats={gameState.seats}
+          playerSeatId={gameState.seatId}
+          isPlayerSeated={gameState.playerSeated}
+          onRevealDestination={handleRevealDestination}
+          onClaimSeat={handleClaimSeat}
+        />
+
+        <PlayerStatus isSeated={gameState.playerSeated} />
+
+        {!isGameOver && (
+          <NextStationButton
+            currentStation={gameState.currentStation}
+            onAdvance={handleAdvanceStation}
+            disabled={false}
+          />
+        )}
+      </main>
+
+      {isGameOver && (
+        <GameEndModal
+          status={gameState.gameStatus as "won" | "lost"}
+          destination={STATIONS[gameState.playerDestination]}
+          onPlayAgain={handlePlayAgain}
         />
       )}
-    </main>
+    </>
   );
 }

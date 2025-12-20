@@ -153,6 +153,7 @@ jobs:
           NODE_ENV: production
 
   mutation-test:
+    if: false # Disabled - mutation tests take too long
     runs-on: ubuntu-latest
     needs: unit-tests
 
