@@ -1,4 +1,4 @@
-import { generateInitialState, revealDestination } from "../gameLogic";
+import { generateInitialState, revealDestination, claimSeat } from "../gameLogic";
 import { STATIONS, TOTAL_SEATS, MIN_NPCS, MAX_NPCS } from "../constants";
 import { GameState, Seat } from "../types";
 
@@ -353,5 +353,98 @@ describe("revealDestination", () => {
 
     // State should be unchanged (no seat with ID 99)
     expect(newState.seats[0].occupant!.destinationRevealed).toBe(false);
+  });
+});
+
+describe("claimSeat", () => {
+  const createTestState = (seats: Seat[]): GameState => ({
+    currentStation: 0,
+    playerBoardingStation: 0,
+    playerDestination: 5,
+    playerSeated: false,
+    seatId: null,
+    seats,
+    gameStatus: "playing",
+  });
+
+  it("sets playerSeated to true", () => {
+    const seats: Seat[] = [
+      { id: 0, occupant: null },
+      { id: 1, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+    ];
+    const state = createTestState(seats);
+
+    const newState = claimSeat(state, 0);
+
+    expect(newState.playerSeated).toBe(true);
+  });
+
+  it("sets seatId to the claimed seat ID", () => {
+    const seats: Seat[] = [
+      { id: 0, occupant: null },
+      { id: 1, occupant: null },
+    ];
+    const state = createTestState(seats);
+
+    const newState = claimSeat(state, 1);
+
+    expect(newState.seatId).toBe(1);
+  });
+
+  it("returns new state object (immutable update)", () => {
+    const seats: Seat[] = [{ id: 0, occupant: null }];
+    const state = createTestState(seats);
+
+    const newState = claimSeat(state, 0);
+
+    expect(newState).not.toBe(state);
+  });
+
+  it("does not mutate original state", () => {
+    const seats: Seat[] = [{ id: 0, occupant: null }];
+    const state = createTestState(seats);
+
+    claimSeat(state, 0);
+
+    expect(state.playerSeated).toBe(false);
+    expect(state.seatId).toBeNull();
+  });
+
+  it("preserves other state properties", () => {
+    const seats: Seat[] = [
+      { id: 0, occupant: null },
+      { id: 1, occupant: { id: "npc-0", destination: 3, destinationRevealed: true } },
+    ];
+    const state: GameState = {
+      currentStation: 2,
+      playerBoardingStation: 1,
+      playerDestination: 5,
+      playerSeated: false,
+      seatId: null,
+      seats,
+      gameStatus: "playing",
+    };
+
+    const newState = claimSeat(state, 0);
+
+    expect(newState.currentStation).toBe(2);
+    expect(newState.playerBoardingStation).toBe(1);
+    expect(newState.playerDestination).toBe(5);
+    expect(newState.seats).toBe(state.seats);
+    expect(newState.gameStatus).toBe("playing");
+  });
+
+  it("preserves seats array unchanged", () => {
+    const seats: Seat[] = [
+      { id: 0, occupant: null },
+      { id: 1, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+    ];
+    const state = createTestState(seats);
+
+    const newState = claimSeat(state, 0);
+
+    expect(newState.seats).toEqual(state.seats);
+    expect(newState.seats[0].occupant).toBeNull();
+    expect(newState.seats[1].occupant!.destinationRevealed).toBe(false);
   });
 });
