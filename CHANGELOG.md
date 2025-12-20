@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial project setup with Session-Driven Development
 - Health check API endpoint at `/api/health` returning `{ status: "ok", timestamp: "<ISO date>" }`
+- Station selection screen with boarding/destination dropdowns and dynamic filtering
 
 ### Changed
 
