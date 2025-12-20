@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Win/lose conditions: player wins if seated at destination, loses if standing
 - Game result display with "You Won!" or "You Lost!" messages
 - GameEndModal component: modal overlay for win/lose screens with destination message
-- "Play Again" button to restart game from station selection
+- "Play Again" / "Try Again" buttons to restart game from station selection
 
 ### Changed
 
