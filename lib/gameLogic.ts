@@ -2,8 +2,26 @@
  * Game logic functions for Mumbai Local Train Game
  */
 
-import { STATIONS, TOTAL_SEATS, MIN_NPCS, MAX_NPCS } from "./constants";
+import { TOTAL_SEATS, MIN_NPCS, MAX_NPCS, STATIONS } from "./constants";
 import { GameState, NPC, Seat } from "./types";
+
+/**
+ * Reveals an NPC's destination on a given seat.
+ *
+ * @param state - Current game state
+ * @param seatId - ID of the seat whose occupant's destination should be revealed
+ * @returns Updated game state with the NPC's destination revealed
+ */
+export function revealDestination(state: GameState, seatId: number): GameState {
+  return {
+    ...state,
+    seats: state.seats.map((seat) =>
+      seat.id === seatId && seat.occupant
+        ? { ...seat, occupant: { ...seat.occupant, destinationRevealed: true } }
+        : seat
+    ),
+  };
+}
 
 /**
  * Generates the initial game state when a game begins.

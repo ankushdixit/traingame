@@ -5,8 +5,8 @@
  */
 
 import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
-import { generateInitialState } from "@/lib/gameLogic";
+import { useMemo, useState, useCallback } from "react";
+import { generateInitialState, revealDestination } from "@/lib/gameLogic";
 import { GameState } from "@/lib/types";
 import { GameHeader } from "@/components/game/GameHeader";
 import { Compartment } from "@/components/game/Compartment";
@@ -15,7 +15,7 @@ import { PlayerStatus } from "@/components/game/PlayerStatus";
 export default function GamePage() {
   const searchParams = useSearchParams();
 
-  const gameState: GameState | null = useMemo(() => {
+  const initialState: GameState | null = useMemo(() => {
     const boardingParam = searchParams.get("boarding");
     const destinationParam = searchParams.get("destination");
 
@@ -33,6 +33,21 @@ export default function GamePage() {
     return generateInitialState(boarding, destination);
   }, [searchParams]);
 
+  const [gameState, setGameState] = useState<GameState | null>(initialState);
+
+  const handleRevealDestination = useCallback((seatId: number) => {
+    setGameState((prevState) => {
+      if (!prevState) return null;
+      return revealDestination(prevState, seatId);
+    });
+  }, []);
+
+  const handleClaimSeat = useCallback((seatId: number) => {
+    // Claim seat functionality will be implemented in a future feature
+    // For now, this is a placeholder that does nothing
+    console.log("Claim seat:", seatId);
+  }, []);
+
   if (gameState === null) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -48,7 +63,13 @@ export default function GamePage() {
         playerDestination={gameState.playerDestination}
       />
 
-      <Compartment seats={gameState.seats} playerSeatId={gameState.seatId} />
+      <Compartment
+        seats={gameState.seats}
+        playerSeatId={gameState.seatId}
+        isPlayerSeated={gameState.playerSeated}
+        onRevealDestination={handleRevealDestination}
+        onClaimSeat={handleClaimSeat}
+      />
 
       <PlayerStatus isSeated={gameState.playerSeated} />
     </main>

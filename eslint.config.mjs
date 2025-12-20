@@ -28,6 +28,8 @@ export default [
       "@typescript-eslint": tseslint,
     },
     rules: {
+      // Disable base rule in favor of TypeScript version
+      "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/no-explicit-any": "warn",
       // Complexity rules (tier-3)
