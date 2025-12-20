@@ -33,12 +33,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPC exit mechanic: NPCs leave when train reaches their destination, freeing seats
 - Win/lose conditions: player wins if seated at destination, loses if standing
 - Game result display with "You Won!" or "You Lost!" messages
+- GameEndModal component: modal overlay for win/lose screens with destination message
+- "Play Again" button to restart game from station selection
 
 ### Changed
 
 - Game page now uses useState for mutable state management
 - Seat component displays revealed destination directly on the seat
 - ESLint config updated to properly handle TypeScript type annotations
+- Game result now displays as modal overlay instead of inline message
+- Mutation tests disabled in CI (takes too long)
 
 ### Fixed
 

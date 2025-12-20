@@ -2,11 +2,15 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import GamePage from "../page";
 import { GameState } from "@/lib/types";
 
-// Mock useSearchParams
+// Mock useSearchParams and useRouter
 const mockSearchParams = new Map<string, string>();
+const mockPush = jest.fn();
 jest.mock("next/navigation", () => ({
   useSearchParams: () => ({
     get: (key: string) => mockSearchParams.get(key) ?? null,
+  }),
+  useRouter: () => ({
+    push: mockPush,
   }),
 }));
 
@@ -65,6 +69,7 @@ jest.mock("@/lib/gameLogic", () => ({
 describe("GamePage", () => {
   beforeEach(() => {
     mockSearchParams.clear();
+    mockPush.mockClear();
   });
 
   describe("with valid parameters", () => {
@@ -377,7 +382,7 @@ describe("GamePage", () => {
       expect(screen.getByTestId("next-station-button")).toHaveTextContent("Arrive at Dadar");
     });
 
-    it("shows You Won message when seated at destination", () => {
+    it("shows win modal when seated at destination", () => {
       mockSearchParams.set("boarding", "4");
       mockSearchParams.set("destination", "5");
       render(<GamePage />);
@@ -389,12 +394,15 @@ describe("GamePage", () => {
       // Advance to destination
       fireEvent.click(screen.getByTestId("next-station-button"));
 
-      // Should show win message
-      expect(screen.getByTestId("game-result")).toBeInTheDocument();
-      expect(screen.getByTestId("game-result-message")).toHaveTextContent("You Won!");
+      // Should show win modal
+      expect(screen.getByTestId("game-end-modal")).toBeInTheDocument();
+      expect(screen.getByTestId("game-end-title")).toHaveTextContent("You Won!");
+      expect(screen.getByTestId("game-end-message")).toHaveTextContent(
+        "You found a seat before reaching Dadar!"
+      );
     });
 
-    it("shows You Lost message when standing at destination", () => {
+    it("shows lose modal when standing at destination", () => {
       mockSearchParams.set("boarding", "4");
       mockSearchParams.set("destination", "5");
       render(<GamePage />);
@@ -402,9 +410,12 @@ describe("GamePage", () => {
       // Don't claim a seat, just advance
       fireEvent.click(screen.getByTestId("next-station-button"));
 
-      // Should show lose message
-      expect(screen.getByTestId("game-result")).toBeInTheDocument();
-      expect(screen.getByTestId("game-result-message")).toHaveTextContent("You Lost!");
+      // Should show lose modal
+      expect(screen.getByTestId("game-end-modal")).toBeInTheDocument();
+      expect(screen.getByTestId("game-end-title")).toHaveTextContent("You Lost!");
+      expect(screen.getByTestId("game-end-message")).toHaveTextContent(
+        "You arrived at Dadar still standing!"
+      );
     });
 
     it("hides Next Station button when game is over", () => {
@@ -419,7 +430,7 @@ describe("GamePage", () => {
       expect(screen.queryByTestId("next-station-button")).not.toBeInTheDocument();
     });
 
-    it("win result has green styling", () => {
+    it("win modal has green title styling", () => {
       mockSearchParams.set("boarding", "4");
       mockSearchParams.set("destination", "5");
       render(<GamePage />);
@@ -429,10 +440,10 @@ describe("GamePage", () => {
       fireEvent.click(screen.getByTestId("claim-seat-button"));
       fireEvent.click(screen.getByTestId("next-station-button"));
 
-      expect(screen.getByTestId("game-result")).toHaveClass("bg-green-100");
+      expect(screen.getByTestId("game-end-title")).toHaveClass("text-green-600");
     });
 
-    it("lose result has red styling", () => {
+    it("lose modal has red title styling", () => {
       mockSearchParams.set("boarding", "4");
       mockSearchParams.set("destination", "5");
       render(<GamePage />);
@@ -440,7 +451,51 @@ describe("GamePage", () => {
       // Advance without claiming seat
       fireEvent.click(screen.getByTestId("next-station-button"));
 
-      expect(screen.getByTestId("game-result")).toHaveClass("bg-red-100");
+      expect(screen.getByTestId("game-end-title")).toHaveClass("text-red-600");
+    });
+
+    it("Play Again button navigates to home page", () => {
+      mockSearchParams.set("boarding", "4");
+      mockSearchParams.set("destination", "5");
+      render(<GamePage />);
+
+      // Claim seat and advance to win
+      fireEvent.click(screen.getByTestId("seat-1"));
+      fireEvent.click(screen.getByTestId("claim-seat-button"));
+      fireEvent.click(screen.getByTestId("next-station-button"));
+
+      // Click Play Again
+      fireEvent.click(screen.getByTestId("play-again-button"));
+
+      expect(mockPush).toHaveBeenCalledWith("/");
+    });
+
+    it("Try Again button navigates to home page", () => {
+      mockSearchParams.set("boarding", "4");
+      mockSearchParams.set("destination", "5");
+      render(<GamePage />);
+
+      // Advance without seat to lose
+      fireEvent.click(screen.getByTestId("next-station-button"));
+
+      // Click Try Again
+      fireEvent.click(screen.getByTestId("play-again-button"));
+
+      expect(mockPush).toHaveBeenCalledWith("/");
+    });
+
+    it("game area is still visible behind modal overlay", () => {
+      mockSearchParams.set("boarding", "4");
+      mockSearchParams.set("destination", "5");
+      render(<GamePage />);
+
+      // Advance to end game
+      fireEvent.click(screen.getByTestId("next-station-button"));
+
+      // Modal and game area should both be present
+      expect(screen.getByTestId("game-end-modal")).toBeInTheDocument();
+      expect(screen.getByTestId("compartment")).toBeInTheDocument();
+      expect(screen.getByTestId("game-header")).toBeInTheDocument();
     });
 
     it("multiple NPCs can exit at same station", () => {
