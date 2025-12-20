@@ -1,4 +1,4 @@
-import { generateInitialState, revealDestination, claimSeat } from "../gameLogic";
+import { generateInitialState, revealDestination, claimSeat, advanceStation } from "../gameLogic";
 import { STATIONS, TOTAL_SEATS, MIN_NPCS, MAX_NPCS } from "../constants";
 import { GameState, Seat } from "../types";
 
@@ -446,5 +446,223 @@ describe("claimSeat", () => {
     expect(newState.seats).toEqual(state.seats);
     expect(newState.seats[0].occupant).toBeNull();
     expect(newState.seats[1].occupant!.destinationRevealed).toBe(false);
+  });
+});
+
+describe("advanceStation", () => {
+  const createTestState = (seats: Seat[], overrides: Partial<GameState> = {}): GameState => ({
+    currentStation: 0,
+    playerBoardingStation: 0,
+    playerDestination: 5,
+    playerSeated: false,
+    seatId: null,
+    seats,
+    gameStatus: "playing",
+    ...overrides,
+  });
+
+  describe("station advancement", () => {
+    it("increments currentStation by 1", () => {
+      const seats: Seat[] = [{ id: 0, occupant: null }];
+      const state = createTestState(seats, { currentStation: 0 });
+
+      const newState = advanceStation(state);
+
+      expect(newState.currentStation).toBe(1);
+    });
+
+    it("increments from any station", () => {
+      const seats: Seat[] = [{ id: 0, occupant: null }];
+      const state = createTestState(seats, { currentStation: 3 });
+
+      const newState = advanceStation(state);
+
+      expect(newState.currentStation).toBe(4);
+    });
+  });
+
+  describe("NPC removal", () => {
+    it("removes NPC whose destination equals new station", () => {
+      const seats: Seat[] = [
+        { id: 0, occupant: { id: "npc-0", destination: 1, destinationRevealed: false } },
+        { id: 1, occupant: null },
+      ];
+      const state = createTestState(seats, { currentStation: 0 });
+
+      const newState = advanceStation(state);
+
+      expect(newState.seats[0].occupant).toBeNull();
+    });
+
+    it("removes NPC whose destination is before new station", () => {
+      const seats: Seat[] = [
+        { id: 0, occupant: { id: "npc-0", destination: 1, destinationRevealed: false } },
+        { id: 1, occupant: null },
+      ];
+      const state = createTestState(seats, { currentStation: 1 });
+
+      const newState = advanceStation(state);
+
+      // Station advances to 2, NPC with dest 1 should be removed
+      expect(newState.seats[0].occupant).toBeNull();
+    });
+
+    it("keeps NPC whose destination is after new station", () => {
+      const seats: Seat[] = [
+        { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+        { id: 1, occupant: null },
+      ];
+      const state = createTestState(seats, { currentStation: 0 });
+
+      const newState = advanceStation(state);
+
+      expect(newState.seats[0].occupant).not.toBeNull();
+      expect(newState.seats[0].occupant!.id).toBe("npc-0");
+    });
+
+    it("removes multiple NPCs at same station", () => {
+      const seats: Seat[] = [
+        { id: 0, occupant: { id: "npc-0", destination: 1, destinationRevealed: false } },
+        { id: 1, occupant: { id: "npc-1", destination: 1, destinationRevealed: true } },
+        { id: 2, occupant: { id: "npc-2", destination: 3, destinationRevealed: false } },
+      ];
+      const state = createTestState(seats, { currentStation: 0 });
+
+      const newState = advanceStation(state);
+
+      expect(newState.seats[0].occupant).toBeNull();
+      expect(newState.seats[1].occupant).toBeNull();
+      expect(newState.seats[2].occupant).not.toBeNull();
+    });
+
+    it("clears revealed destination info when NPC exits", () => {
+      const seats: Seat[] = [
+        { id: 0, occupant: { id: "npc-0", destination: 1, destinationRevealed: true } },
+      ];
+      const state = createTestState(seats, { currentStation: 0 });
+
+      const newState = advanceStation(state);
+
+      // NPC is removed, so seat is empty
+      expect(newState.seats[0].occupant).toBeNull();
+    });
+
+    it("keeps empty seats empty", () => {
+      const seats: Seat[] = [
+        { id: 0, occupant: null },
+        { id: 1, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      ];
+      const state = createTestState(seats, { currentStation: 0 });
+
+      const newState = advanceStation(state);
+
+      expect(newState.seats[0].occupant).toBeNull();
+    });
+  });
+
+  describe("game end conditions", () => {
+    it("sets gameStatus to 'won' when player seated at destination", () => {
+      const seats: Seat[] = [{ id: 0, occupant: null }];
+      const state = createTestState(seats, {
+        currentStation: 4,
+        playerDestination: 5,
+        playerSeated: true,
+        seatId: 0,
+      });
+
+      const newState = advanceStation(state);
+
+      expect(newState.gameStatus).toBe("won");
+    });
+
+    it("sets gameStatus to 'lost' when player standing at destination", () => {
+      const seats: Seat[] = [{ id: 0, occupant: null }];
+      const state = createTestState(seats, {
+        currentStation: 4,
+        playerDestination: 5,
+        playerSeated: false,
+      });
+
+      const newState = advanceStation(state);
+
+      expect(newState.gameStatus).toBe("lost");
+    });
+
+    it("keeps gameStatus as 'playing' before destination", () => {
+      const seats: Seat[] = [{ id: 0, occupant: null }];
+      const state = createTestState(seats, {
+        currentStation: 2,
+        playerDestination: 5,
+        playerSeated: false,
+      });
+
+      const newState = advanceStation(state);
+
+      expect(newState.gameStatus).toBe("playing");
+    });
+
+    it("triggers game end when passing destination", () => {
+      const seats: Seat[] = [{ id: 0, occupant: null }];
+      const state = createTestState(seats, {
+        currentStation: 3,
+        playerDestination: 4,
+        playerSeated: true,
+        seatId: 0,
+      });
+
+      const newState = advanceStation(state);
+
+      expect(newState.currentStation).toBe(4);
+      expect(newState.gameStatus).toBe("won");
+    });
+  });
+
+  describe("immutability", () => {
+    it("returns new state object", () => {
+      const seats: Seat[] = [{ id: 0, occupant: null }];
+      const state = createTestState(seats);
+
+      const newState = advanceStation(state);
+
+      expect(newState).not.toBe(state);
+    });
+
+    it("does not mutate original state", () => {
+      const seats: Seat[] = [
+        { id: 0, occupant: { id: "npc-0", destination: 1, destinationRevealed: false } },
+      ];
+      const state = createTestState(seats, { currentStation: 0 });
+
+      advanceStation(state);
+
+      expect(state.currentStation).toBe(0);
+      expect(state.seats[0].occupant).not.toBeNull();
+    });
+
+    it("returns new seats array", () => {
+      const seats: Seat[] = [{ id: 0, occupant: null }];
+      const state = createTestState(seats);
+
+      const newState = advanceStation(state);
+
+      expect(newState.seats).not.toBe(state.seats);
+    });
+
+    it("preserves other state properties", () => {
+      const seats: Seat[] = [{ id: 0, occupant: null }];
+      const state = createTestState(seats, {
+        playerBoardingStation: 1,
+        playerDestination: 5,
+        playerSeated: true,
+        seatId: 0,
+      });
+
+      const newState = advanceStation(state);
+
+      expect(newState.playerBoardingStation).toBe(1);
+      expect(newState.playerDestination).toBe(5);
+      expect(newState.playerSeated).toBe(true);
+      expect(newState.seatId).toBe(0);
+    });
   });
 });
