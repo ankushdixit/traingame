@@ -6,6 +6,21 @@ import { TOTAL_SEATS, MIN_NPCS, MAX_NPCS, STATIONS } from "./constants";
 import { GameState, NPC, Seat } from "./types";
 
 /**
+ * Claims an empty seat for the player.
+ *
+ * @param state - Current game state
+ * @param seatId - ID of the seat to claim
+ * @returns Updated game state with player seated
+ */
+export function claimSeat(state: GameState, seatId: number): GameState {
+  return {
+    ...state,
+    playerSeated: true,
+    seatId: seatId,
+  };
+}
+
+/**
  * Reveals an NPC's destination on a given seat.
  *
  * @param state - Current game state

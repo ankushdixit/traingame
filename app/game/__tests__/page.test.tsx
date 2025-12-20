@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import GamePage from "../page";
+import { GameState } from "@/lib/types";
 
 // Mock useSearchParams
 const mockSearchParams = new Map<string, string>();
@@ -9,7 +10,7 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
-// Mock generateInitialState to return predictable state
+// Mock generateInitialState and claimSeat to return predictable state
 jest.mock("@/lib/gameLogic", () => ({
   generateInitialState: jest.fn((boarding: number, destination: number) => ({
     currentStation: boarding,
@@ -26,6 +27,19 @@ jest.mock("@/lib/gameLogic", () => ({
       { id: 5, occupant: null },
     ],
     gameStatus: "playing" as const,
+  })),
+  revealDestination: jest.fn((state: GameState, seatId: number) => ({
+    ...state,
+    seats: state.seats.map((seat) =>
+      seat.id === seatId && seat.occupant
+        ? { ...seat, occupant: { ...seat.occupant, destinationRevealed: true } }
+        : seat
+    ),
+  })),
+  claimSeat: jest.fn((state: GameState, seatId: number) => ({
+    ...state,
+    playerSeated: true,
+    seatId: seatId,
   })),
 }));
 
@@ -140,6 +154,130 @@ describe("GamePage", () => {
       render(<GamePage />);
 
       expect(screen.getByText(/Invalid game parameters/)).toBeInTheDocument();
+    });
+  });
+
+  describe("claim seat flow", () => {
+    beforeEach(() => {
+      mockSearchParams.set("boarding", "0");
+      mockSearchParams.set("destination", "5");
+    });
+
+    it("shows Claim Seat button when clicking empty seat", () => {
+      render(<GamePage />);
+
+      fireEvent.click(screen.getByTestId("seat-1")); // Empty seat
+
+      expect(screen.getByTestId("claim-seat-button")).toBeInTheDocument();
+      expect(screen.getByTestId("claim-seat-button")).toHaveTextContent("Claim Seat");
+    });
+
+    it("updates player status to seated after claiming seat", () => {
+      render(<GamePage />);
+
+      // Initially standing
+      expect(screen.getByTestId("standing-status")).toBeInTheDocument();
+
+      // Click empty seat and claim it
+      fireEvent.click(screen.getByTestId("seat-1"));
+      fireEvent.click(screen.getByTestId("claim-seat-button"));
+
+      // Now seated
+      expect(screen.getByTestId("seated-status")).toBeInTheDocument();
+      expect(screen.getByTestId("seated-status")).toHaveTextContent("You are seated!");
+    });
+
+    it("shows player seat with 'You' text after claiming", () => {
+      render(<GamePage />);
+
+      fireEvent.click(screen.getByTestId("seat-1"));
+      fireEvent.click(screen.getByTestId("claim-seat-button"));
+
+      expect(screen.getByTestId("seat-1")).toHaveAttribute("data-state", "player");
+      expect(screen.getByText("You")).toBeInTheDocument();
+    });
+
+    it("player seat has distinct styling after claiming", () => {
+      render(<GamePage />);
+
+      fireEvent.click(screen.getByTestId("seat-1"));
+      fireEvent.click(screen.getByTestId("claim-seat-button"));
+
+      expect(screen.getByTestId("seat-1")).toHaveClass("bg-yellow-200");
+      expect(screen.getByTestId("seat-1")).toHaveClass("ring-2");
+      expect(screen.getByTestId("seat-1")).toHaveClass("ring-yellow-400");
+    });
+
+    it("seated player cannot interact with other seats", () => {
+      render(<GamePage />);
+
+      // Claim a seat first
+      fireEvent.click(screen.getByTestId("seat-1"));
+      fireEvent.click(screen.getByTestId("claim-seat-button"));
+
+      // Try to click another empty seat
+      fireEvent.click(screen.getByTestId("seat-3"));
+
+      // Popover should not appear
+      expect(screen.queryByTestId("seat-popover")).not.toBeInTheDocument();
+    });
+
+    it("seated player cannot interact with occupied seats", () => {
+      render(<GamePage />);
+
+      // Claim a seat first
+      fireEvent.click(screen.getByTestId("seat-1"));
+      fireEvent.click(screen.getByTestId("claim-seat-button"));
+
+      // Try to click an occupied seat
+      fireEvent.click(screen.getByTestId("seat-0"));
+
+      // Popover should not appear
+      expect(screen.queryByTestId("seat-popover")).not.toBeInTheDocument();
+    });
+
+    it("other occupied seats remain unchanged after claiming", () => {
+      render(<GamePage />);
+
+      fireEvent.click(screen.getByTestId("seat-1"));
+      fireEvent.click(screen.getByTestId("claim-seat-button"));
+
+      // Occupied seats should still show as occupied
+      expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "occupied");
+      expect(screen.getByTestId("seat-2")).toHaveAttribute("data-state", "occupied");
+      expect(screen.getByTestId("seat-4")).toHaveAttribute("data-state", "occupied");
+    });
+
+    it("other empty seats remain empty after claiming", () => {
+      render(<GamePage />);
+
+      fireEvent.click(screen.getByTestId("seat-1"));
+      fireEvent.click(screen.getByTestId("claim-seat-button"));
+
+      // Other empty seats should still show as empty
+      expect(screen.getByTestId("seat-3")).toHaveAttribute("data-state", "empty");
+      expect(screen.getByTestId("seat-5")).toHaveAttribute("data-state", "empty");
+    });
+
+    it("closes popover after claiming seat", () => {
+      render(<GamePage />);
+
+      fireEvent.click(screen.getByTestId("seat-1"));
+      expect(screen.getByTestId("seat-popover")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId("claim-seat-button"));
+      expect(screen.queryByTestId("seat-popover")).not.toBeInTheDocument();
+    });
+
+    it("seats do not have click cursor when player is seated", () => {
+      render(<GamePage />);
+
+      fireEvent.click(screen.getByTestId("seat-1"));
+      fireEvent.click(screen.getByTestId("claim-seat-button"));
+
+      // Other seats should not have cursor-pointer class
+      expect(screen.getByTestId("seat-0")).not.toHaveClass("cursor-pointer");
+      expect(screen.getByTestId("seat-3")).not.toHaveClass("cursor-pointer");
     });
   });
 });

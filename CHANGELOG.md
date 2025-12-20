@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SeatPopover component for seat interactions (claim seat, ask destination)
 - `revealDestination()` function for immutable game state updates
 - Clickable seats with keyboard accessibility support
+- Claim empty seat action: click empty seats to claim and become seated
+- `claimSeat()` function for claiming seats with immutable state updates
+- Seated player cannot interact with other seats (game simplification for win state)
 
 ### Changed
 

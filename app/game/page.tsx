@@ -6,7 +6,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState, useCallback } from "react";
-import { generateInitialState, revealDestination } from "@/lib/gameLogic";
+import { generateInitialState, revealDestination, claimSeat } from "@/lib/gameLogic";
 import { GameState } from "@/lib/types";
 import { GameHeader } from "@/components/game/GameHeader";
 import { Compartment } from "@/components/game/Compartment";
@@ -43,9 +43,10 @@ export default function GamePage() {
   }, []);
 
   const handleClaimSeat = useCallback((seatId: number) => {
-    // Claim seat functionality will be implemented in a future feature
-    // For now, this is a placeholder that does nothing
-    console.log("Claim seat:", seatId);
+    setGameState((prevState) => {
+      if (!prevState) return null;
+      return claimSeat(prevState, seatId);
+    });
   }, []);
 
   if (gameState === null) {
