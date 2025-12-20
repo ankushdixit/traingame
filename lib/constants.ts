@@ -20,3 +20,10 @@ export type StationName = (typeof STATIONS)[number];
 export function getDestinationOptions(boardingIndex: number): number[] {
   return STATIONS.map((_, i) => i).filter((i) => i > boardingIndex);
 }
+
+/**
+ * Game configuration constants
+ */
+export const TOTAL_SEATS = 6;
+export const MIN_NPCS = 3;
+export const MAX_NPCS = 4;

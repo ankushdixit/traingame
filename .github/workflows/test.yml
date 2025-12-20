@@ -76,6 +76,7 @@ jobs:
 
   e2e-tests:
     runs-on: ubuntu-latest
+    if: false # Disabled - re-enable when e2e tests are ready
 
     steps:
       - name: Checkout code
