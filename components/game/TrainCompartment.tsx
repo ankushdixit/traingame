@@ -1,13 +1,22 @@
 /**
  * TrainCompartment component - themed Mumbai local train compartment wrapper
  * Provides the train interior visual context for the game
+ * Matches single-shot design with stone gradient frame
+ * Layout: Window -> Top Seats -> Aisle -> Bottom Seats -> Status Bar
  */
 
 import { ReactNode } from "react";
 import { TrainInterior } from "./TrainInterior";
 
 interface TrainCompartmentProps {
-  children: ReactNode;
+  /** Top row of seats */
+  topRow: ReactNode;
+  /** Standing area / aisle */
+  standingArea: ReactNode;
+  /** Bottom row of seats */
+  bottomRow: ReactNode;
+  /** Status bar */
+  statusBar: ReactNode;
   /** Current station index - used to trigger scenery animation */
   currentStation?: number;
   /** Whether the train is currently shaking (station transition) */
@@ -15,22 +24,38 @@ interface TrainCompartmentProps {
 }
 
 export function TrainCompartment({
-  children,
+  topRow,
+  standingArea,
+  bottomRow,
+  statusBar,
   currentStation,
   isShaking = false,
 }: TrainCompartmentProps) {
   return (
     <div
-      className={`relative min-h-[400px] w-full max-w-2xl overflow-hidden rounded-lg border-4 border-train-maroon bg-train-cream p-6 shadow-xl ${
+      className={`bg-gradient-to-b from-stone-300 to-stone-400 rounded-2xl p-4 shadow-xl border-4 border-stone-500 ${
         isShaking ? "animate-train-shake" : ""
       }`}
       data-testid="train-compartment"
     >
-      {/* Interior elements (ceiling, poles, window, floor) */}
-      <TrainInterior stationKey={currentStation} />
+      {/* Interior elements (window, grab handles) */}
+      <TrainInterior stationKey={currentStation} isMoving={isShaking} />
 
-      {/* Main content area - seats and standing area */}
-      <div className="relative z-10 mt-16 mb-6 px-8">{children}</div>
+      {/* Top row of seats with amber background */}
+      <div className="bg-gradient-to-b from-amber-100 to-amber-200 rounded-xl p-4 border-2 border-amber-300">
+        {topRow}
+      </div>
+
+      {/* Standing Area / Aisle - in the middle */}
+      <div className="my-3">{standingArea}</div>
+
+      {/* Bottom row of seats with amber background */}
+      <div className="bg-gradient-to-b from-amber-100 to-amber-200 rounded-xl p-4 border-2 border-amber-300">
+        {bottomRow}
+      </div>
+
+      {/* Status Bar */}
+      {statusBar}
     </div>
   );
 }

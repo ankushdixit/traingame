@@ -7,7 +7,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { Compartment } from "@/components/game/Compartment";
 import { GameHeader } from "@/components/game/GameHeader";
-import { PlayerStatus } from "@/components/game/PlayerStatus";
 import { generateInitialState, revealDestination } from "@/lib/gameLogic";
 import { STATIONS } from "@/lib/constants";
 
@@ -42,14 +41,16 @@ describe("Game View Integration", () => {
             currentStation={state.currentStation}
             playerDestination={state.playerDestination}
             difficulty={state.difficulty}
+            playerSeated={state.playerSeated}
           />
           <Compartment
             seats={state.seats}
             playerSeatId={state.seatId}
             isPlayerSeated={state.playerSeated}
+            standingArea={<div>Aisle</div>}
+            statusBar={<div>Status</div>}
             {...defaultHandlers}
           />
-          <PlayerStatus isSeated={state.playerSeated} />
         </>
       );
 
@@ -63,9 +64,9 @@ describe("Game View Integration", () => {
         expect(screen.getByTestId(`seat-${i}`)).toBeInTheDocument();
       }
 
-      // Player status is rendered
+      // Player status is shown in header
       expect(screen.getByTestId("player-status")).toBeInTheDocument();
-      expect(screen.getByTestId("standing-status")).toBeInTheDocument();
+      expect(screen.getByTestId("player-status")).toHaveTextContent(/Standing/);
     });
 
     it("correctly reflects occupied seats from generated state", () => {
@@ -76,6 +77,8 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={state.seatId}
           isPlayerSeated={state.playerSeated}
+          standingArea={<div>Aisle</div>}
+          statusBar={<div>Status</div>}
           {...defaultHandlers}
         />
       );
@@ -118,13 +121,20 @@ describe("Game View Integration", () => {
 
       render(
         <>
+          <GameHeader
+            currentStation={seatedState.currentStation}
+            playerDestination={seatedState.playerDestination}
+            difficulty={seatedState.difficulty}
+            playerSeated={seatedState.playerSeated}
+          />
           <Compartment
             seats={seatedState.seats}
             playerSeatId={seatedState.seatId}
             isPlayerSeated={seatedState.playerSeated}
+            standingArea={<div>Aisle</div>}
+            statusBar={<div>Status</div>}
             {...defaultHandlers}
           />
-          <PlayerStatus isSeated={seatedState.playerSeated} />
         </>
       );
 
@@ -132,7 +142,7 @@ describe("Game View Integration", () => {
       expect(screen.getByTestId(`seat-${emptySeat!.id}`)).toHaveAttribute("data-state", "player");
 
       // Player status should show seated
-      expect(screen.getByTestId("seated-status")).toHaveTextContent("You are seated!");
+      expect(screen.getByTestId("player-status")).toHaveTextContent(/Seated/);
     });
 
     it("revealed destination shows different state", () => {
@@ -153,6 +163,8 @@ describe("Game View Integration", () => {
           seats={revealedSeats}
           playerSeatId={null}
           isPlayerSeated={false}
+          standingArea={<div>Aisle</div>}
+          statusBar={<div>Status</div>}
           {...defaultHandlers}
         />
       );
@@ -166,30 +178,25 @@ describe("Game View Integration", () => {
 
   describe("header accuracy with various boarding stations", () => {
     it.each([
-      [0, 5, "Churchgate", "Next: Marine Lines", "Dadar", 5],
-      [1, 5, "Marine Lines", "Next: Charni Road", "Dadar", 4],
-      [2, 5, "Charni Road", "Next: Grant Road", "Dadar", 3],
-      [3, 5, "Grant Road", "Next: Mumbai Central", "Dadar", 2],
-      [4, 5, "Mumbai Central", "Final: Dadar", "Dadar", 1],
+      [0, 5, "Churchgate"],
+      [1, 5, "Marine Lines"],
+      [2, 5, "Charni Road"],
+      [3, 5, "Grant Road"],
+      [4, 5, "Mumbai Central"],
     ])(
-      "displays correct info for boarding=%i, destination=%i",
-      (boarding, destination, expectedCurrent, expectedNext, expectedDest, expectedRemaining) => {
+      "displays correct current station for boarding=%i, destination=%i",
+      (boarding, destination, expectedCurrent) => {
         render(
           <GameHeader
             currentStation={boarding}
             playerDestination={destination}
             difficulty="normal"
+            playerSeated={false}
           />
         );
 
         expect(screen.getByTestId("current-station")).toHaveTextContent(expectedCurrent);
-        expect(screen.getByTestId("next-station")).toHaveTextContent(expectedNext);
-        expect(screen.getByTestId("destination")).toHaveTextContent(
-          `Your destination: ${expectedDest}`
-        );
-        expect(screen.getByTestId("remaining-stations")).toHaveTextContent(
-          `${expectedRemaining} station`
-        );
+        expect(screen.getByTestId("player-status")).toHaveTextContent(/Standing/);
       }
     );
   });
@@ -206,14 +213,16 @@ describe("Game View Integration", () => {
               currentStation={state.currentStation}
               playerDestination={state.playerDestination}
               difficulty={state.difficulty}
+              playerSeated={state.playerSeated}
             />
             <Compartment
               seats={state.seats}
               playerSeatId={state.seatId}
               isPlayerSeated={state.playerSeated}
+              standingArea={<div>Aisle</div>}
+              statusBar={<div>Status</div>}
               {...defaultHandlers}
             />
-            <PlayerStatus isSeated={state.playerSeated} />
           </>
         );
 
@@ -244,6 +253,8 @@ describe("Game View Integration", () => {
           playerSeatId={null}
           isPlayerSeated={false}
           hoveredSeatId={null}
+          standingArea={<div>Aisle</div>}
+          statusBar={<div>Status</div>}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
           onHoverNear={jest.fn()}
@@ -272,6 +283,8 @@ describe("Game View Integration", () => {
           playerSeatId={null}
           isPlayerSeated={false}
           hoveredSeatId={null}
+          standingArea={<div>Aisle</div>}
+          statusBar={<div>Status</div>}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
           onHoverNear={jest.fn()}
@@ -305,6 +318,8 @@ describe("Game View Integration", () => {
           playerSeatId={null}
           isPlayerSeated={false}
           hoveredSeatId={null}
+          standingArea={<div>Aisle</div>}
+          statusBar={<div>Status</div>}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
           onHoverNear={jest.fn()}
@@ -321,6 +336,8 @@ describe("Game View Integration", () => {
           playerSeatId={null}
           isPlayerSeated={false}
           hoveredSeatId={null}
+          standingArea={<div>Aisle</div>}
+          statusBar={<div>Status</div>}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
           onHoverNear={jest.fn()}
@@ -340,6 +357,8 @@ describe("Game View Integration", () => {
           playerSeatId={null}
           isPlayerSeated={false}
           hoveredSeatId={null}
+          standingArea={<div>Aisle</div>}
+          statusBar={<div>Status</div>}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
           onHoverNear={jest.fn()}
@@ -369,6 +388,8 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={null}
           isPlayerSeated={false}
+          standingArea={<div>Aisle</div>}
+          statusBar={<div>Status</div>}
           {...defaultHandlers}
         />
       );

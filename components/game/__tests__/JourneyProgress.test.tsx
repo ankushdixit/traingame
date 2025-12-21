@@ -53,12 +53,6 @@ describe("JourneyProgress", () => {
       );
     });
 
-    it("renders track line", () => {
-      render(<JourneyProgress {...defaultProps} />);
-
-      expect(screen.getByTestId("track-line")).toBeInTheDocument();
-    });
-
     it("renders progress line", () => {
       render(<JourneyProgress {...defaultProps} />);
 
@@ -66,19 +60,19 @@ describe("JourneyProgress", () => {
     });
   });
 
-  describe("station marker count", () => {
-    it("renders correct number of station markers for 6 stations", () => {
+  describe("station dot count", () => {
+    it("renders correct number of station dots for 6 stations", () => {
       render(<JourneyProgress {...defaultProps} />);
 
-      const markers = screen.getAllByTestId("station-marker");
-      expect(markers).toHaveLength(6);
+      const dots = screen.getAllByTestId(/^station-dot-\d+$/);
+      expect(dots).toHaveLength(6);
     });
 
-    it("renders correct number of station markers for 15 stations", () => {
+    it("renders correct number of station dots for 15 stations", () => {
       render(<JourneyProgress {...defaultProps} stations={LONG_STATIONS} destination={14} />);
 
-      const markers = screen.getAllByTestId("station-marker");
-      expect(markers).toHaveLength(15);
+      const dots = screen.getAllByTestId(/^station-dot-\d+$/);
+      expect(dots).toHaveLength(15);
     });
   });
 
@@ -86,17 +80,15 @@ describe("JourneyProgress", () => {
     it("highlights first station when current is 0", () => {
       render(<JourneyProgress {...defaultProps} currentStation={0} />);
 
-      const markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[0]).toHaveAttribute("data-current", "true");
+      const dot = screen.getByTestId("station-dot-0");
+      expect(dot).toHaveClass("bg-blue-500");
     });
 
     it("highlights correct station when current is 3", () => {
       render(<JourneyProgress {...defaultProps} currentStation={3} />);
 
-      const markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[3]).toHaveAttribute("data-current", "true");
-      expect(markerDots[0]).toHaveAttribute("data-current", "false");
-      expect(markerDots[5]).toHaveAttribute("data-current", "false");
+      const dot = screen.getByTestId("station-dot-3");
+      expect(dot).toHaveClass("bg-blue-500");
     });
   });
 
@@ -104,16 +96,15 @@ describe("JourneyProgress", () => {
     it("marks destination station correctly", () => {
       render(<JourneyProgress {...defaultProps} destination={5} />);
 
-      const markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[5]).toHaveAttribute("data-destination", "true");
+      const dot = screen.getByTestId("station-dot-5");
+      expect(dot).toHaveClass("bg-red-500");
     });
 
     it("marks different destination correctly", () => {
       render(<JourneyProgress {...defaultProps} destination={3} />);
 
-      const markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[3]).toHaveAttribute("data-destination", "true");
-      expect(markerDots[5]).toHaveAttribute("data-destination", "false");
+      const dot = screen.getByTestId("station-dot-3");
+      expect(dot).toHaveClass("bg-red-500");
     });
   });
 
@@ -121,22 +112,21 @@ describe("JourneyProgress", () => {
     it("marks no stations as passed when at first station", () => {
       render(<JourneyProgress {...defaultProps} currentStation={0} />);
 
-      const markerDots = screen.getAllByTestId("marker-dot");
-      markerDots.forEach((dot) => {
-        expect(dot).toHaveAttribute("data-passed", "false");
-      });
+      const dot1 = screen.getByTestId("station-dot-1");
+      expect(dot1).not.toHaveClass("bg-emerald-500");
     });
 
     it("marks previous stations as passed when at station 3", () => {
       render(<JourneyProgress {...defaultProps} currentStation={3} />);
 
-      const markerDots = screen.getAllByTestId("marker-dot");
-      // Stations 0, 1, 2 should be passed
-      expect(markerDots[0]).toHaveAttribute("data-passed", "true");
-      expect(markerDots[1]).toHaveAttribute("data-passed", "true");
-      expect(markerDots[2]).toHaveAttribute("data-passed", "true");
-      // Station 3 (current) should not be passed
-      expect(markerDots[3]).toHaveAttribute("data-passed", "false");
+      // Stations 0, 1, 2 should be passed (emerald)
+      const dot0 = screen.getByTestId("station-dot-0");
+      const dot1 = screen.getByTestId("station-dot-1");
+      const dot2 = screen.getByTestId("station-dot-2");
+
+      expect(dot0).toHaveClass("bg-emerald-500");
+      expect(dot1).toHaveClass("bg-emerald-500");
+      expect(dot2).toHaveClass("bg-emerald-500");
     });
   });
 
@@ -155,10 +145,7 @@ describe("JourneyProgress", () => {
       expect(progressLine).toHaveStyle({ width: "100%" });
     });
 
-    it("has 50% width when at middle station (3 of 6)", () => {
-      // With 6 stations (0-5), station 3 is at 60% (3/5)
-      // But for clarity, let's test station 2.5 which would be 50%
-      // Actually station 2 would be 2/5 = 40%, station 3 = 60%
+    it("has 60% width when at station 3 of 6", () => {
       render(<JourneyProgress {...defaultProps} currentStation={3} />);
 
       const progressLine = screen.getByTestId("progress-line");
@@ -167,61 +154,52 @@ describe("JourneyProgress", () => {
   });
 
   describe("urgency indicator", () => {
-    it("does not show urgency when more than 1 station away", () => {
+    it("does not apply pulse animation when more than 1 station away", () => {
       render(<JourneyProgress {...defaultProps} currentStation={3} destination={5} />);
 
-      expect(screen.queryByTestId("urgency-message")).not.toBeInTheDocument();
-
-      const markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[5]).toHaveAttribute("data-urgent", "false");
+      const currentDot = screen.getByTestId("station-dot-3");
+      expect(currentDot).not.toHaveClass("animate-pulse");
     });
 
-    it("shows urgency when exactly 1 station away", () => {
+    it("applies pulse animation when exactly 1 station away", () => {
       render(<JourneyProgress {...defaultProps} currentStation={4} destination={5} />);
 
-      expect(screen.getByTestId("urgency-message")).toBeInTheDocument();
-      expect(screen.getByTestId("urgency-message")).toHaveTextContent(
-        "Next stop is your destination!"
-      );
-    });
-
-    it("applies urgent styling to destination marker when 1 station away", () => {
-      render(<JourneyProgress {...defaultProps} currentStation={4} destination={5} />);
-
-      const markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[5]).toHaveAttribute("data-urgent", "true");
+      const currentDot = screen.getByTestId("station-dot-4");
+      expect(currentDot).toHaveClass("animate-pulse");
     });
 
     it("does not show urgency when at destination", () => {
       render(<JourneyProgress {...defaultProps} currentStation={5} destination={5} />);
 
-      expect(screen.queryByTestId("urgency-message")).not.toBeInTheDocument();
+      const currentDot = screen.getByTestId("station-dot-5");
+      expect(currentDot).not.toHaveClass("animate-pulse");
     });
   });
 
   describe("station labels", () => {
-    it("shows label for current station", () => {
+    it("shows all station names", () => {
+      render(<JourneyProgress {...defaultProps} />);
+
+      expect(screen.getByText("Churchgate")).toBeInTheDocument();
+      expect(screen.getByText("Marine Lines")).toBeInTheDocument();
+      expect(screen.getByText("Charni Road")).toBeInTheDocument();
+      expect(screen.getByText("Grant Road")).toBeInTheDocument();
+      expect(screen.getByText("Mumbai Central")).toBeInTheDocument();
+      expect(screen.getByText("Dadar")).toBeInTheDocument();
+    });
+
+    it("highlights current station label", () => {
       render(<JourneyProgress {...defaultProps} currentStation={2} />);
 
-      const labels = screen.getAllByTestId("station-label");
-      const labelTexts = labels.map((label) => label.textContent);
-      expect(labelTexts).toContain("Charni Road");
+      const charniRoad = screen.getByText("Charni Road");
+      expect(charniRoad).toHaveClass("text-blue-600", "font-bold");
     });
 
-    it("shows label for destination station", () => {
+    it("highlights destination station label", () => {
       render(<JourneyProgress {...defaultProps} destination={5} />);
 
-      const labels = screen.getAllByTestId("station-label");
-      const labelTexts = labels.map((label) => label.textContent);
-      expect(labelTexts).toContain("Dadar");
-    });
-
-    it("shows label for boarding station", () => {
-      render(<JourneyProgress {...defaultProps} currentStation={3} boardingStation={0} />);
-
-      const labels = screen.getAllByTestId("station-label");
-      const labelTexts = labels.map((label) => label.textContent);
-      expect(labelTexts).toContain("Churchgate");
+      const dadar = screen.getByText("Dadar");
+      expect(dadar).toHaveClass("text-red-600", "font-bold");
     });
   });
 
@@ -229,8 +207,8 @@ describe("JourneyProgress", () => {
     it("renders correctly with 6 station journey", () => {
       render(<JourneyProgress {...defaultProps} />);
 
-      const markers = screen.getAllByTestId("station-marker");
-      expect(markers).toHaveLength(6);
+      const dots = screen.getAllByTestId(/^station-dot-\d+$/);
+      expect(dots).toHaveLength(6);
     });
 
     it("renders correctly with 15 station journey", () => {
@@ -243,17 +221,21 @@ describe("JourneyProgress", () => {
         />
       );
 
-      const markers = screen.getAllByTestId("station-marker");
-      expect(markers).toHaveLength(15);
+      const dots = screen.getAllByTestId(/^station-dot-\d+$/);
+      expect(dots).toHaveLength(15);
 
-      const markerDots = screen.getAllByTestId("marker-dot");
       // Verify current station
-      expect(markerDots[7]).toHaveAttribute("data-current", "true");
+      const currentDot = screen.getByTestId("station-dot-7");
+      expect(currentDot).toHaveClass("bg-blue-500");
+
       // Verify destination
-      expect(markerDots[14]).toHaveAttribute("data-destination", "true");
+      const destinationDot = screen.getByTestId("station-dot-14");
+      expect(destinationDot).toHaveClass("bg-red-500");
+
       // Verify passed stations
       for (let i = 0; i < 7; i++) {
-        expect(markerDots[i]).toHaveAttribute("data-passed", "true");
+        const passedDot = screen.getByTestId(`station-dot-${i}`);
+        expect(passedDot).toHaveClass("bg-emerald-500");
       }
     });
 
@@ -262,10 +244,12 @@ describe("JourneyProgress", () => {
         <JourneyProgress {...defaultProps} boardingStation={0} currentStation={0} destination={1} />
       );
 
-      const markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[0]).toHaveAttribute("data-current", "true");
-      expect(markerDots[1]).toHaveAttribute("data-destination", "true");
-      expect(markerDots[1]).toHaveAttribute("data-urgent", "true");
+      const currentDot = screen.getByTestId("station-dot-0");
+      expect(currentDot).toHaveClass("bg-blue-500");
+      expect(currentDot).toHaveClass("animate-pulse"); // 1 station away from destination
+
+      const destinationDot = screen.getByTestId("station-dot-1");
+      expect(destinationDot).toHaveClass("bg-red-500");
     });
   });
 
@@ -273,10 +257,9 @@ describe("JourneyProgress", () => {
     it("handles current station at destination", () => {
       render(<JourneyProgress {...defaultProps} currentStation={5} destination={5} />);
 
-      const markerDots = screen.getAllByTestId("marker-dot");
-      // Should be both current and destination
-      expect(markerDots[5]).toHaveAttribute("data-current", "true");
-      expect(markerDots[5]).toHaveAttribute("data-destination", "true");
+      const dot = screen.getByTestId("station-dot-5");
+      // Current station takes precedence in styling
+      expect(dot).toHaveClass("bg-blue-500");
     });
 
     it("handles second-to-last station as boarding station", () => {
@@ -284,9 +267,47 @@ describe("JourneyProgress", () => {
         <JourneyProgress {...defaultProps} boardingStation={4} currentStation={4} destination={5} />
       );
 
-      const markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[4]).toHaveAttribute("data-current", "true");
-      expect(markerDots[5]).toHaveAttribute("data-urgent", "true");
+      const currentDot = screen.getByTestId("station-dot-4");
+      expect(currentDot).toHaveClass("bg-blue-500");
+      expect(currentDot).toHaveClass("animate-pulse"); // 1 station away
+    });
+  });
+
+  describe("station icons", () => {
+    it("shows train icon on current station", () => {
+      render(<JourneyProgress {...defaultProps} currentStation={2} />);
+
+      const dot = screen.getByTestId("station-dot-2");
+      expect(dot).toHaveTextContent("🚃");
+    });
+
+    it("shows flag icon on destination station when not current", () => {
+      render(<JourneyProgress {...defaultProps} currentStation={2} destination={5} />);
+
+      const dot = screen.getByTestId("station-dot-5");
+      expect(dot).toHaveTextContent("🚩");
+    });
+
+    it("shows train icon (not flag) when current station is destination", () => {
+      render(<JourneyProgress {...defaultProps} currentStation={5} destination={5} />);
+
+      const dot = screen.getByTestId("station-dot-5");
+      expect(dot).toHaveTextContent("🚃");
+      expect(dot).not.toHaveTextContent("🚩");
+    });
+  });
+
+  describe("boarding indicator", () => {
+    it("shows Start indicator at boarding station", () => {
+      render(<JourneyProgress {...defaultProps} boardingStation={0} />);
+
+      expect(screen.getByText("📍 Start")).toBeInTheDocument();
+    });
+
+    it("shows Start indicator at non-zero boarding station", () => {
+      render(<JourneyProgress {...defaultProps} boardingStation={2} currentStation={3} />);
+
+      expect(screen.getByText("📍 Start")).toBeInTheDocument();
     });
   });
 });

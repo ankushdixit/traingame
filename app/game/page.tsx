@@ -21,10 +21,10 @@ import { useSound } from "@/contexts/SoundContext";
 import { GameHeader } from "@/components/game/GameHeader";
 import { JourneyProgress } from "@/components/game/JourneyProgress";
 import { Compartment } from "@/components/game/Compartment";
-import { PlayerStatus } from "@/components/game/PlayerStatus";
 import { NextStationButton } from "@/components/game/NextStationButton";
 import { GameEndModal } from "@/components/game/GameEndModal";
 import { StandingArea } from "@/components/game/StandingArea";
+import { GameStatusBar } from "@/components/game/GameStatusBar";
 
 // Animation phase total duration in ms (must match useTransitionController phases)
 // shaking(2500) + departing(400) + claiming(200) + settling(100) = 3200ms
@@ -168,23 +168,37 @@ export default function GamePage() {
 
   if (gameState === null) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-red-600">Invalid game parameters. Please select stations first.</p>
+      <div className="min-h-screen bg-gradient-to-b from-stone-100 to-stone-200 flex items-center justify-center">
+        <div className="bg-white rounded-xl p-6 shadow-lg text-center">
+          <p className="text-red-600 font-medium">Invalid game parameters.</p>
+          <p className="text-stone-500 text-sm mt-2">Please select stations first.</p>
+          <button
+            onClick={() => router.push("/")}
+            className="mt-4 px-4 py-2 bg-amber-400 text-white rounded-lg font-medium hover:bg-amber-500 transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     );
   }
 
   const isGameOver = gameState.gameStatus !== "playing";
+  const emptySeatsCount = gameState.seats.filter((s) => s.occupant === null).length;
+  const stopsRemaining = gameState.playerDestination - gameState.currentStation;
 
   return (
-    <>
-      <main className="flex min-h-screen flex-col items-center gap-6 p-8">
-        <GameHeader
-          currentStation={gameState.currentStation}
-          playerDestination={gameState.playerDestination}
-          difficulty={gameState.difficulty}
-        />
+    <div className="min-h-screen bg-gradient-to-b from-stone-100 to-stone-200 relative">
+      {/* Header Bar */}
+      <GameHeader
+        currentStation={gameState.currentStation}
+        playerDestination={gameState.playerDestination}
+        playerSeated={gameState.playerSeated}
+        difficulty={gameState.difficulty}
+      />
 
+      {/* Journey Progress */}
+      <div className="max-w-2xl mx-auto bg-white shadow-md">
         <JourneyProgress
           stations={STATIONS}
           currentStation={gameState.currentStation}
@@ -192,7 +206,10 @@ export default function GamePage() {
           boardingStation={gameState.playerBoardingStation}
           isAnimating={isAnimating}
         />
+      </div>
 
+      {/* Main Game Area */}
+      <div className="max-w-2xl mx-auto p-4">
         <Compartment
           seats={gameState.seats}
           playerSeatId={gameState.seatId}
@@ -204,16 +221,25 @@ export default function GamePage() {
           onRevealDestination={handleRevealDestination}
           onClaimSeat={handleClaimSeat}
           onHoverNear={handleHoverNear}
+          standingArea={
+            <StandingArea
+              standingNPCs={gameState.standingNPCs}
+              lastClaimMessage={gameState.lastClaimMessage}
+              transitionState={transitionState}
+              isPlayerSeated={gameState.playerSeated}
+              playerStandingSpot={gameState.playerStandingSpot}
+            />
+          }
+          statusBar={
+            <GameStatusBar
+              emptySeatsCount={emptySeatsCount}
+              standingNPCsCount={gameState.standingNPCs.length}
+              stopsRemaining={stopsRemaining}
+            />
+          }
         />
 
-        <StandingArea
-          standingNPCs={gameState.standingNPCs}
-          lastClaimMessage={gameState.lastClaimMessage}
-          transitionState={transitionState}
-        />
-
-        <PlayerStatus isSeated={gameState.playerSeated} />
-
+        {/* Next Station Button */}
         {!isGameOver && (
           <NextStationButton
             currentStation={gameState.currentStation}
@@ -221,8 +247,17 @@ export default function GamePage() {
             disabled={isAnimating}
           />
         )}
-      </main>
 
+        {/* Back to Menu */}
+        <button
+          onClick={handlePlayAgain}
+          className="mt-3 w-full py-2 text-stone-500 hover:text-stone-700 font-medium transition-colors"
+        >
+          ← Back to Menu
+        </button>
+      </div>
+
+      {/* Game End Modal */}
       {isGameOver && (
         <GameEndModal
           status={gameState.gameStatus as "won" | "lost"}
@@ -233,6 +268,6 @@ export default function GamePage() {
           onPlayAgain={handlePlayAgain}
         />
       )}
-    </>
+    </div>
   );
 }

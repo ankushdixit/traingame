@@ -9,17 +9,11 @@ interface DifficultySelectorProps {
 }
 
 export function DifficultySelector({ value, onChange }: DifficultySelectorProps) {
-  const selectedOption = DIFFICULTY_OPTIONS.find((o) => o.value === value);
-
   return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium">Difficulty</label>
+    <div className="flex flex-col gap-3">
+      <label className="text-sm font-semibold text-stone-700">Difficulty</label>
 
-      <div
-        className="flex overflow-hidden rounded-lg border border-gray-300"
-        role="radiogroup"
-        aria-label="Difficulty selection"
-      >
+      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Difficulty selection">
         {DIFFICULTY_OPTIONS.map((option) => (
           <button
             key={option.value}
@@ -30,21 +24,18 @@ export function DifficultySelector({ value, onChange }: DifficultySelectorProps)
             data-testid={`difficulty-${option.value}`}
             data-state={value === option.value ? "selected" : "unselected"}
             className={cn(
-              "flex-1 px-4 py-2 text-sm font-medium transition-colors",
-              "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset",
+              "p-3 rounded-xl border-2 transition-all text-center",
               value === option.value
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-50"
+                ? "border-amber-400 bg-amber-50 shadow-md"
+                : "border-stone-200 hover:border-stone-300 bg-white"
             )}
           >
-            {option.label}
+            <div className="text-2xl mb-1">{option.emoji}</div>
+            <div className="font-semibold text-sm text-stone-800">{option.label}</div>
+            <div className="text-xs text-stone-500 mt-1 leading-tight">{option.description}</div>
           </button>
         ))}
       </div>
-
-      <p className="text-sm text-gray-500" data-testid="difficulty-description">
-        {selectedOption?.description}
-      </p>
     </div>
   );
 }

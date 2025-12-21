@@ -339,6 +339,7 @@ describe("revealDestination", () => {
     playerDestination: 5,
     playerSeated: false,
     seatId: null,
+    playerStandingSpot: 0,
     seats,
     gameStatus: "playing",
     standingNPCs: [],
@@ -460,6 +461,7 @@ describe("revealDestination", () => {
       playerDestination: 5,
       playerSeated: true,
       seatId: 1,
+      playerStandingSpot: 0,
       seats,
       gameStatus: "playing",
       standingNPCs: [],
@@ -501,6 +503,7 @@ describe("claimSeat", () => {
     playerDestination: 5,
     playerSeated: false,
     seatId: null,
+    playerStandingSpot: 0,
     seats,
     gameStatus: "playing",
     standingNPCs: [],
@@ -569,6 +572,7 @@ describe("claimSeat", () => {
       playerDestination: 5,
       playerSeated: false,
       seatId: null,
+      playerStandingSpot: 0,
       seats,
       gameStatus: "playing",
       standingNPCs: [],
@@ -623,6 +627,7 @@ describe("advanceStation", () => {
     playerDestination: 5,
     playerSeated: false,
     seatId: null,
+    playerStandingSpot: 0,
     seats,
     gameStatus: "playing",
     standingNPCs: [],
@@ -955,6 +960,29 @@ describe("generateStandingNPCs", () => {
         });
       }
     });
+
+    it("assigns standingSpot between 0 and 5", () => {
+      const npcs = generateStandingNPCs("rush");
+      npcs.forEach((npc) => {
+        expect(npc.standingSpot).toBeGreaterThanOrEqual(0);
+        expect(npc.standingSpot).toBeLessThanOrEqual(5);
+      });
+    });
+
+    it("assigns unique standingSpots to each NPC", () => {
+      const npcs = generateStandingNPCs("rush");
+      const spots = npcs.map((npc) => npc.standingSpot);
+      const uniqueSpots = new Set(spots);
+      expect(uniqueSpots.size).toBe(spots.length);
+    });
+
+    it("respects reserved spots", () => {
+      const reservedSpots = [0, 2, 4];
+      const npcs = generateStandingNPCs("rush", reservedSpots);
+      npcs.forEach((npc) => {
+        expect(reservedSpots).not.toContain(npc.standingSpot);
+      });
+    });
   });
 });
 
@@ -1004,6 +1032,23 @@ describe("generateInitialState standing NPCs", () => {
     const state = generateInitialState(0, 5, "normal");
     expect(state.lastClaimMessage).toBeNull();
   });
+
+  it("assigns playerStandingSpot between 0 and 5", () => {
+    for (let i = 0; i < 20; i++) {
+      const state = generateInitialState(0, 5, "normal");
+      expect(state.playerStandingSpot).toBeGreaterThanOrEqual(0);
+      expect(state.playerStandingSpot).toBeLessThanOrEqual(5);
+    }
+  });
+
+  it("standing NPCs do not occupy player's standing spot", () => {
+    for (let i = 0; i < 20; i++) {
+      const state = generateInitialState(0, 5, "rush");
+      state.standingNPCs.forEach((npc) => {
+        expect(npc.standingSpot).not.toBe(state.playerStandingSpot);
+      });
+    }
+  });
 });
 
 describe("setHoveredSeat", () => {
@@ -1013,6 +1058,7 @@ describe("setHoveredSeat", () => {
     playerDestination: 5,
     playerSeated: false,
     seatId: null,
+    playerStandingSpot: 0,
     seats: [{ id: 0, occupant: null }],
     gameStatus: "playing",
     standingNPCs: [],
@@ -1066,6 +1112,7 @@ describe("processStandingNPCClaims", () => {
     playerDestination: 5,
     playerSeated: false,
     seatId: null,
+    playerStandingSpot: 0,
     seats: [
       { id: 0, occupant: null },
       { id: 1, occupant: null },
@@ -1076,7 +1123,13 @@ describe("processStandingNPCClaims", () => {
     ],
     gameStatus: "playing",
     standingNPCs: [
-      { id: "standing-0", targetSeatId: null, claimPriority: 0.5, characterSprite: 0 },
+      {
+        id: "standing-0",
+        targetSeatId: null,
+        claimPriority: 0.5,
+        characterSprite: 0,
+        standingSpot: 1,
+      },
     ],
     hoveredSeatId: null,
     difficulty: "rush", // High claim chance
@@ -1183,8 +1236,20 @@ describe("processStandingNPCClaims", () => {
       jest.spyOn(Math, "random").mockReturnValue(0.1);
 
       const standingNPCs: StandingNPC[] = [
-        { id: "standing-0", targetSeatId: null, claimPriority: 0.5, characterSprite: 0 },
-        { id: "standing-1", targetSeatId: null, claimPriority: 0.5, characterSprite: 1 },
+        {
+          id: "standing-0",
+          targetSeatId: null,
+          claimPriority: 0.5,
+          characterSprite: 0,
+          standingSpot: 1,
+        },
+        {
+          id: "standing-1",
+          targetSeatId: null,
+          claimPriority: 0.5,
+          characterSprite: 1,
+          standingSpot: 2,
+        },
       ];
       const state = createTestState({ standingNPCs });
       const newlyEmptySeats = [0];
@@ -1201,8 +1266,20 @@ describe("processStandingNPCClaims", () => {
       jest.spyOn(Math, "random").mockReturnValue(0.1);
 
       const standingNPCs: StandingNPC[] = [
-        { id: "standing-0", targetSeatId: null, claimPriority: 0.5, characterSprite: 0 },
-        { id: "standing-1", targetSeatId: null, claimPriority: 0.5, characterSprite: 1 },
+        {
+          id: "standing-0",
+          targetSeatId: null,
+          claimPriority: 0.5,
+          characterSprite: 0,
+          standingSpot: 1,
+        },
+        {
+          id: "standing-1",
+          targetSeatId: null,
+          claimPriority: 0.5,
+          characterSprite: 1,
+          standingSpot: 2,
+        },
       ];
       const state = createTestState({ standingNPCs });
       const newlyEmptySeats = [0, 1]; // Two empty seats
@@ -1317,6 +1394,7 @@ describe("advanceStation with standing NPCs", () => {
     playerDestination: 5,
     playerSeated: false,
     seatId: null,
+    playerStandingSpot: 0,
     seats: [
       {
         id: 0,
@@ -1326,7 +1404,13 @@ describe("advanceStation with standing NPCs", () => {
     ],
     gameStatus: "playing",
     standingNPCs: [
-      { id: "standing-0", targetSeatId: null, claimPriority: 0.5, characterSprite: 0 },
+      {
+        id: "standing-0",
+        targetSeatId: null,
+        claimPriority: 0.5,
+        characterSprite: 0,
+        standingSpot: 1,
+      },
     ],
     hoveredSeatId: null,
     difficulty: "rush",
@@ -1386,6 +1470,7 @@ describe("previewStationAdvance", () => {
     playerDestination: 5,
     playerSeated: false,
     seatId: null,
+    playerStandingSpot: 0,
     seats: [
       {
         id: 0,
@@ -1405,7 +1490,13 @@ describe("previewStationAdvance", () => {
     ],
     gameStatus: "playing",
     standingNPCs: [
-      { id: "standing-0", targetSeatId: null, claimPriority: 0.5, characterSprite: 3 },
+      {
+        id: "standing-0",
+        targetSeatId: null,
+        claimPriority: 0.5,
+        characterSprite: 3,
+        standingSpot: 1,
+      },
     ],
     hoveredSeatId: null,
     difficulty: "rush",

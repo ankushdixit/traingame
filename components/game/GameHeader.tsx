@@ -1,66 +1,51 @@
 /**
- * GameHeader component - displays station info and journey progress
+ * GameHeader component - displays station info and game status
+ * Rose gradient bar matching single-shot design
  */
 
 import { STATIONS } from "@/lib/constants";
-import { Difficulty } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { Difficulty, DIFFICULTY_OPTIONS } from "@/lib/types";
 import { SoundToggle } from "./SoundToggle";
 
 interface GameHeaderProps {
   currentStation: number;
   playerDestination: number;
+  playerSeated: boolean;
   difficulty: Difficulty;
 }
 
-const DIFFICULTY_BADGE_STYLES: Record<Difficulty, string> = {
-  easy: "bg-green-100 text-green-800",
-  normal: "bg-blue-100 text-blue-800",
-  rush: "bg-red-100 text-red-800",
-};
-
-const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  easy: "Easy",
-  normal: "Normal",
-  rush: "Rush Hour",
-};
-
-export function GameHeader({ currentStation, playerDestination, difficulty }: GameHeaderProps) {
+export function GameHeader({
+  currentStation,
+  playerDestination: _playerDestination,
+  playerSeated,
+  difficulty,
+}: GameHeaderProps) {
   const currentStationName = STATIONS[currentStation];
-  const destinationName = STATIONS[playerDestination];
-  const remainingStations = playerDestination - currentStation;
-
-  // Determine next station display
-  const isAtMumbaiCentral = currentStation === STATIONS.length - 2;
-  const nextStationText = isAtMumbaiCentral
-    ? "Final: Dadar"
-    : `Next: ${STATIONS[currentStation + 1]}`;
+  const difficultyOption = DIFFICULTY_OPTIONS.find((o) => o.value === difficulty);
 
   return (
-    <div className="rounded-lg bg-slate-100 p-4" data-testid="game-header">
-      <div className="flex items-start justify-between">
+    <div
+      className="bg-gradient-to-r from-rose-700 to-rose-800 text-white py-4 px-4 shadow-lg"
+      data-testid="game-header"
+    >
+      <div className="max-w-2xl mx-auto flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold text-slate-800" data-testid="current-station">
-            {currentStationName}
+          <h1 className="text-xl font-bold" data-testid="game-title">
+            Mumbai Local
           </h1>
-          <div className="mt-2 space-y-1 text-sm text-slate-600">
-            <p data-testid="next-station">{nextStationText}</p>
-            <p data-testid="destination">Your destination: {destinationName}</p>
-            <p data-testid="remaining-stations">
-              {remainingStations} station{remainingStations !== 1 ? "s" : ""} remaining
-            </p>
-          </div>
+          <p className="text-rose-200 text-sm" data-testid="difficulty-display">
+            {difficultyOption?.emoji} {difficultyOption?.label}
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <span
-            data-testid="difficulty-badge"
-            className={cn(
-              "rounded-full px-3 py-1 text-sm font-medium",
-              DIFFICULTY_BADGE_STYLES[difficulty]
-            )}
-          >
-            {DIFFICULTY_LABELS[difficulty]}
-          </span>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <div className="text-2xl font-bold" data-testid="current-station">
+              {currentStationName}
+            </div>
+            <div className="text-rose-200 text-sm" data-testid="player-status">
+              {playerSeated ? "✅ Seated" : "🧍 Standing"}
+            </div>
+          </div>
           <SoundToggle />
         </div>
       </div>

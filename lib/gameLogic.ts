@@ -210,20 +210,30 @@ export function revealDestination(state: GameState, seatId: number): GameState {
 
 /**
  * Generates standing NPCs based on difficulty configuration.
+ * Each NPC is assigned a unique standing spot (0-5).
  *
  * @param difficulty - Game difficulty level
- * @returns Array of standing NPCs
+ * @param reservedSpots - Array of spots already taken (e.g., by player)
+ * @returns Array of standing NPCs with assigned standing spots
  */
-export function generateStandingNPCs(difficulty: Difficulty): StandingNPC[] {
+export function generateStandingNPCs(
+  difficulty: Difficulty,
+  reservedSpots: number[] = []
+): StandingNPC[] {
   const config = DIFFICULTY_CONFIGS[difficulty];
   const [minNpcs, maxNpcs] = config.standingNpcRange;
   const npcCount = minNpcs + Math.floor(Math.random() * (maxNpcs - minNpcs + 1));
 
-  return Array.from({ length: npcCount }, (_, i) => ({
+  // Get available spots (0-5, excluding reserved ones)
+  const availableSpots = [0, 1, 2, 3, 4, 5].filter((s) => !reservedSpots.includes(s));
+  const shuffledSpots = availableSpots.sort(() => Math.random() - 0.5);
+
+  return Array.from({ length: Math.min(npcCount, shuffledSpots.length) }, (_, i) => ({
     id: `standing-npc-${i}`,
     targetSeatId: null,
     claimPriority: Math.random(),
     characterSprite: Math.floor(Math.random() * CHARACTER_COUNT),
+    standingSpot: shuffledSpots[i],
   }));
 }
 
@@ -277,16 +287,20 @@ export function generateInitialState(
     seats[seatIndex].occupant = npc;
   });
 
-  // 5. Generate standing NPCs
-  const standingNPCs = generateStandingNPCs(difficulty);
+  // 5. Assign player a random standing spot
+  const playerStandingSpot = Math.floor(Math.random() * 6);
 
-  // 6. Return complete state
+  // 6. Generate standing NPCs (avoiding player's spot)
+  const standingNPCs = generateStandingNPCs(difficulty, [playerStandingSpot]);
+
+  // 7. Return complete state
   return {
     currentStation: boardingStation,
     playerBoardingStation: boardingStation,
     playerDestination: destination,
     playerSeated: false,
     seatId: null,
+    playerStandingSpot,
     seats,
     gameStatus: "playing",
     standingNPCs,

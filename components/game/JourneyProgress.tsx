@@ -1,9 +1,8 @@
 /**
  * JourneyProgress component - visual representation of the player's journey
  * Shows all stations as markers on a horizontal track with the current station highlighted.
+ * Matches single-shot design with emerald progress fill.
  */
-
-import { StationMarker } from "./StationMarker";
 
 export interface JourneyProgressProps {
   stations: readonly string[];
@@ -13,6 +12,64 @@ export interface JourneyProgressProps {
   isAnimating?: boolean;
 }
 
+interface StationDotProps {
+  index: number;
+  station: string;
+  isCurrent: boolean;
+  isPassed: boolean;
+  isDestination: boolean;
+  isBoarding: boolean;
+  isUrgent: boolean;
+}
+
+function getStationDotClasses(props: StationDotProps): string {
+  const { isCurrent, isPassed, isDestination, isUrgent } = props;
+  const base =
+    "w-4 h-4 rounded-full transition-all duration-300 flex items-center justify-center text-[8px]";
+
+  if (isCurrent) {
+    return `${base} bg-blue-500 ring-4 ring-blue-200 ${isUrgent ? "animate-pulse ring-red-200" : ""}`;
+  }
+  if (isPassed) {
+    return `${base} bg-emerald-500`;
+  }
+  if (isDestination) {
+    return `${base} bg-red-500 ring-2 ring-red-200`;
+  }
+  return `${base} bg-stone-300`;
+}
+
+function getStationNameClasses(props: StationDotProps): string {
+  const { isCurrent, isPassed, isDestination } = props;
+  const base = "mt-1 text-xs font-medium text-center max-w-[60px] leading-tight";
+
+  if (isDestination) {
+    return `${base} text-red-600 font-bold`;
+  }
+  if (isCurrent) {
+    return `${base} text-blue-600 font-bold`;
+  }
+  if (isPassed) {
+    return `${base} text-stone-400`;
+  }
+  return `${base} text-stone-600`;
+}
+
+function StationDot(props: StationDotProps) {
+  const { index, station, isCurrent, isDestination, isBoarding } = props;
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className={getStationDotClasses(props)} data-testid={`station-dot-${index}`}>
+        {isCurrent && <span>🚃</span>}
+        {isDestination && !isCurrent && <span>🚩</span>}
+      </div>
+      <span className={getStationNameClasses(props)}>{station}</span>
+      {isBoarding && <span className="text-[10px] text-emerald-600">📍 Start</span>}
+    </div>
+  );
+}
+
 export function JourneyProgress({
   stations,
   currentStation,
@@ -20,66 +77,42 @@ export function JourneyProgress({
   boardingStation,
   isAnimating = false,
 }: JourneyProgressProps) {
-  // Urgency indicator when 1 station away from destination
   const isUrgent = destination - currentStation === 1;
-
-  // Calculate progress percentage
-  const stationGap = 100 / (stations.length - 1);
-  const baseProgress = (currentStation / (stations.length - 1)) * 100;
-  // When animating, target the next station
-  const targetProgress = isAnimating ? baseProgress + stationGap : baseProgress;
+  const progressPercent = (currentStation / (stations.length - 1)) * 100;
 
   return (
     <div
-      className="w-full max-w-2xl px-4 py-3"
+      className="w-full px-4 py-3"
       data-testid="journey-progress"
       aria-label="Journey progress indicator"
     >
-      <div className="relative flex items-center justify-between">
-        {/* Track line - runs behind all station markers */}
+      <div className="relative h-2 bg-stone-300 rounded-full">
         <div
-          className="absolute top-1/2 right-0 left-0 h-1 -translate-y-1/2 bg-gray-300"
-          data-testid="track-line"
-          aria-hidden="true"
-        />
-
-        {/* Progress line - shows completed portion of journey */}
-        <div
-          className={`absolute top-1/2 left-0 h-1 -translate-y-1/2 bg-blue-400 ${
+          className={`absolute left-0 top-0 h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full ${
             isAnimating
               ? "transition-all duration-[3200ms] ease-linear"
-              : "transition-all duration-300"
+              : "transition-all duration-500"
           }`}
-          style={{
-            width: `${targetProgress}%`,
-          }}
+          style={{ width: `${progressPercent}%` }}
           data-testid="progress-line"
           aria-hidden="true"
         />
+      </div>
 
-        {/* Station markers */}
+      <div className="relative mt-2 flex justify-between">
         {stations.map((station, index) => (
-          <StationMarker
+          <StationDot
             key={station}
-            name={station}
+            index={index}
+            station={station}
             isCurrent={index === currentStation}
-            isDestination={index === destination}
             isPassed={index < currentStation}
+            isDestination={index === destination}
             isBoarding={index === boardingStation}
-            isUrgent={isUrgent && index === destination}
+            isUrgent={isUrgent}
           />
         ))}
       </div>
-
-      {/* Urgency message */}
-      {isUrgent && (
-        <p
-          className="mt-2 text-center text-sm font-medium text-red-600 animate-pulse"
-          data-testid="urgency-message"
-        >
-          ⚠️ Next stop is your destination!
-        </p>
-      )}
     </div>
   );
 }

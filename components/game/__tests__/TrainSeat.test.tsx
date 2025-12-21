@@ -8,6 +8,7 @@ describe("TrainSeat", () => {
     onClick: jest.fn(),
     onKeyDown: jest.fn(),
     testId: "seat-0",
+    seatNumber: 0,
   };
 
   beforeEach(() => {
@@ -39,54 +40,74 @@ describe("TrainSeat", () => {
   });
 
   describe("color classes by state", () => {
-    it("has train maroon for empty state", () => {
+    it("has emerald gradient for empty state", () => {
       render(
         <TrainSeat {...defaultProps} displayState="empty">
           Content
         </TrainSeat>
       );
 
-      expect(screen.getByTestId("seat-0")).toHaveClass("bg-train-maroon");
+      expect(screen.getByTestId("seat-0")).toHaveClass(
+        "bg-gradient-to-b",
+        "from-emerald-100",
+        "to-emerald-200"
+      );
     });
 
-    it("has train maroon dark for occupied state", () => {
+    it("has rose gradient for occupied state", () => {
       render(
         <TrainSeat {...defaultProps} displayState="occupied">
           Content
         </TrainSeat>
       );
 
-      expect(screen.getByTestId("seat-0")).toHaveClass("bg-train-maroon-dark");
+      expect(screen.getByTestId("seat-0")).toHaveClass(
+        "bg-gradient-to-b",
+        "from-rose-100",
+        "to-rose-200"
+      );
     });
 
-    it("has blue-800 for occupied-known state", () => {
+    it("has rose gradient for occupied-known state", () => {
       render(
         <TrainSeat {...defaultProps} displayState="occupied-known">
           Content
         </TrainSeat>
       );
 
-      expect(screen.getByTestId("seat-0")).toHaveClass("bg-blue-800");
+      expect(screen.getByTestId("seat-0")).toHaveClass(
+        "bg-gradient-to-b",
+        "from-rose-100",
+        "to-rose-200"
+      );
     });
 
-    it("has purple-800 for hovered state", () => {
+    it("has purple gradient for hovered state", () => {
       render(
         <TrainSeat {...defaultProps} displayState="hovered">
           Content
         </TrainSeat>
       );
 
-      expect(screen.getByTestId("seat-0")).toHaveClass("bg-purple-800");
+      expect(screen.getByTestId("seat-0")).toHaveClass(
+        "bg-gradient-to-b",
+        "from-purple-100",
+        "to-purple-200"
+      );
     });
 
-    it("has yellow-600 for player state", () => {
+    it("has amber gradient for player state", () => {
       render(
         <TrainSeat {...defaultProps} displayState="player">
           Content
         </TrainSeat>
       );
 
-      expect(screen.getByTestId("seat-0")).toHaveClass("bg-yellow-600");
+      expect(screen.getByTestId("seat-0")).toHaveClass(
+        "bg-gradient-to-b",
+        "from-amber-200",
+        "to-amber-300"
+      );
     });
 
     it("has ring styling for player state", () => {
@@ -97,30 +118,20 @@ describe("TrainSeat", () => {
       );
 
       const seat = screen.getByTestId("seat-0");
-      expect(seat).toHaveClass("ring-2");
-      expect(seat).toHaveClass("ring-yellow-400");
+      expect(seat).toHaveClass("ring-4");
+      expect(seat).toHaveClass("ring-amber-400");
     });
   });
 
-  describe("text color classes", () => {
-    it("has train cream text for non-player states", () => {
+  describe("interaction states", () => {
+    it("has hover scale effect when clickable", () => {
       render(
-        <TrainSeat {...defaultProps} displayState="empty">
+        <TrainSeat {...defaultProps} isClickable={true} displayState="empty">
           Content
         </TrainSeat>
       );
 
-      expect(screen.getByTestId("seat-0")).toHaveClass("text-train-cream");
-    });
-
-    it("has yellow-100 text for player state", () => {
-      render(
-        <TrainSeat {...defaultProps} displayState="player">
-          Content
-        </TrainSeat>
-      );
-
-      expect(screen.getByTestId("seat-0")).toHaveClass("text-yellow-100");
+      expect(screen.getByTestId("seat-0")).toHaveClass("hover:scale-105");
     });
   });
 
@@ -145,44 +156,24 @@ describe("TrainSeat", () => {
       expect(screen.getByTestId("seat-0")).not.toHaveClass("cursor-pointer");
     });
 
-    it("has button role when clickable", () => {
+    it("is a button element", () => {
       render(
         <TrainSeat {...defaultProps} isClickable={true}>
           Content
         </TrainSeat>
       );
 
-      expect(screen.getByTestId("seat-0")).toHaveAttribute("role", "button");
+      expect(screen.getByTestId("seat-0")).toHaveAttribute("type", "button");
     });
 
-    it("does not have button role when not clickable", () => {
+    it("is disabled when not clickable and not player seat", () => {
       render(
-        <TrainSeat {...defaultProps} isClickable={false}>
+        <TrainSeat {...defaultProps} isClickable={false} displayState="occupied">
           Content
         </TrainSeat>
       );
 
-      expect(screen.getByTestId("seat-0")).not.toHaveAttribute("role");
-    });
-
-    it("has tabIndex 0 when clickable", () => {
-      render(
-        <TrainSeat {...defaultProps} isClickable={true}>
-          Content
-        </TrainSeat>
-      );
-
-      expect(screen.getByTestId("seat-0")).toHaveAttribute("tabIndex", "0");
-    });
-
-    it("does not have tabIndex when not clickable", () => {
-      render(
-        <TrainSeat {...defaultProps} isClickable={false}>
-          Content
-        </TrainSeat>
-      );
-
-      expect(screen.getByTestId("seat-0")).not.toHaveAttribute("tabIndex");
+      expect(screen.getByTestId("seat-0")).toBeDisabled();
     });
   });
 
@@ -217,8 +208,7 @@ describe("TrainSeat", () => {
       render(<TrainSeat {...defaultProps}>Content</TrainSeat>);
 
       const seat = screen.getByTestId("seat-0");
-      expect(seat).toHaveClass("rounded-t-lg");
-      expect(seat).toHaveClass("rounded-b-sm");
+      expect(seat).toHaveClass("rounded-t-xl");
       expect(seat).toHaveClass("border-2");
       expect(seat).toHaveClass("shadow-md");
     });
@@ -227,8 +217,19 @@ describe("TrainSeat", () => {
       render(<TrainSeat {...defaultProps}>Content</TrainSeat>);
 
       const seat = screen.getByTestId("seat-0");
-      expect(seat).toHaveClass("h-24");
-      expect(seat).toHaveClass("w-28");
+      expect(seat).toHaveClass("h-28");
+      expect(seat).toHaveClass("w-24");
+    });
+
+    it("displays seat number", () => {
+      render(
+        <TrainSeat {...defaultProps} seatNumber={5}>
+          Content
+        </TrainSeat>
+      );
+
+      // Seat number is displayed as #6 (seatNumber + 1)
+      expect(screen.getByText("#6")).toBeInTheDocument();
     });
   });
 });

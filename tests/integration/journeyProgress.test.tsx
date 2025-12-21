@@ -30,6 +30,7 @@ describe("Journey Progress Integration", () => {
             currentStation={state.currentStation}
             playerDestination={state.playerDestination}
             difficulty={state.difficulty}
+            playerSeated={state.playerSeated}
           />
           <JourneyProgress
             stations={STATIONS}
@@ -43,53 +44,17 @@ describe("Journey Progress Integration", () => {
       // Journey progress is rendered
       expect(screen.getByTestId("journey-progress")).toBeInTheDocument();
 
-      // All stations are rendered
-      expect(screen.getAllByTestId("station-marker")).toHaveLength(6);
+      // All station dots are rendered
+      const dots = screen.getAllByTestId(/^station-dot-\d+$/);
+      expect(dots).toHaveLength(6);
 
       // Current station (0) is highlighted
-      const markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[0]).toHaveAttribute("data-current", "true");
+      const currentDot = screen.getByTestId("station-dot-0");
+      expect(currentDot).toHaveClass("bg-blue-500");
 
       // Destination (5) is marked
-      expect(markerDots[5]).toHaveAttribute("data-destination", "true");
-    });
-
-    it("syncs with GameHeader remaining stations count", () => {
-      const state = generateInitialState(2, 5);
-
-      render(
-        <>
-          <GameHeader
-            currentStation={state.currentStation}
-            playerDestination={state.playerDestination}
-            difficulty={state.difficulty}
-          />
-          <JourneyProgress
-            stations={STATIONS}
-            currentStation={state.currentStation}
-            destination={state.playerDestination}
-            boardingStation={state.playerBoardingStation}
-          />
-        </>
-      );
-
-      // Header shows 3 remaining
-      expect(screen.getByTestId("remaining-stations")).toHaveTextContent("3 stations remaining");
-
-      // Progress indicator should show 2 passed, 1 current, 3 future (including destination)
-      const markerDots = screen.getAllByTestId("marker-dot");
-
-      // Passed: 0, 1
-      expect(markerDots[0]).toHaveAttribute("data-passed", "true");
-      expect(markerDots[1]).toHaveAttribute("data-passed", "true");
-
-      // Current: 2
-      expect(markerDots[2]).toHaveAttribute("data-current", "true");
-
-      // Future (not passed): 3, 4, 5
-      expect(markerDots[3]).toHaveAttribute("data-passed", "false");
-      expect(markerDots[4]).toHaveAttribute("data-passed", "false");
-      expect(markerDots[5]).toHaveAttribute("data-passed", "false");
+      const destDot = screen.getByTestId("station-dot-5");
+      expect(destDot).toHaveClass("bg-red-500");
     });
   });
 
@@ -107,9 +72,8 @@ describe("Journey Progress Integration", () => {
       );
 
       // Initial: station 0 is current
-      let markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[0]).toHaveAttribute("data-current", "true");
-      expect(markerDots[1]).toHaveAttribute("data-current", "false");
+      let currentDot = screen.getByTestId("station-dot-0");
+      expect(currentDot).toHaveClass("bg-blue-500");
 
       // Advance station
       state = advanceStation(state);
@@ -124,43 +88,11 @@ describe("Journey Progress Integration", () => {
       );
 
       // After advance: station 1 is current, station 0 is passed
-      markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[0]).toHaveAttribute("data-current", "false");
-      expect(markerDots[0]).toHaveAttribute("data-passed", "true");
-      expect(markerDots[1]).toHaveAttribute("data-current", "true");
-    });
+      const passedDot = screen.getByTestId("station-dot-0");
+      expect(passedDot).toHaveClass("bg-emerald-500");
 
-    it("updates progress line width when advancing", () => {
-      let state = generateInitialState(0, 5);
-
-      const { rerender } = render(
-        <JourneyProgress
-          stations={STATIONS}
-          currentStation={state.currentStation}
-          destination={state.playerDestination}
-          boardingStation={state.playerBoardingStation}
-        />
-      );
-
-      // Initial: 0% progress
-      let progressLine = screen.getByTestId("progress-line");
-      expect(progressLine).toHaveStyle({ width: "0%" });
-
-      // Advance to station 2 (40%)
-      state = advanceStation(state);
-      state = advanceStation(state);
-
-      rerender(
-        <JourneyProgress
-          stations={STATIONS}
-          currentStation={state.currentStation}
-          destination={state.playerDestination}
-          boardingStation={state.playerBoardingStation}
-        />
-      );
-
-      progressLine = screen.getByTestId("progress-line");
-      expect(progressLine).toHaveStyle({ width: "40%" });
+      currentDot = screen.getByTestId("station-dot-1");
+      expect(currentDot).toHaveClass("bg-blue-500");
     });
 
     it("shows urgency when one station from destination", () => {
@@ -176,7 +108,8 @@ describe("Journey Progress Integration", () => {
       );
 
       // Initially no urgency (5 stations away)
-      expect(screen.queryByTestId("urgency-message")).not.toBeInTheDocument();
+      let currentDot = screen.getByTestId("station-dot-0");
+      expect(currentDot).not.toHaveClass("animate-pulse");
 
       // Advance to station 4 (1 station from destination 5)
       state = advanceStation(state); // 1
@@ -193,15 +126,9 @@ describe("Journey Progress Integration", () => {
         />
       );
 
-      // Now urgency should be visible
-      expect(screen.getByTestId("urgency-message")).toBeInTheDocument();
-      expect(screen.getByTestId("urgency-message")).toHaveTextContent(
-        "Next stop is your destination!"
-      );
-
-      // Destination marker should have urgent styling
-      const markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[5]).toHaveAttribute("data-urgent", "true");
+      // Now urgency should be visible (pulse animation)
+      currentDot = screen.getByTestId("station-dot-4");
+      expect(currentDot).toHaveClass("animate-pulse");
     });
 
     it("urgency disappears when at destination", () => {
@@ -217,7 +144,8 @@ describe("Journey Progress Integration", () => {
       );
 
       // Urgency is visible
-      expect(screen.getByTestId("urgency-message")).toBeInTheDocument();
+      let currentDot = screen.getByTestId("station-dot-4");
+      expect(currentDot).toHaveClass("animate-pulse");
 
       // Advance to destination
       state = advanceStation(state);
@@ -231,8 +159,9 @@ describe("Journey Progress Integration", () => {
         />
       );
 
-      // Urgency should be gone
-      expect(screen.queryByTestId("urgency-message")).not.toBeInTheDocument();
+      // Urgency should be gone (at destination)
+      currentDot = screen.getByTestId("station-dot-5");
+      expect(currentDot).not.toHaveClass("animate-pulse");
     });
   });
 
@@ -250,9 +179,11 @@ describe("Journey Progress Integration", () => {
       );
 
       // Verify initial state
-      expect(screen.getAllByTestId("station-marker")).toHaveLength(6);
-      let markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[0]).toHaveAttribute("data-current", "true");
+      const dots = screen.getAllByTestId(/^station-dot-\d+$/);
+      expect(dots).toHaveLength(6);
+
+      let currentDot = screen.getByTestId("station-dot-0");
+      expect(currentDot).toHaveClass("bg-blue-500");
 
       // Advance through each station
       for (let i = 1; i <= 5; i++) {
@@ -267,28 +198,21 @@ describe("Journey Progress Integration", () => {
           />
         );
 
-        markerDots = screen.getAllByTestId("marker-dot");
-
         // Current station is marked
-        expect(markerDots[i]).toHaveAttribute("data-current", "true");
+        currentDot = screen.getByTestId(`station-dot-${i}`);
+        expect(currentDot).toHaveClass("bg-blue-500");
 
-        // Previous stations are passed
+        // Previous stations are passed (emerald)
         for (let j = 0; j < i; j++) {
-          expect(markerDots[j]).toHaveAttribute("data-passed", "true");
+          const passedDot = screen.getByTestId(`station-dot-${j}`);
+          expect(passedDot).toHaveClass("bg-emerald-500");
         }
 
         // Check urgency at station 4 (1 away from 5)
         if (i === 4) {
-          expect(screen.getByTestId("urgency-message")).toBeInTheDocument();
-        } else {
-          expect(screen.queryByTestId("urgency-message")).not.toBeInTheDocument();
+          expect(currentDot).toHaveClass("animate-pulse");
         }
       }
-
-      // Final state: at destination
-      markerDots = screen.getAllByTestId("marker-dot");
-      expect(markerDots[5]).toHaveAttribute("data-current", "true");
-      expect(markerDots[5]).toHaveAttribute("data-destination", "true");
     });
   });
 
@@ -313,92 +237,21 @@ describe("Journey Progress Integration", () => {
           />
         );
 
-        const markerDots = screen.getAllByTestId("marker-dot");
-
         // Boarding station is current
-        expect(markerDots[boarding]).toHaveAttribute("data-current", "true");
+        const currentDot = screen.getByTestId(`station-dot-${boarding}`);
+        expect(currentDot).toHaveClass("bg-blue-500");
 
         // Destination is marked
-        expect(markerDots[destination]).toHaveAttribute("data-destination", "true");
+        const destDot = screen.getByTestId(`station-dot-${destination}`);
+        expect(destDot).toHaveClass("bg-red-500");
 
         // Check urgency for 1-stop journeys
         if (stopsCount === 1) {
-          expect(screen.getByTestId("urgency-message")).toBeInTheDocument();
+          expect(currentDot).toHaveClass("animate-pulse");
         } else {
-          expect(screen.queryByTestId("urgency-message")).not.toBeInTheDocument();
+          expect(currentDot).not.toHaveClass("animate-pulse");
         }
       }
     );
-  });
-
-  describe("labels visibility during journey", () => {
-    it("always shows current station label", () => {
-      let state = generateInitialState(0, 5);
-
-      const { rerender } = render(
-        <JourneyProgress
-          stations={STATIONS}
-          currentStation={state.currentStation}
-          destination={state.playerDestination}
-          boardingStation={state.playerBoardingStation}
-        />
-      );
-
-      // Initial: Churchgate label visible
-      expect(screen.getByText("Churchgate")).toBeInTheDocument();
-
-      // Advance to Grant Road
-      state = advanceStation(state);
-      state = advanceStation(state);
-      state = advanceStation(state);
-
-      rerender(
-        <JourneyProgress
-          stations={STATIONS}
-          currentStation={state.currentStation}
-          destination={state.playerDestination}
-          boardingStation={state.playerBoardingStation}
-        />
-      );
-
-      // Grant Road label visible
-      expect(screen.getByText("Grant Road")).toBeInTheDocument();
-    });
-
-    it("always shows destination label", () => {
-      const state = generateInitialState(0, 5);
-
-      render(
-        <JourneyProgress
-          stations={STATIONS}
-          currentStation={state.currentStation}
-          destination={state.playerDestination}
-          boardingStation={state.playerBoardingStation}
-        />
-      );
-
-      // Dadar label is always visible
-      expect(screen.getByText("Dadar")).toBeInTheDocument();
-    });
-
-    it("shows boarding station label even after passing it", () => {
-      let state = generateInitialState(0, 5);
-
-      // Advance past boarding station
-      state = advanceStation(state);
-      state = advanceStation(state);
-
-      render(
-        <JourneyProgress
-          stations={STATIONS}
-          currentStation={state.currentStation}
-          destination={state.playerDestination}
-          boardingStation={state.playerBoardingStation}
-        />
-      );
-
-      // Churchgate (boarding) label still visible
-      expect(screen.getByText("Churchgate")).toBeInTheDocument();
-    });
   });
 });

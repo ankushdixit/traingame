@@ -42,19 +42,21 @@ function getSeatDisplayState(
 
 function EmptySeatContent() {
   return (
-    <div className="flex items-center justify-center h-full">
-      <span className="text-sm font-medium text-gray-500">Empty</span>
+    <div className="flex flex-col items-center text-emerald-600">
+      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+      <span className="text-xs font-medium">Empty!</span>
     </div>
   );
 }
 
 function PlayerSeatContent() {
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <div className="w-12 h-16" role="img" aria-label="You - the player character">
+    <div className="flex flex-col items-center justify-center">
+      <div className="w-12 h-14" role="img" aria-label="You - the player character">
         <PlayerCharacter isSeated={true} />
       </div>
-      <span className="text-xs font-bold text-orange-600 mt-1">You</span>
     </div>
   );
 }
@@ -202,6 +204,7 @@ export function Seat({
         onClick={handleClick}
         onKeyDown={isClickable ? handleKeyDown : undefined}
         testId={`seat-${seat.id}`}
+        seatNumber={seat.id}
         extraClasses={showPlayerSuccess ? "animate-success" : ""}
       >
         <SeatContent

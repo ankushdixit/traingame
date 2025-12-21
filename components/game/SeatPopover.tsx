@@ -2,11 +2,11 @@
 
 /**
  * SeatPopover component - displays actions for a seat when clicked
+ * Matches single-shot design with arrow and styled buttons
  */
 
 import { useEffect, useRef } from "react";
 import { Seat } from "@/lib/types";
-import { STATIONS } from "@/lib/constants";
 
 interface SeatPopoverProps {
   seat: Seat;
@@ -16,6 +16,26 @@ interface SeatPopoverProps {
   onClaimSeat: () => void;
   onHoverNear: () => void;
   onClose: () => void;
+}
+
+function PopoverContainer({
+  children,
+  popoverRef,
+}: {
+  children: React.ReactNode;
+  popoverRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  return (
+    <div
+      ref={popoverRef}
+      className="absolute z-20 top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-2xl border border-stone-200 p-2 min-w-[140px] animate-in fade-in slide-in-from-top-2 duration-200"
+      data-testid="seat-popover"
+    >
+      {/* Arrow pointing up */}
+      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-t border-stone-200 rotate-45" />
+      {children}
+    </div>
+  );
 }
 
 export function SeatPopover({
@@ -59,73 +79,86 @@ export function SeatPopover({
   // Empty seat - show claim option
   if (!seat.occupant) {
     return (
-      <div
-        ref={popoverRef}
-        className="absolute left-1/2 top-full z-10 mt-2 -translate-x-1/2 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
-        data-testid="seat-popover"
-      >
+      <PopoverContainer popoverRef={popoverRef}>
         <button
           onClick={onClaimSeat}
-          className="rounded bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600"
+          className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all"
           data-testid="claim-seat-button"
         >
-          Claim Seat
+          🎯 Claim Seat!
         </button>
-      </div>
+        <button
+          onClick={onClose}
+          className="w-full mt-1 px-3 py-1.5 rounded-lg text-xs text-stone-500 hover:bg-stone-100 transition-all"
+        >
+          Close
+        </button>
+      </PopoverContainer>
     );
   }
 
-  // Occupied seat with revealed destination
+  // Occupied seat with revealed destination - can only hover near
   if (seat.occupant.destinationRevealed) {
     return (
-      <div
-        ref={popoverRef}
-        className="absolute left-1/2 top-full z-10 mt-2 -translate-x-1/2 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
-        data-testid="seat-popover"
-      >
-        <p className="mb-2 text-sm text-gray-700" data-testid="destination-revealed">
-          Getting off at: {STATIONS[seat.occupant.destination]}
-        </p>
+      <PopoverContainer popoverRef={popoverRef}>
+        <button
+          onClick={onRevealDestination}
+          disabled
+          className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-stone-100 text-stone-400 cursor-not-allowed"
+          data-testid="ask-destination-button"
+        >
+          ✓ Asked
+        </button>
         <button
           onClick={onHoverNear}
-          className={`rounded px-4 py-2 text-sm font-medium ${
-            isHovered ? "bg-gray-300 text-gray-600" : "bg-purple-500 text-white hover:bg-purple-600"
+          disabled={isHovered}
+          className={`w-full mt-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            isHovered
+              ? "bg-stone-100 text-stone-400 cursor-not-allowed"
+              : "bg-purple-50 text-purple-700 hover:bg-purple-100"
           }`}
           data-testid="hover-near-button"
-          disabled={isHovered}
         >
-          {isHovered ? "Watching this seat" : "Hover Near"}
+          {isHovered ? "👁️ Watching" : "👁️ Watch Seat"}
         </button>
-      </div>
+        <button
+          onClick={onClose}
+          className="w-full mt-1 px-3 py-1.5 rounded-lg text-xs text-stone-500 hover:bg-stone-100 transition-all"
+        >
+          Close
+        </button>
+      </PopoverContainer>
     );
   }
 
   // Occupied seat with unrevealed destination
   return (
-    <div
-      ref={popoverRef}
-      className="absolute left-1/2 top-full z-10 mt-2 -translate-x-1/2 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
-      data-testid="seat-popover"
-    >
-      <div className="flex flex-col gap-2">
-        <button
-          onClick={onRevealDestination}
-          className="rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
-          data-testid="ask-destination-button"
-        >
-          Ask destination?
-        </button>
-        <button
-          onClick={onHoverNear}
-          className={`rounded px-4 py-2 text-sm font-medium ${
-            isHovered ? "bg-gray-300 text-gray-600" : "bg-purple-500 text-white hover:bg-purple-600"
-          }`}
-          data-testid="hover-near-button"
-          disabled={isHovered}
-        >
-          {isHovered ? "Watching this seat" : "Hover Near"}
-        </button>
-      </div>
-    </div>
+    <PopoverContainer popoverRef={popoverRef}>
+      <button
+        onClick={onRevealDestination}
+        className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all"
+        data-testid="ask-destination-button"
+      >
+        🗣️ Ask Destination
+      </button>
+      <button
+        onClick={onHoverNear}
+        disabled={isHovered}
+        className={`w-full mt-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+          isHovered
+            ? "bg-stone-100 text-stone-400 cursor-not-allowed"
+            : "bg-purple-50 text-purple-700 hover:bg-purple-100"
+        }`}
+        data-testid="hover-near-button"
+      >
+        {isHovered ? "👁️ Watching" : "👁️ Watch Seat"}
+      </button>
+      <button
+        onClick={onClose}
+        className="w-full mt-1 px-3 py-1.5 rounded-lg text-xs text-stone-500 hover:bg-stone-100 transition-all"
+      >
+        Close
+      </button>
+    </PopoverContainer>
   );
 }

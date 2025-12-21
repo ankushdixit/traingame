@@ -22,27 +22,27 @@ describe("WinScene", () => {
     expect(screen.getByTestId("player-character-happy")).toBeInTheDocument();
   });
 
-  it("displays win title with green color", () => {
+  it("displays win title with emerald color", () => {
     render(<WinScene {...defaultProps} />);
 
     const title = screen.getByTestId("game-end-title");
-    expect(title).toHaveTextContent("You Won!");
-    expect(title).toHaveClass("text-green-600");
+    expect(title).toHaveTextContent("You Found a Seat!");
+    expect(title).toHaveClass("text-emerald-600");
   });
 
   it("displays win message with destination", () => {
     render(<WinScene {...defaultProps} destination="Dadar" />);
 
     expect(screen.getByTestId("game-end-message")).toHaveTextContent(
-      "You found a seat before reaching Dadar!"
+      "You made it to Dadar comfortably seated!"
     );
   });
 
-  it("has celebration animation on title", () => {
+  it("has bounce animation on emoji", () => {
     render(<WinScene {...defaultProps} />);
 
-    const title = screen.getByTestId("game-end-title");
-    expect(title).toHaveClass("animate-celebrate");
+    const emoji = screen.getByText("🎉");
+    expect(emoji).toHaveClass("animate-bounce");
   });
 
   describe("confetti display", () => {
@@ -70,29 +70,32 @@ describe("WinScene", () => {
     });
   });
 
-  describe("game stats", () => {
-    it("renders game stats component", () => {
-      render(<WinScene {...defaultProps} />);
+  describe("stats display", () => {
+    it("displays stations standing count", () => {
+      render(<WinScene {...defaultProps} stationsStanding={3} />);
 
-      expect(screen.getByTestId("game-stats")).toBeInTheDocument();
+      expect(screen.getByText(/Stood for/i)).toBeInTheDocument();
+      expect(screen.getByText(/3/)).toBeInTheDocument();
+      expect(screen.getByText(/stations/)).toBeInTheDocument();
     });
 
-    it("passes correct difficulty to stats", () => {
+    it("displays singular station when standing is 1", () => {
+      render(<WinScene {...defaultProps} stationsStanding={1} />);
+
+      expect(screen.getByText(/1/)).toBeInTheDocument();
+      expect(screen.getByText(/station$/)).toBeInTheDocument();
+    });
+
+    it("displays difficulty level", () => {
       render(<WinScene {...defaultProps} difficulty="rush" />);
 
-      expect(screen.getByTestId("stats-difficulty")).toHaveTextContent("Rush Hour");
+      expect(screen.getByText(/Rush/i)).toBeInTheDocument();
     });
 
-    it("passes correct stations standing to stats", () => {
-      render(<WinScene {...defaultProps} stationsStanding={5} />);
+    it("displays difficulty emoji", () => {
+      render(<WinScene {...defaultProps} difficulty="normal" />);
 
-      expect(screen.getByTestId("stats-stations")).toHaveTextContent("5");
-    });
-
-    it("shows seated status in stats", () => {
-      render(<WinScene {...defaultProps} />);
-
-      expect(screen.getByTestId("stats-status")).toHaveTextContent("Seated!");
+      expect(screen.getByText(/😤/)).toBeInTheDocument();
     });
   });
 });

@@ -1,13 +1,13 @@
 "use client";
 
 /**
- * WinScene component - celebration animation and happy character for win screen
+ * WinScene component - celebration animation for win screen
+ * Matches single-shot design with large emoji and minimal text
  */
 
 import { Confetti } from "./Confetti";
-import { GameStats } from "./GameStats";
 import { PlayerCharacterHappy } from "./characters/PlayerCharacterHappy";
-import { Difficulty } from "@/lib/types";
+import { Difficulty, DIFFICULTY_OPTIONS } from "@/lib/types";
 
 interface WinSceneProps {
   destination: string;
@@ -22,28 +22,42 @@ export function WinScene({
   difficulty,
   showConfetti = true,
 }: WinSceneProps) {
+  const difficultyOption = DIFFICULTY_OPTIONS.find((o) => o.value === difficulty);
+
   return (
     <div className="text-center" data-testid="win-scene">
       {showConfetti && <Confetti isActive={true} />}
 
-      {/* Happy character illustration */}
-      <div className="mx-auto mb-4 h-32 w-32" data-testid="win-character">
-        <PlayerCharacterHappy />
-      </div>
+      {/* Celebration emoji */}
+      <div className="text-7xl mb-4 animate-bounce">🎉</div>
 
       <h1
         id="game-end-title"
-        className="animate-celebrate mb-4 text-4xl font-bold text-green-600"
+        className="text-3xl font-bold text-emerald-600 mb-2"
         data-testid="game-end-title"
       >
-        You Won!
+        You Found a Seat!
       </h1>
 
-      <p className="mb-4 text-lg text-gray-700" data-testid="game-end-message">
-        You found a seat before reaching {destination}!
+      <p className="text-stone-600 mb-4" data-testid="game-end-message">
+        You made it to {destination} comfortably seated!
       </p>
 
-      <GameStats stationsStanding={stationsStanding} difficulty={difficulty} isWin={true} />
+      {/* Character and stats */}
+      <div className="flex items-center justify-center gap-4 bg-emerald-50 rounded-xl p-4">
+        <div className="w-16 h-20" data-testid="win-character">
+          <PlayerCharacterHappy />
+        </div>
+        <div className="text-left">
+          <p className="text-sm text-stone-600">
+            Stood for <span className="font-bold text-emerald-600">{stationsStanding}</span> station
+            {stationsStanding !== 1 ? "s" : ""}
+          </p>
+          <p className="text-sm text-stone-500">
+            {difficultyOption?.emoji} {difficultyOption?.label} mode
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

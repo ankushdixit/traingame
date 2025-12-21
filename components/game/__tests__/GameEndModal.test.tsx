@@ -29,14 +29,14 @@ describe("GameEndModal", () => {
       render(<GameEndModal {...defaultProps} />);
 
       expect(screen.getByTestId("game-end-modal")).toBeInTheDocument();
-      expect(screen.getByTestId("game-end-title")).toHaveTextContent("You Won!");
+      expect(screen.getByTestId("game-end-title")).toHaveTextContent("You Found a Seat!");
     });
 
     it("shows win message with destination name", () => {
       render(<GameEndModal {...defaultProps} destination="Grant Road" />);
 
       expect(screen.getByTestId("game-end-message")).toHaveTextContent(
-        "You found a seat before reaching Grant Road!"
+        "You made it to Grant Road comfortably seated!"
       );
     });
 
@@ -46,10 +46,10 @@ describe("GameEndModal", () => {
       expect(screen.getByTestId("play-again-button")).toHaveTextContent("Play Again");
     });
 
-    it("applies green color to title", () => {
+    it("applies emerald color to title", () => {
       render(<GameEndModal {...defaultProps} />);
 
-      expect(screen.getByTestId("game-end-title")).toHaveClass("text-green-600");
+      expect(screen.getByTestId("game-end-title")).toHaveClass("text-emerald-600");
     });
 
     it("renders the WinScene component", () => {
@@ -65,11 +65,11 @@ describe("GameEndModal", () => {
       expect(screen.getByTestId("confetti-container")).toBeInTheDocument();
     });
 
-    it("shows game stats with seated status", () => {
-      render(<GameEndModal {...defaultProps} />);
+    it("displays stations standing info", () => {
+      render(<GameEndModal {...defaultProps} stationsStanding={2} />);
 
-      expect(screen.getByTestId("game-stats")).toBeInTheDocument();
-      expect(screen.getByTestId("stats-status")).toHaveTextContent("Seated!");
+      expect(screen.getByText(/Stood for/i)).toBeInTheDocument();
+      expect(screen.getByText(/2/)).toBeInTheDocument();
     });
   });
 
@@ -83,14 +83,14 @@ describe("GameEndModal", () => {
       render(<GameEndModal {...lostProps} />);
 
       expect(screen.getByTestId("game-end-modal")).toBeInTheDocument();
-      expect(screen.getByTestId("game-end-title")).toHaveTextContent("You Lost!");
+      expect(screen.getByTestId("game-end-title")).toHaveTextContent("No Seat Found");
     });
 
     it("shows lose message with destination name", () => {
       render(<GameEndModal {...lostProps} destination="Dadar" />);
 
       expect(screen.getByTestId("game-end-message")).toHaveTextContent(
-        "You arrived at Dadar still standing!"
+        "You arrived at Dadar standing the whole way!"
       );
     });
 
@@ -100,10 +100,10 @@ describe("GameEndModal", () => {
       expect(screen.getByTestId("play-again-button")).toHaveTextContent("Try Again");
     });
 
-    it("applies red color to title", () => {
+    it("applies rose color to title", () => {
       render(<GameEndModal {...lostProps} />);
 
-      expect(screen.getByTestId("game-end-title")).toHaveClass("text-red-600");
+      expect(screen.getByTestId("game-end-title")).toHaveClass("text-rose-600");
     });
 
     it("renders the LoseScene component", () => {
@@ -122,25 +122,22 @@ describe("GameEndModal", () => {
     it("shows close message for almost winning", () => {
       render(<GameEndModal {...lostProps} stationsStanding={4} totalStations={5} />);
 
-      expect(screen.getByTestId("close-message")).toHaveTextContent(
-        "So close! Just one more station..."
-      );
+      const message = screen.getByTestId("game-end-message");
+      expect(message).toHaveTextContent("So close!");
     });
 
-    it("shows stations standing for earlier loss", () => {
+    it("displays stations standing for earlier loss", () => {
       render(<GameEndModal {...lostProps} stationsStanding={2} totalStations={5} />);
 
-      expect(screen.getByTestId("close-message")).toHaveTextContent(
-        "You survived 2 stations standing!"
-      );
+      expect(screen.getByText(/Stood for/i)).toBeInTheDocument();
+      expect(screen.getByText(/2/)).toBeInTheDocument();
     });
 
     it("handles singular station standing message", () => {
       render(<GameEndModal {...lostProps} stationsStanding={1} totalStations={5} />);
 
-      expect(screen.getByTestId("close-message")).toHaveTextContent(
-        "You survived 1 station standing!"
-      );
+      expect(screen.getByText(/1/)).toBeInTheDocument();
+      expect(screen.getByText(/station$/)).toBeInTheDocument();
     });
   });
 
@@ -172,11 +169,11 @@ describe("GameEndModal", () => {
       expect(modal).toHaveAttribute("aria-labelledby", "game-end-title");
     });
 
-    it("has semi-transparent background", () => {
+    it("has backdrop blur styling", () => {
       render(<GameEndModal {...defaultProps} />);
 
       const modal = screen.getByTestId("game-end-modal");
-      expect(modal).toHaveClass("bg-black/50");
+      expect(modal).toHaveClass("bg-black/60");
     });
   });
 
@@ -228,13 +225,14 @@ describe("GameEndModal", () => {
     it("shows correct difficulty", () => {
       render(<GameEndModal {...defaultProps} difficulty="rush" />);
 
-      expect(screen.getByTestId("stats-difficulty")).toHaveTextContent("Rush Hour");
+      expect(screen.getByText(/Rush/i)).toBeInTheDocument();
     });
 
     it("shows correct stations standing count", () => {
       render(<GameEndModal {...defaultProps} stationsStanding={3} />);
 
-      expect(screen.getByTestId("stats-stations")).toHaveTextContent("3");
+      expect(screen.getByText(/Stood for/i)).toBeInTheDocument();
+      expect(screen.getByText(/3/)).toBeInTheDocument();
     });
   });
 });
