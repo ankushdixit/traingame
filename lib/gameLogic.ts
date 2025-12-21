@@ -3,11 +3,12 @@
  */
 
 import { TOTAL_SEATS, STATIONS, DIFFICULTY_CONFIGS, DEFAULT_DIFFICULTY } from "./constants";
-import { GameState, NPC, Seat, Difficulty } from "./types";
+import { GameState, NPC, Seat, Difficulty, StandingNPC } from "./types";
 
 /**
  * Advances the train to the next station.
  * Removes NPCs whose destination is the new station or earlier.
+ * Standing NPCs compete for newly empty seats.
  * Checks for game end conditions.
  *
  * @param state - Current game state
@@ -16,13 +17,25 @@ import { GameState, NPC, Seat, Difficulty } from "./types";
 export function advanceStation(state: GameState): GameState {
   const newStation = state.currentStation + 1;
 
-  // Remove NPCs whose destination is the new station or earlier
+  // Identify seats that will become empty and remove departing NPCs
+  const newlyEmptySeats: number[] = [];
   const updatedSeats = state.seats.map((seat) => {
     if (seat.occupant && seat.occupant.destination <= newStation) {
+      newlyEmptySeats.push(seat.id);
       return { ...seat, occupant: null };
     }
     return seat;
   });
+
+  // Process standing NPC claims for newly empty seats
+  const claimResult = processStandingNPCClaims(
+    {
+      ...state,
+      seats: updatedSeats,
+      currentStation: newStation,
+    },
+    newlyEmptySeats
+  );
 
   // Check for game end
   let newStatus: "playing" | "won" | "lost" = "playing";
@@ -31,11 +44,61 @@ export function advanceStation(state: GameState): GameState {
   }
 
   return {
-    ...state,
-    currentStation: newStation,
-    seats: updatedSeats,
+    ...claimResult,
     gameStatus: newStatus,
+    // Reset hovered seat after station advance
+    hoveredSeatId: null,
   };
+}
+
+/**
+ * Processes standing NPC claims for newly empty seats.
+ * Player has priority if hovering near a seat.
+ *
+ * @param state - Current game state (with updated seats and station)
+ * @param newlyEmptySeats - Array of seat IDs that just became empty
+ * @returns Updated game state after claim processing
+ */
+export function processStandingNPCClaims(state: GameState, newlyEmptySeats: number[]): GameState {
+  const config = DIFFICULTY_CONFIGS[state.difficulty];
+  let updatedState: GameState = { ...state, lastClaimMessage: null };
+
+  for (const seatId of newlyEmptySeats) {
+    // Player has priority if hovering near this seat
+    if (state.hoveredSeatId === seatId) {
+      continue; // Skip NPC claims for this seat
+    }
+
+    // Check if any standing NPC claims this seat
+    const claimRoll = Math.random();
+    if (claimRoll < config.npcClaimChance && updatedState.standingNPCs.length > 0) {
+      const claimingNpc = updatedState.standingNPCs[0];
+
+      // Generate destination for the claiming NPC
+      const minDest = state.currentStation + 1;
+      const maxDest = STATIONS.length - 1;
+      const npcDestination = minDest + Math.floor(Math.random() * (maxDest - minDest + 1));
+
+      // Create seated NPC from standing NPC
+      const seatedNpc: NPC = {
+        id: claimingNpc.id,
+        destination: npcDestination,
+        destinationRevealed: false,
+      };
+
+      updatedState = {
+        ...updatedState,
+        seats: updatedState.seats.map((seat) =>
+          seat.id === seatId ? { ...seat, occupant: seatedNpc } : seat
+        ),
+        standingNPCs: updatedState.standingNPCs.slice(1),
+        lastClaimMessage: "A passenger grabbed the seat!",
+      };
+      break; // Only one NPC claims per transition
+    }
+  }
+
+  return updatedState;
 }
 
 /**
@@ -50,6 +113,21 @@ export function claimSeat(state: GameState, seatId: number): GameState {
     ...state,
     playerSeated: true,
     seatId: seatId,
+    hoveredSeatId: null, // Clear hover when claiming
+  };
+}
+
+/**
+ * Sets the seat the player is "hovering near" to gain priority.
+ *
+ * @param state - Current game state
+ * @param seatId - ID of the seat to hover near (or null to clear)
+ * @returns Updated game state with hovered seat
+ */
+export function setHoveredSeat(state: GameState, seatId: number | null): GameState {
+  return {
+    ...state,
+    hoveredSeatId: seatId,
   };
 }
 
@@ -69,6 +147,25 @@ export function revealDestination(state: GameState, seatId: number): GameState {
         : seat
     ),
   };
+}
+
+/**
+ * Generates standing NPCs based on difficulty configuration.
+ *
+ * @param difficulty - Game difficulty level
+ * @returns Array of standing NPCs
+ */
+export function generateStandingNPCs(difficulty: Difficulty): StandingNPC[] {
+  const config = DIFFICULTY_CONFIGS[difficulty];
+  const [minNpcs, maxNpcs] = config.standingNpcRange;
+  const npcCount = minNpcs + Math.floor(Math.random() * (maxNpcs - minNpcs + 1));
+
+  return Array.from({ length: npcCount }, (_, i) => ({
+    id: `standing-npc-${i}`,
+    targetSeatId: null,
+    claimPriority: Math.random(),
+    characterSprite: Math.floor(Math.random() * 4), // 4 sprite options for future use
+  }));
 }
 
 /**
@@ -116,7 +213,10 @@ export function generateInitialState(
     seats[seatIndex].occupant = npc;
   });
 
-  // 5. Return complete state
+  // 5. Generate standing NPCs
+  const standingNPCs = generateStandingNPCs(difficulty);
+
+  // 6. Return complete state
   return {
     currentStation: boardingStation,
     playerBoardingStation: boardingStation,
@@ -125,5 +225,9 @@ export function generateInitialState(
     seatId: null,
     seats,
     gameStatus: "playing",
+    standingNPCs,
+    hoveredSeatId: null,
+    difficulty,
+    lastClaimMessage: null,
   };
 }

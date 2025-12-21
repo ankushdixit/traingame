@@ -4,8 +4,10 @@ import { Seat } from "@/lib/types";
 
 const defaultProps = {
   isPlayerSeated: false,
+  hoveredSeatId: null,
   onRevealDestination: jest.fn(),
   onClaimSeat: jest.fn(),
+  onHoverNear: jest.fn(),
 };
 
 describe("Compartment", () => {
@@ -99,8 +101,10 @@ describe("Compartment", () => {
         seats={seats}
         playerSeatId={null}
         isPlayerSeated={true}
+        hoveredSeatId={null}
         onRevealDestination={jest.fn()}
         onClaimSeat={jest.fn()}
+        onHoverNear={jest.fn()}
       />
     );
 
@@ -108,5 +112,32 @@ describe("Compartment", () => {
     for (let i = 0; i < 6; i++) {
       expect(screen.getByTestId(`seat-${i}`)).not.toHaveClass("cursor-pointer");
     }
+  });
+
+  it("passes hoveredSeatId correctly to seats", () => {
+    const seats: Seat[] = [
+      { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      { id: 1, occupant: { id: "npc-1", destination: 4, destinationRevealed: false } },
+      { id: 2, occupant: null },
+      { id: 3, occupant: null },
+      { id: 4, occupant: null },
+      { id: 5, occupant: null },
+    ];
+    render(
+      <Compartment
+        seats={seats}
+        playerSeatId={null}
+        isPlayerSeated={false}
+        hoveredSeatId={0}
+        onRevealDestination={jest.fn()}
+        onClaimSeat={jest.fn()}
+        onHoverNear={jest.fn()}
+      />
+    );
+
+    // Seat 0 is hovered (occupied) - should show hovered state
+    expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "hovered");
+    // Seat 1 is not hovered
+    expect(screen.getByTestId("seat-1")).toHaveAttribute("data-state", "occupied");
   });
 });

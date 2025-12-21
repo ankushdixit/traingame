@@ -11,16 +11,20 @@ import { STATIONS } from "@/lib/constants";
 interface SeatPopoverProps {
   seat: Seat;
   isPlayerSeated: boolean;
+  isHovered: boolean;
   onRevealDestination: () => void;
   onClaimSeat: () => void;
+  onHoverNear: () => void;
   onClose: () => void;
 }
 
 export function SeatPopover({
   seat,
   isPlayerSeated,
+  isHovered,
   onRevealDestination,
   onClaimSeat,
+  onHoverNear,
   onClose,
 }: SeatPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -79,9 +83,19 @@ export function SeatPopover({
         className="absolute left-1/2 top-full z-10 mt-2 -translate-x-1/2 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
         data-testid="seat-popover"
       >
-        <p className="text-sm text-gray-700" data-testid="destination-revealed">
+        <p className="mb-2 text-sm text-gray-700" data-testid="destination-revealed">
           Getting off at: {STATIONS[seat.occupant.destination]}
         </p>
+        <button
+          onClick={onHoverNear}
+          className={`rounded px-4 py-2 text-sm font-medium ${
+            isHovered ? "bg-gray-300 text-gray-600" : "bg-purple-500 text-white hover:bg-purple-600"
+          }`}
+          data-testid="hover-near-button"
+          disabled={isHovered}
+        >
+          {isHovered ? "Watching this seat" : "Hover Near"}
+        </button>
       </div>
     );
   }
@@ -93,13 +107,25 @@ export function SeatPopover({
       className="absolute left-1/2 top-full z-10 mt-2 -translate-x-1/2 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
       data-testid="seat-popover"
     >
-      <button
-        onClick={onRevealDestination}
-        className="rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
-        data-testid="ask-destination-button"
-      >
-        Ask destination?
-      </button>
+      <div className="flex flex-col gap-2">
+        <button
+          onClick={onRevealDestination}
+          className="rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
+          data-testid="ask-destination-button"
+        >
+          Ask destination?
+        </button>
+        <button
+          onClick={onHoverNear}
+          className={`rounded px-4 py-2 text-sm font-medium ${
+            isHovered ? "bg-gray-300 text-gray-600" : "bg-purple-500 text-white hover:bg-purple-600"
+          }`}
+          data-testid="hover-near-button"
+          disabled={isHovered}
+        >
+          {isHovered ? "Watching this seat" : "Hover Near"}
+        </button>
+      </div>
     </div>
   );
 }

@@ -3,8 +3,10 @@ import { SeatPopover } from "../SeatPopover";
 import { Seat } from "@/lib/types";
 
 const defaultHandlers = {
+  isHovered: false,
   onRevealDestination: jest.fn(),
   onClaimSeat: jest.fn(),
+  onHoverNear: jest.fn(),
   onClose: jest.fn(),
 };
 
@@ -40,8 +42,10 @@ describe("SeatPopover", () => {
         <SeatPopover
           seat={seat}
           isPlayerSeated={false}
+          isHovered={false}
           onRevealDestination={jest.fn()}
           onClaimSeat={onClaimSeat}
+          onHoverNear={jest.fn()}
           onClose={jest.fn()}
         />
       );
@@ -74,8 +78,10 @@ describe("SeatPopover", () => {
         <SeatPopover
           seat={seat}
           isPlayerSeated={false}
+          isHovered={false}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
           onClose={jest.fn()}
         />
       );
@@ -83,6 +89,39 @@ describe("SeatPopover", () => {
       fireEvent.click(screen.getByTestId("ask-destination-button"));
 
       expect(onRevealDestination).toHaveBeenCalled();
+    });
+
+    it("shows 'Hover Near' button for occupied seat", () => {
+      const seat: Seat = {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+      };
+      render(<SeatPopover seat={seat} isPlayerSeated={false} {...defaultHandlers} />);
+
+      expect(screen.getByTestId("hover-near-button")).toBeInTheDocument();
+    });
+
+    it("calls onHoverNear when 'Hover Near' button is clicked", () => {
+      const onHoverNear = jest.fn();
+      const seat: Seat = {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+      };
+      render(
+        <SeatPopover
+          seat={seat}
+          isPlayerSeated={false}
+          isHovered={false}
+          onRevealDestination={jest.fn()}
+          onClaimSeat={jest.fn()}
+          onHoverNear={onHoverNear}
+          onClose={jest.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId("hover-near-button"));
+
+      expect(onHoverNear).toHaveBeenCalled();
     });
   });
 
@@ -111,6 +150,48 @@ describe("SeatPopover", () => {
     });
   });
 
+  describe("when seat is hovered", () => {
+    it("shows 'Watching this seat' for already hovered seat", () => {
+      const seat: Seat = {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+      };
+      render(
+        <SeatPopover
+          seat={seat}
+          isPlayerSeated={false}
+          isHovered={true}
+          onRevealDestination={jest.fn()}
+          onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
+          onClose={jest.fn()}
+        />
+      );
+
+      expect(screen.getByText("Watching this seat")).toBeInTheDocument();
+    });
+
+    it("disables 'Hover Near' button when already hovered", () => {
+      const seat: Seat = {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+      };
+      render(
+        <SeatPopover
+          seat={seat}
+          isPlayerSeated={false}
+          isHovered={true}
+          onRevealDestination={jest.fn()}
+          onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
+          onClose={jest.fn()}
+        />
+      );
+
+      expect(screen.getByTestId("hover-near-button")).toBeDisabled();
+    });
+  });
+
   describe("closing behavior", () => {
     it("calls onClose when clicking outside", () => {
       const onClose = jest.fn();
@@ -121,8 +202,10 @@ describe("SeatPopover", () => {
           <SeatPopover
             seat={seat}
             isPlayerSeated={false}
+            isHovered={false}
             onRevealDestination={jest.fn()}
             onClaimSeat={jest.fn()}
+            onHoverNear={jest.fn()}
             onClose={onClose}
           />
         </div>
@@ -140,8 +223,10 @@ describe("SeatPopover", () => {
         <SeatPopover
           seat={seat}
           isPlayerSeated={false}
+          isHovered={false}
           onRevealDestination={jest.fn()}
           onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
           onClose={onClose}
         />
       );
@@ -158,8 +243,10 @@ describe("SeatPopover", () => {
         <SeatPopover
           seat={seat}
           isPlayerSeated={false}
+          isHovered={false}
           onRevealDestination={jest.fn()}
           onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
           onClose={onClose}
         />
       );
