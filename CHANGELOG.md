@@ -57,6 +57,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Station labels visible for current, destination, and boarding stations
 - Hover tooltips showing station names on desktop
 - Custom `animate-urgent` CSS animation for destination warning
+- Mumbai local train themed compartment visual design
+- TrainCompartment wrapper component with cream background and maroon border
+- TrainInterior component with ceiling handles, vertical poles, and window with scenery
+- TrainSeat component with train bench styling and state-based coloring
+- Mumbai train color palette: maroon (#800000), cream (#FFFDD0), metallic gray
+- Window scenery animation that scrolls on station transitions
+- Aisle between seat rows for train interior authenticity
+- Passenger emoji icons (🧑) instead of text for occupied seats
+- Player emoji (😊) for player seat visualization
 
 ### Changed
 

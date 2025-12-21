@@ -30,23 +30,23 @@ describe("Seat", () => {
       expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "empty");
     });
 
-    it("has green styling for empty seat", () => {
+    it("has train maroon styling for empty seat", () => {
       const seat: SeatType = { id: 0, occupant: null };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByTestId("seat-0")).toHaveClass("bg-green-100");
+      expect(screen.getByTestId("seat-0")).toHaveClass("bg-train-maroon");
     });
   });
 
   describe("occupied seat", () => {
-    it("displays 'Passenger' for seat with occupant", () => {
+    it("displays passenger emoji for seat with occupant", () => {
       const seat: SeatType = {
         id: 1,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByText("Passenger")).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: "passenger" })).toBeInTheDocument();
     });
 
     it("has occupied state data attribute", () => {
@@ -59,26 +59,26 @@ describe("Seat", () => {
       expect(screen.getByTestId("seat-1")).toHaveAttribute("data-state", "occupied");
     });
 
-    it("has gray styling for occupied seat", () => {
+    it("has train maroon dark styling for occupied seat", () => {
       const seat: SeatType = {
         id: 1,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByTestId("seat-1")).toHaveClass("bg-gray-200");
+      expect(screen.getByTestId("seat-1")).toHaveClass("bg-train-maroon-dark");
     });
   });
 
   describe("occupied seat with revealed destination", () => {
-    it("displays 'Passenger' for seat with revealed destination", () => {
+    it("displays passenger emoji for seat with revealed destination", () => {
       const seat: SeatType = {
         id: 2,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: true },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByText("Passenger")).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: "passenger" })).toBeInTheDocument();
     });
 
     it("has occupied-known state data attribute", () => {
@@ -98,7 +98,7 @@ describe("Seat", () => {
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByTestId("seat-2")).toHaveClass("bg-blue-100");
+      expect(screen.getByTestId("seat-2")).toHaveClass("bg-blue-800");
     });
 
     it("displays destination station on seat", () => {
@@ -131,7 +131,7 @@ describe("Seat", () => {
       const seat: SeatType = { id: 3, occupant: null };
       render(<Seat seat={seat} isPlayerSeat={true} {...defaultProps} />);
 
-      expect(screen.getByTestId("seat-3")).toHaveClass("bg-yellow-200");
+      expect(screen.getByTestId("seat-3")).toHaveClass("bg-yellow-600");
     });
 
     it("has ring styling for player seat", () => {
@@ -408,7 +408,7 @@ describe("Seat", () => {
         />
       );
 
-      expect(screen.getByTestId("seat-0")).toHaveClass("bg-purple-100");
+      expect(screen.getByTestId("seat-0")).toHaveClass("bg-purple-800");
     });
 
     it("does not show hovered state for empty seat", () => {
