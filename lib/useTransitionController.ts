@@ -38,10 +38,14 @@ const INITIAL_STATE: TransitionState = {
 };
 
 // Animation phase durations in milliseconds
+// shaking = train journey (sounds play during this phase)
+// departing = NPCs exit after train arrives
+// claiming = standing NPCs grab vacated seats
+// settling = final settle before idle
 const PHASE_DURATIONS = {
-  shaking: 500,
+  shaking: 2500,
   departing: 400,
-  claiming: 300,
+  claiming: 200,
   settling: 100,
 };
 

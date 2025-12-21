@@ -68,8 +68,8 @@ describe("SoundManager", () => {
       expect(soundManager.getCurrentlyPlayingCount()).toBe(0);
     });
 
-    it("has a max concurrent sound limit of 3", () => {
-      expect(soundManager.getMaxConcurrent()).toBe(3);
+    it("has a max concurrent sound limit of 5", () => {
+      expect(soundManager.getMaxConcurrent()).toBe(5);
     });
   });
 
@@ -141,7 +141,9 @@ describe("SoundManager", () => {
       soundManager.play("seatClick");
       soundManager.play("doorClose");
       soundManager.play("announcement");
-      expect(soundManager.getCurrentlyPlayingCount()).toBe(3);
+      soundManager.play("trainMoving");
+      soundManager.play("trainStopping");
+      expect(soundManager.getCurrentlyPlayingCount()).toBe(5);
     });
 
     it("blocks additional sounds when limit reached", () => {
@@ -150,6 +152,8 @@ describe("SoundManager", () => {
       soundManager.play("seatClick");
       soundManager.play("doorClose");
       soundManager.play("announcement");
+      soundManager.play("trainMoving");
+      soundManager.play("trainStopping");
 
       const callCount = playSpy.mock.calls.length;
 

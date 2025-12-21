@@ -34,7 +34,7 @@ export class SoundManager {
   private sounds: Map<SoundName, HTMLAudioElement> = new Map();
   private muted: boolean = false;
   private currentlyPlaying: Set<SoundName> = new Set();
-  private maxConcurrent: number = 3;
+  private maxConcurrent: number = 5;
   private initialized: boolean = false;
 
   constructor() {

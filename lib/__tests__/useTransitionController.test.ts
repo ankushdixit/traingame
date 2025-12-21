@@ -86,7 +86,7 @@ describe("useTransitionController", () => {
       expect(result.current.state.claimedSeatId).toBe(3);
     });
 
-    it("transitions to departing phase after 500ms", () => {
+    it("transitions to departing phase after 2500ms", () => {
       const { result } = renderHook(() => useTransitionController());
 
       act(() => {
@@ -96,13 +96,13 @@ describe("useTransitionController", () => {
       expect(result.current.state.phase).toBe("shaking");
 
       act(() => {
-        jest.advanceTimersByTime(500);
+        jest.advanceTimersByTime(2500);
       });
 
       expect(result.current.state.phase).toBe("departing");
     });
 
-    it("transitions to claiming phase after 900ms", () => {
+    it("transitions to claiming phase after 2900ms", () => {
       const { result } = renderHook(() => useTransitionController());
 
       act(() => {
@@ -110,13 +110,13 @@ describe("useTransitionController", () => {
       });
 
       act(() => {
-        jest.advanceTimersByTime(900);
+        jest.advanceTimersByTime(2900);
       });
 
       expect(result.current.state.phase).toBe("claiming");
     });
 
-    it("transitions to settling phase after 1200ms", () => {
+    it("transitions to settling phase after 3100ms", () => {
       const { result } = renderHook(() => useTransitionController());
 
       act(() => {
@@ -124,13 +124,13 @@ describe("useTransitionController", () => {
       });
 
       act(() => {
-        jest.advanceTimersByTime(1200);
+        jest.advanceTimersByTime(3100);
       });
 
       expect(result.current.state.phase).toBe("settling");
     });
 
-    it("returns to idle phase after 1300ms", () => {
+    it("returns to idle phase after 3200ms", () => {
       const { result } = renderHook(() => useTransitionController());
 
       act(() => {
@@ -138,7 +138,7 @@ describe("useTransitionController", () => {
       });
 
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       expect(result.current.state.phase).toBe("idle");
@@ -175,7 +175,7 @@ describe("useTransitionController", () => {
 
       // Complete animation
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       expect(mockFn).toHaveBeenCalledTimes(1);
@@ -202,7 +202,7 @@ describe("useTransitionController", () => {
       expect(mockFn3).not.toHaveBeenCalled();
 
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       expect(mockFn1).toHaveBeenCalledTimes(1);
@@ -261,7 +261,7 @@ describe("useTransitionController", () => {
 
       act(() => {
         result.current.startTransition([], null, null);
-        jest.advanceTimersByTime(500);
+        jest.advanceTimersByTime(2500);
       });
 
       expect(result.current.isAnimating).toBe(true);
@@ -272,7 +272,7 @@ describe("useTransitionController", () => {
 
       act(() => {
         result.current.startTransition([], null, null);
-        jest.advanceTimersByTime(900);
+        jest.advanceTimersByTime(2900);
       });
 
       expect(result.current.isAnimating).toBe(true);
@@ -283,7 +283,7 @@ describe("useTransitionController", () => {
 
       act(() => {
         result.current.startTransition([], null, null);
-        jest.advanceTimersByTime(1200);
+        jest.advanceTimersByTime(3100);
       });
 
       expect(result.current.isAnimating).toBe(true);

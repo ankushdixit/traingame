@@ -10,6 +10,7 @@ export interface JourneyProgressProps {
   currentStation: number;
   destination: number;
   boardingStation: number;
+  isAnimating?: boolean;
 }
 
 export function JourneyProgress({
@@ -17,9 +18,16 @@ export function JourneyProgress({
   currentStation,
   destination,
   boardingStation,
+  isAnimating = false,
 }: JourneyProgressProps) {
   // Urgency indicator when 1 station away from destination
   const isUrgent = destination - currentStation === 1;
+
+  // Calculate progress percentage
+  const stationGap = 100 / (stations.length - 1);
+  const baseProgress = (currentStation / (stations.length - 1)) * 100;
+  // When animating, target the next station
+  const targetProgress = isAnimating ? baseProgress + stationGap : baseProgress;
 
   return (
     <div
@@ -37,9 +45,13 @@ export function JourneyProgress({
 
         {/* Progress line - shows completed portion of journey */}
         <div
-          className="absolute top-1/2 left-0 h-1 -translate-y-1/2 bg-blue-400 transition-all duration-500"
+          className={`absolute top-1/2 left-0 h-1 -translate-y-1/2 bg-blue-400 ${
+            isAnimating
+              ? "transition-all duration-[3200ms] ease-linear"
+              : "transition-all duration-300"
+          }`}
           style={{
-            width: `${(currentStation / (stations.length - 1)) * 100}%`,
+            width: `${targetProgress}%`,
           }}
           data-testid="progress-line"
           aria-hidden="true"
