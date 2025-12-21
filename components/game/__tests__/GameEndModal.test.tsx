@@ -1,6 +1,15 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { GameEndModal } from "../GameEndModal";
 
+// Mock SoundContext since GameEndModal uses useSound
+jest.mock("@/contexts/SoundContext", () => ({
+  useSound: () => ({
+    isMuted: false,
+    toggleMute: jest.fn(),
+    playSound: jest.fn(),
+  }),
+}));
+
 describe("GameEndModal", () => {
   const defaultProps = {
     status: "won" as const,

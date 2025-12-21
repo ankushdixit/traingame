@@ -1,6 +1,15 @@
 import { render, screen } from "@testing-library/react";
 import { GameHeader } from "../GameHeader";
 
+// Mock SoundContext since GameHeader includes SoundToggle
+jest.mock("@/contexts/SoundContext", () => ({
+  useSound: () => ({
+    isMuted: false,
+    toggleMute: jest.fn(),
+    playSound: jest.fn(),
+  }),
+}));
+
 describe("GameHeader", () => {
   describe("current station display", () => {
     it("displays current station name for Churchgate", () => {

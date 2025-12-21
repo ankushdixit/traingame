@@ -2,6 +2,15 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import GamePage from "../page";
 import { GameState } from "@/lib/types";
 
+// Mock SoundContext since game page uses useSound
+jest.mock("@/contexts/SoundContext", () => ({
+  useSound: () => ({
+    isMuted: false,
+    toggleMute: jest.fn(),
+    playSound: jest.fn(),
+  }),
+}));
+
 // Mock useSearchParams and useRouter
 const mockSearchParams = new Map<string, string>();
 const mockPush = jest.fn();

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Sound effects system with SoundManager class for game audio
+- SoundContext and SoundProvider for React-based sound state management
+- Mute/unmute toggle button in game header with accessible icons
+- Train movement sounds (moving, stopping, door close) on station advance
+- Station announcement sound effect
+- Seat interaction sounds (click, claim)
+- Win/lose game sound effects (celebratory jingle, sympathetic sound)
+- NPC grab sound when standing passengers claim seats
+- Configurable volume levels per sound type
+- Concurrent sound limiting (max 3 simultaneous sounds)
+- Graceful error handling for browser autoplay restrictions
+
 - Initial project setup with Session-Driven Development
 - Health check API endpoint at `/api/health` returning `{ status: "ok", timestamp: "<ISO date>" }`
 - Station selection screen with boarding/destination dropdowns and dynamic filtering

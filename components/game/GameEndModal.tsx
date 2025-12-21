@@ -4,10 +4,11 @@
  * GameEndModal component - displays enhanced win/lose screen as an overlay
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { WinScene } from "./WinScene";
 import { LoseScene } from "./LoseScene";
 import { Difficulty } from "@/lib/types";
+import { useSound } from "@/contexts/SoundContext";
 
 interface GameEndModalProps {
   status: "won" | "lost";
@@ -27,7 +28,17 @@ export function GameEndModal({
   onPlayAgain,
 }: GameEndModalProps) {
   const [showAnimation, setShowAnimation] = useState(true);
+  const { playSound } = useSound();
   const isWin = status === "won";
+
+  // Play win/lose sound when modal appears
+  useEffect(() => {
+    if (isWin) {
+      playSound("winJingle");
+    } else {
+      playSound("loseSound");
+    }
+  }, [isWin, playSound]);
 
   const handleSkipAnimation = useCallback(() => {
     setShowAnimation(false);
