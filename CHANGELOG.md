@@ -105,6 +105,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - PlayerCharacterSad: disappointed player looking tired from standing
   - Animation skip: click overlay to skip confetti animation
   - New CSS animations: confettiFall, celebrateBounce, fadeInUp
+- Station transition animations for smooth train movement experience
+  - useTransitionController hook: manages animation phases (shaking → departing → claiming → settling)
+  - Train shake animation (500ms) when advancing stations
+  - NPC departure animation: slide-out-right when leaving at their destination
+  - Seat claim animation: pop-in effect when standing NPC claims seat
+  - "Claimed!" indicator badge when NPC takes a seat
+  - Player claim success animation: green pulse effect
+  - Standing NPC move-to-seat animation
+  - Interaction queuing: clicks during animation are queued and executed after
+  - previewStationAdvance() function for animation coordination
+  - New CSS animations: trainShake, slideOutRight, seatClaim, successPulse, npcClaimIndicator, moveToSeat
 
 ### Fixed
 

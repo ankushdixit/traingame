@@ -4,6 +4,7 @@
  */
 
 import { Seat as SeatType } from "@/lib/types";
+import { TransitionState } from "@/lib/useTransitionController";
 import { Seat } from "./Seat";
 import { TrainCompartment } from "./TrainCompartment";
 
@@ -13,6 +14,8 @@ interface CompartmentProps {
   isPlayerSeated: boolean;
   hoveredSeatId: number | null;
   currentStation?: number;
+  transitionState?: TransitionState;
+  playerClaimSuccess?: boolean;
   onRevealDestination: (id: number) => void;
   onClaimSeat: (id: number) => void;
   onHoverNear: (id: number) => void;
@@ -24,6 +27,8 @@ export function Compartment({
   isPlayerSeated,
   hoveredSeatId,
   currentStation,
+  transitionState,
+  playerClaimSuccess = false,
   onRevealDestination,
   onClaimSeat,
   onHoverNear,
@@ -32,8 +37,10 @@ export function Compartment({
   const topRow = seats.slice(0, 3);
   const bottomRow = seats.slice(3, 6);
 
+  const isShaking = transitionState?.phase === "shaking";
+
   return (
-    <TrainCompartment currentStation={currentStation}>
+    <TrainCompartment currentStation={currentStation} isShaking={isShaking}>
       <div className="flex flex-col gap-6" data-testid="compartment">
         {/* Top row - facing down (toward aisle) */}
         <div className="flex justify-center gap-3">
@@ -44,6 +51,8 @@ export function Compartment({
               isPlayerSeat={seat.id === playerSeatId}
               isPlayerSeated={isPlayerSeated}
               isHovered={seat.id === hoveredSeatId}
+              transitionState={transitionState}
+              playerClaimSuccess={playerClaimSuccess && seat.id === playerSeatId}
               onRevealDestination={onRevealDestination}
               onClaimSeat={onClaimSeat}
               onHoverNear={onHoverNear}
@@ -68,6 +77,8 @@ export function Compartment({
               isPlayerSeat={seat.id === playerSeatId}
               isPlayerSeated={isPlayerSeated}
               isHovered={seat.id === hoveredSeatId}
+              transitionState={transitionState}
+              playerClaimSuccess={playerClaimSuccess && seat.id === playerSeatId}
               onRevealDestination={onRevealDestination}
               onClaimSeat={onClaimSeat}
               onHoverNear={onHoverNear}

@@ -10,12 +10,20 @@ interface TrainCompartmentProps {
   children: ReactNode;
   /** Current station index - used to trigger scenery animation */
   currentStation?: number;
+  /** Whether the train is currently shaking (station transition) */
+  isShaking?: boolean;
 }
 
-export function TrainCompartment({ children, currentStation }: TrainCompartmentProps) {
+export function TrainCompartment({
+  children,
+  currentStation,
+  isShaking = false,
+}: TrainCompartmentProps) {
   return (
     <div
-      className="relative min-h-[400px] w-full max-w-2xl overflow-hidden rounded-lg border-4 border-train-maroon bg-train-cream p-6 shadow-xl"
+      className={`relative min-h-[400px] w-full max-w-2xl overflow-hidden rounded-lg border-4 border-train-maroon bg-train-cream p-6 shadow-xl ${
+        isShaking ? "animate-train-shake" : ""
+      }`}
       data-testid="train-compartment"
     >
       {/* Interior elements (ceiling, poles, window, floor) */}
