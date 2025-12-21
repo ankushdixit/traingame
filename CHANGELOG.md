@@ -48,6 +48,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `setHoveredSeat()` function for player hover state management
 - Difficulty-based standing NPC counts: Easy (0), Normal (1-2), Rush Hour (2-3)
 - Difficulty-based claim chance: Easy (20%), Normal (50%), Rush Hour (80%)
+- Journey progress indicator: visual track showing all stations with current position
+- JourneyProgress component displaying station markers on horizontal track
+- StationMarker component with styling for current, destination, passed, and future stations
+- Train emoji (🚂) on current station, flag emoji (🚩) on destination
+- Blue progress line showing journey completion percentage
+- Urgency indicator with pulsing animation when 1 station from destination
+- Station labels visible for current, destination, and boarding stations
+- Hover tooltips showing station names on desktop
+- Custom `animate-urgent` CSS animation for destination warning
 
 ### Changed
 
