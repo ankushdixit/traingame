@@ -2,13 +2,16 @@
 
 /**
  * Seat component - displays an individual seat in the compartment
+ * Uses character illustrations instead of text labels
  */
 
 import { useState, KeyboardEvent } from "react";
 import { Seat as SeatType } from "@/lib/types";
 import { SeatPopover } from "./SeatPopover";
 import { TrainSeat } from "./TrainSeat";
+import { SpeechBubble } from "./SpeechBubble";
 import { STATIONS } from "@/lib/constants";
+import { renderCharacter, PlayerCharacter } from "./characters";
 
 export type SeatDisplayState = "empty" | "occupied" | "occupied-known" | "player" | "hovered";
 
@@ -34,46 +37,52 @@ function getSeatDisplayState(
   return "occupied";
 }
 
-function SeatContent({ displayState, seat }: { displayState: SeatDisplayState; seat: SeatType }) {
+interface SeatContentProps {
+  displayState: SeatDisplayState;
+  seat: SeatType;
+}
+
+function SeatContent({ displayState, seat }: SeatContentProps) {
   switch (displayState) {
     case "empty":
-      return <span className="text-sm font-medium">Empty</span>;
+      return (
+        <div className="flex items-center justify-center h-full">
+          <span className="text-sm font-medium text-gray-500">Empty</span>
+        </div>
+      );
     case "occupied":
-      return (
-        <span className="text-2xl" role="img" aria-label="passenger">
-          🧑
-        </span>
-      );
     case "occupied-known":
-      return (
-        <>
-          <span className="text-2xl" role="img" aria-label="passenger">
-            🧑
-          </span>
-          <span className="text-xs opacity-90" data-testid={`seat-${seat.id}-destination`}>
-            → {STATIONS[seat.occupant!.destination]}
-          </span>
-        </>
-      );
     case "hovered":
       return (
-        <>
-          <span className="text-2xl" role="img" aria-label="passenger">
-            🧑
-          </span>
-          <span className="text-xs opacity-90" data-testid={`seat-${seat.id}-watching`}>
-            Watching...
-          </span>
-        </>
+        <div className="relative flex flex-col items-center justify-center h-full">
+          {/* Character illustration */}
+          <div className="w-12 h-16" role="img" aria-label={`Passenger ${seat.occupant!.id}`}>
+            {renderCharacter(seat.occupant!.characterSprite, true)}
+          </div>
+          {/* Speech bubble for revealed destination */}
+          {displayState === "occupied-known" && (
+            <SpeechBubble stationName={STATIONS[seat.occupant!.destination]} position="top" />
+          )}
+          {/* Watching indicator for hovered state */}
+          {displayState === "hovered" && (
+            <span
+              className="absolute bottom-0 text-xs text-orange-600 font-medium"
+              data-testid={`seat-${seat.id}-watching`}
+            >
+              Watching...
+            </span>
+          )}
+        </div>
       );
     case "player":
       return (
-        <>
-          <span className="text-2xl" role="img" aria-label="you">
-            😊
-          </span>
-          <span className="text-sm font-bold">You</span>
-        </>
+        <div className="flex flex-col items-center justify-center h-full">
+          {/* Player character */}
+          <div className="w-12 h-16" role="img" aria-label="You - the player character">
+            <PlayerCharacter isSeated={true} />
+          </div>
+          <span className="text-xs font-bold text-orange-600 mt-1">You</span>
+        </div>
       );
   }
 }

@@ -79,14 +79,15 @@ describe("StandingArea", () => {
   });
 
   describe("visual elements", () => {
-    it("renders standing person emoji for each NPC", () => {
+    it("renders character illustration for each standing NPC", () => {
       const npcs: StandingNPC[] = [
         { id: "standing-0", targetSeatId: null, claimPriority: 0.5, characterSprite: 0 },
       ];
       render(<StandingArea standingNPCs={npcs} lastClaimMessage={null} />);
 
       const npcElement = screen.getByTestId("standing-npc-standing-0");
-      expect(npcElement).toHaveTextContent("🧍");
+      // Check that it contains an SVG (character illustration)
+      expect(npcElement.querySelector("svg")).toBeInTheDocument();
     });
   });
 });

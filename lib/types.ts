@@ -40,6 +40,7 @@ export interface NPC {
   id: string;
   destination: number; // station index where NPC exits
   destinationRevealed: boolean; // has player asked?
+  characterSprite: number; // Index into CHARACTERS array for visual representation
 }
 
 /**

@@ -4,6 +4,7 @@
 
 import { TOTAL_SEATS, STATIONS, DIFFICULTY_CONFIGS, DEFAULT_DIFFICULTY } from "./constants";
 import { GameState, NPC, Seat, Difficulty, StandingNPC } from "./types";
+import { CHARACTER_COUNT } from "@/components/game/characters";
 
 /**
  * Advances the train to the next station.
@@ -79,11 +80,12 @@ export function processStandingNPCClaims(state: GameState, newlyEmptySeats: numb
       const maxDest = STATIONS.length - 1;
       const npcDestination = minDest + Math.floor(Math.random() * (maxDest - minDest + 1));
 
-      // Create seated NPC from standing NPC
+      // Create seated NPC from standing NPC, preserving their character sprite
       const seatedNpc: NPC = {
         id: claimingNpc.id,
         destination: npcDestination,
         destinationRevealed: false,
+        characterSprite: claimingNpc.characterSprite,
       };
 
       updatedState = {
@@ -164,7 +166,7 @@ export function generateStandingNPCs(difficulty: Difficulty): StandingNPC[] {
     id: `standing-npc-${i}`,
     targetSeatId: null,
     claimPriority: Math.random(),
-    characterSprite: Math.floor(Math.random() * 4), // 4 sprite options for future use
+    characterSprite: Math.floor(Math.random() * CHARACTER_COUNT),
   }));
 }
 
@@ -197,9 +199,13 @@ export function generateInitialState(
   const shuffledIndices = seatIndices.sort(() => Math.random() - 0.5);
   const npcSeatIndices = shuffledIndices.slice(0, npcCount);
 
-  // 4. Generate NPCs with destinations
+  // 4. Generate NPCs with destinations and unique character sprites
   const minDest = boardingStation + 1;
   const maxDest = STATIONS.length - 1; // Dadar (final station)
+
+  // Shuffle character indices to ensure no duplicates when possible
+  const characterIndices = Array.from({ length: CHARACTER_COUNT }, (_, i) => i);
+  const shuffledCharacters = characterIndices.sort(() => Math.random() - 0.5);
 
   npcSeatIndices.forEach((seatIndex, i) => {
     const npcDestination = minDest + Math.floor(Math.random() * (maxDest - minDest + 1));
@@ -208,6 +214,7 @@ export function generateInitialState(
       id: `npc-${i}`,
       destination: npcDestination,
       destinationRevealed: false,
+      characterSprite: shuffledCharacters[i % CHARACTER_COUNT],
     };
 
     seats[seatIndex].occupant = npc;

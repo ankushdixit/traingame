@@ -348,9 +348,15 @@ describe("revealDestination", () => {
 
   it("sets destinationRevealed to true for the specified seat", () => {
     const seats: Seat[] = [
-      { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
       { id: 1, occupant: null },
-      { id: 2, occupant: { id: "npc-1", destination: 4, destinationRevealed: false } },
+      {
+        id: 2,
+        occupant: { id: "npc-1", destination: 4, destinationRevealed: false, characterSprite: 1 },
+      },
     ];
     const state = createTestState(seats);
 
@@ -361,9 +367,15 @@ describe("revealDestination", () => {
 
   it("does not modify other seats", () => {
     const seats: Seat[] = [
-      { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
       { id: 1, occupant: null },
-      { id: 2, occupant: { id: "npc-1", destination: 4, destinationRevealed: false } },
+      {
+        id: 2,
+        occupant: { id: "npc-1", destination: 4, destinationRevealed: false, characterSprite: 1 },
+      },
     ];
     const state = createTestState(seats);
 
@@ -375,7 +387,10 @@ describe("revealDestination", () => {
 
   it("returns new state object (immutable update)", () => {
     const seats: Seat[] = [
-      { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
     ];
     const state = createTestState(seats);
 
@@ -389,7 +404,10 @@ describe("revealDestination", () => {
 
   it("does not mutate original state", () => {
     const seats: Seat[] = [
-      { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
     ];
     const state = createTestState(seats);
 
@@ -401,7 +419,10 @@ describe("revealDestination", () => {
   it("handles empty seat gracefully", () => {
     const seats: Seat[] = [
       { id: 0, occupant: null },
-      { id: 1, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
     ];
     const state = createTestState(seats);
 
@@ -413,7 +434,10 @@ describe("revealDestination", () => {
 
   it("handles already revealed destination", () => {
     const seats: Seat[] = [
-      { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: true } },
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
+      },
     ];
     const state = createTestState(seats);
 
@@ -424,7 +448,10 @@ describe("revealDestination", () => {
 
   it("preserves other state properties", () => {
     const seats: Seat[] = [
-      { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
     ];
     const state: GameState = {
       currentStation: 2,
@@ -452,7 +479,10 @@ describe("revealDestination", () => {
 
   it("handles non-existent seat ID gracefully", () => {
     const seats: Seat[] = [
-      { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
     ];
     const state = createTestState(seats);
 
@@ -481,7 +511,10 @@ describe("claimSeat", () => {
   it("sets playerSeated to true", () => {
     const seats: Seat[] = [
       { id: 0, occupant: null },
-      { id: 1, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
     ];
     const state = createTestState(seats);
 
@@ -524,7 +557,10 @@ describe("claimSeat", () => {
   it("preserves other state properties", () => {
     const seats: Seat[] = [
       { id: 0, occupant: null },
-      { id: 1, occupant: { id: "npc-0", destination: 3, destinationRevealed: true } },
+      {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
+      },
     ];
     const state: GameState = {
       currentStation: 2,
@@ -564,7 +600,10 @@ describe("claimSeat", () => {
   it("preserves seats array unchanged", () => {
     const seats: Seat[] = [
       { id: 0, occupant: null },
-      { id: 1, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
     ];
     const state = createTestState(seats);
 
@@ -615,7 +654,10 @@ describe("advanceStation", () => {
   describe("NPC removal", () => {
     it("removes NPC whose destination equals new station", () => {
       const seats: Seat[] = [
-        { id: 0, occupant: { id: "npc-0", destination: 1, destinationRevealed: false } },
+        {
+          id: 0,
+          occupant: { id: "npc-0", destination: 1, destinationRevealed: false, characterSprite: 0 },
+        },
         { id: 1, occupant: null },
       ];
       const state = createTestState(seats, { currentStation: 0 });
@@ -627,7 +669,10 @@ describe("advanceStation", () => {
 
     it("removes NPC whose destination is before new station", () => {
       const seats: Seat[] = [
-        { id: 0, occupant: { id: "npc-0", destination: 1, destinationRevealed: false } },
+        {
+          id: 0,
+          occupant: { id: "npc-0", destination: 1, destinationRevealed: false, characterSprite: 0 },
+        },
         { id: 1, occupant: null },
       ];
       const state = createTestState(seats, { currentStation: 1 });
@@ -640,7 +685,10 @@ describe("advanceStation", () => {
 
     it("keeps NPC whose destination is after new station", () => {
       const seats: Seat[] = [
-        { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+        {
+          id: 0,
+          occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+        },
         { id: 1, occupant: null },
       ];
       const state = createTestState(seats, { currentStation: 0 });
@@ -653,9 +701,18 @@ describe("advanceStation", () => {
 
     it("removes multiple NPCs at same station", () => {
       const seats: Seat[] = [
-        { id: 0, occupant: { id: "npc-0", destination: 1, destinationRevealed: false } },
-        { id: 1, occupant: { id: "npc-1", destination: 1, destinationRevealed: true } },
-        { id: 2, occupant: { id: "npc-2", destination: 3, destinationRevealed: false } },
+        {
+          id: 0,
+          occupant: { id: "npc-0", destination: 1, destinationRevealed: false, characterSprite: 0 },
+        },
+        {
+          id: 1,
+          occupant: { id: "npc-1", destination: 1, destinationRevealed: true, characterSprite: 1 },
+        },
+        {
+          id: 2,
+          occupant: { id: "npc-2", destination: 3, destinationRevealed: false, characterSprite: 2 },
+        },
       ];
       const state = createTestState(seats, { currentStation: 0 });
 
@@ -668,7 +725,10 @@ describe("advanceStation", () => {
 
     it("clears revealed destination info when NPC exits", () => {
       const seats: Seat[] = [
-        { id: 0, occupant: { id: "npc-0", destination: 1, destinationRevealed: true } },
+        {
+          id: 0,
+          occupant: { id: "npc-0", destination: 1, destinationRevealed: true, characterSprite: 0 },
+        },
       ];
       const state = createTestState(seats, { currentStation: 0 });
 
@@ -681,7 +741,10 @@ describe("advanceStation", () => {
     it("keeps empty seats empty", () => {
       const seats: Seat[] = [
         { id: 0, occupant: null },
-        { id: 1, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+        {
+          id: 1,
+          occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+        },
       ];
       const state = createTestState(seats, { currentStation: 0 });
 
@@ -760,7 +823,10 @@ describe("advanceStation", () => {
 
     it("does not mutate original state", () => {
       const seats: Seat[] = [
-        { id: 0, occupant: { id: "npc-0", destination: 1, destinationRevealed: false } },
+        {
+          id: 0,
+          occupant: { id: "npc-0", destination: 1, destinationRevealed: false, characterSprite: 0 },
+        },
       ];
       const state = createTestState(seats, { currentStation: 0 });
 
@@ -879,12 +945,12 @@ describe("generateStandingNPCs", () => {
       }
     });
 
-    it("sets characterSprite between 0 and 3", () => {
+    it("sets characterSprite between 0 and 7 (8 available characters)", () => {
       for (let i = 0; i < 20; i++) {
         const npcs = generateStandingNPCs("rush");
         npcs.forEach((npc) => {
           expect(npc.characterSprite).toBeGreaterThanOrEqual(0);
-          expect(npc.characterSprite).toBeLessThanOrEqual(3);
+          expect(npc.characterSprite).toBeLessThanOrEqual(7);
         });
       }
     });
@@ -1002,7 +1068,10 @@ describe("processStandingNPCClaims", () => {
     seats: [
       { id: 0, occupant: null },
       { id: 1, occupant: null },
-      { id: 2, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      {
+        id: 2,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
     ],
     gameStatus: "playing",
     standingNPCs: [
@@ -1248,7 +1317,10 @@ describe("advanceStation with standing NPCs", () => {
     playerSeated: false,
     seatId: null,
     seats: [
-      { id: 0, occupant: { id: "npc-0", destination: 1, destinationRevealed: false } },
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 1, destinationRevealed: false, characterSprite: 0 },
+      },
       { id: 1, occupant: null },
     ],
     gameStatus: "playing",
