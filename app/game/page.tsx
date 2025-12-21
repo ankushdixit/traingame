@@ -16,6 +16,7 @@ import {
 import { GameState, Difficulty } from "@/lib/types";
 import { STATIONS, DEFAULT_DIFFICULTY } from "@/lib/constants";
 import { GameHeader } from "@/components/game/GameHeader";
+import { JourneyProgress } from "@/components/game/JourneyProgress";
 import { Compartment } from "@/components/game/Compartment";
 import { PlayerStatus } from "@/components/game/PlayerStatus";
 import { NextStationButton } from "@/components/game/NextStationButton";
@@ -102,6 +103,13 @@ export default function GamePage() {
         <GameHeader
           currentStation={gameState.currentStation}
           playerDestination={gameState.playerDestination}
+        />
+
+        <JourneyProgress
+          stations={STATIONS}
+          currentStation={gameState.currentStation}
+          destination={gameState.playerDestination}
+          boardingStation={gameState.playerBoardingStation}
         />
 
         <Compartment
