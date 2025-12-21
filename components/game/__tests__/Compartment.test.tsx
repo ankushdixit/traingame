@@ -31,17 +31,21 @@ describe("Compartment", () => {
     }
   });
 
-  it("renders seats in 2 rows of 3", () => {
+  it("renders seats in 2 rows of 3 with aisle between", () => {
     const seats = createSeats(6);
     render(<Compartment seats={seats} playerSeatId={null} {...defaultProps} />);
 
     const compartment = screen.getByTestId("compartment");
-    // Get only direct children (the row divs)
-    const rows = Array.from(compartment.children);
+    // Get only direct children (top row, aisle, bottom row)
+    const children = Array.from(compartment.children);
 
-    expect(rows).toHaveLength(2);
-    expect(rows[0].children).toHaveLength(3);
-    expect(rows[1].children).toHaveLength(3);
+    expect(children).toHaveLength(3);
+    // First row has 3 seats
+    expect(children[0].children).toHaveLength(3);
+    // Aisle between rows
+    expect(screen.getByTestId("aisle")).toBeInTheDocument();
+    // Second row has 3 seats
+    expect(children[2].children).toHaveLength(3);
   });
 
   it("passes isPlayerSeat=true only to player's seat", () => {

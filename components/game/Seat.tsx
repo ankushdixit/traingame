@@ -7,6 +7,7 @@
 import { useState, KeyboardEvent } from "react";
 import { Seat as SeatType } from "@/lib/types";
 import { SeatPopover } from "./SeatPopover";
+import { TrainSeat } from "./TrainSeat";
 import { STATIONS } from "@/lib/constants";
 
 export type SeatDisplayState = "empty" | "occupied" | "occupied-known" | "player" | "hovered";
@@ -20,14 +21,6 @@ interface SeatProps {
   onClaimSeat: (id: number) => void;
   onHoverNear: (id: number) => void;
 }
-
-const seatStyles: Record<SeatDisplayState, string> = {
-  empty: "bg-green-100 border-green-300",
-  occupied: "bg-gray-200 border-gray-400",
-  "occupied-known": "bg-blue-100 border-blue-300",
-  player: "bg-yellow-200 border-yellow-500 ring-2 ring-yellow-400",
-  hovered: "bg-purple-100 border-purple-400 ring-2 ring-purple-300",
-};
 
 function getSeatDisplayState(
   seat: SeatType,
@@ -44,14 +37,20 @@ function getSeatDisplayState(
 function SeatContent({ displayState, seat }: { displayState: SeatDisplayState; seat: SeatType }) {
   switch (displayState) {
     case "empty":
-      return <span className="text-sm text-green-700">Empty</span>;
+      return <span className="text-sm font-medium">Empty</span>;
     case "occupied":
-      return <span className="text-sm text-gray-700">Passenger</span>;
+      return (
+        <span className="text-2xl" role="img" aria-label="passenger">
+          🧑
+        </span>
+      );
     case "occupied-known":
       return (
         <>
-          <span className="text-sm text-blue-700">Passenger</span>
-          <span className="text-xs text-blue-600" data-testid={`seat-${seat.id}-destination`}>
+          <span className="text-2xl" role="img" aria-label="passenger">
+            🧑
+          </span>
+          <span className="text-xs opacity-90" data-testid={`seat-${seat.id}-destination`}>
             → {STATIONS[seat.occupant!.destination]}
           </span>
         </>
@@ -59,14 +58,23 @@ function SeatContent({ displayState, seat }: { displayState: SeatDisplayState; s
     case "hovered":
       return (
         <>
-          <span className="text-sm text-purple-700">Passenger</span>
-          <span className="text-xs text-purple-600" data-testid={`seat-${seat.id}-watching`}>
+          <span className="text-2xl" role="img" aria-label="passenger">
+            🧑
+          </span>
+          <span className="text-xs opacity-90" data-testid={`seat-${seat.id}-watching`}>
             Watching...
           </span>
         </>
       );
     case "player":
-      return <span className="text-sm font-bold text-yellow-700">You</span>;
+      return (
+        <>
+          <span className="text-2xl" role="img" aria-label="you">
+            😊
+          </span>
+          <span className="text-sm font-bold">You</span>
+        </>
+      );
   }
 }
 
@@ -96,17 +104,15 @@ export function Seat({
 
   return (
     <div className="relative">
-      <div
-        className={`flex h-20 w-24 flex-col items-center justify-center rounded-lg border-2 ${seatStyles[displayState]} ${isClickable ? "cursor-pointer hover:opacity-80" : ""}`}
-        data-testid={`seat-${seat.id}`}
-        data-state={displayState}
+      <TrainSeat
+        displayState={displayState}
+        isClickable={isClickable}
         onClick={handleClick}
-        role={isClickable ? "button" : undefined}
-        tabIndex={isClickable ? 0 : undefined}
         onKeyDown={isClickable ? handleKeyDown : undefined}
+        testId={`seat-${seat.id}`}
       >
         <SeatContent displayState={displayState} seat={seat} />
-      </div>
+      </TrainSeat>
 
       {isPopoverOpen && (
         <SeatPopover

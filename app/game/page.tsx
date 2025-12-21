@@ -117,6 +117,7 @@ export default function GamePage() {
           playerSeatId={gameState.seatId}
           isPlayerSeated={gameState.playerSeated}
           hoveredSeatId={gameState.hoveredSeatId}
+          currentStation={gameState.currentStation}
           onRevealDestination={handleRevealDestination}
           onClaimSeat={handleClaimSeat}
           onHoverNear={handleHoverNear}

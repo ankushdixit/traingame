@@ -16,6 +16,18 @@
   /* Color tokens using --color-* namespace for Tailwind v4 */
   --color-background: #ffffff;
   --color-foreground: #171717;
+
+  /* Mumbai Local Train Color Palette */
+  --color-train-maroon: #800000;
+  --color-train-maroon-dark: #5c0000;
+  --color-train-cream: #fffdd0;
+  --color-train-cream-dark: #f5f0c0;
+  --color-train-metallic: #8c8c8c;
+  --color-train-metallic-dark: #6c6c6c;
+  --color-train-window: #87ceeb;
+  --color-train-floor: #4a4a4a;
+  --color-train-seat-cushion: #6b0000;
+  --color-train-handle: #a0a0a0;
 }
 
 /* Dark mode using prefers-color-scheme */
@@ -50,4 +62,18 @@ body {
 
 @utility animate-urgent {
   animation: urgentPulse 1s infinite;
+}
+
+/* Window scenery scroll animation for station transitions */
+@keyframes sceneryScroll {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -100px;
+  }
+}
+
+@utility animate-scenery {
+  animation: sceneryScroll 0.5s ease-out;
 }

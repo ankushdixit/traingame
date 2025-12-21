@@ -238,7 +238,7 @@ describe("GamePage", () => {
       fireEvent.click(screen.getByTestId("seat-1"));
       fireEvent.click(screen.getByTestId("claim-seat-button"));
 
-      expect(screen.getByTestId("seat-1")).toHaveClass("bg-yellow-200");
+      expect(screen.getByTestId("seat-1")).toHaveClass("bg-yellow-600");
       expect(screen.getByTestId("seat-1")).toHaveClass("ring-2");
       expect(screen.getByTestId("seat-1")).toHaveClass("ring-yellow-400");
     });
