@@ -96,6 +96,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Destination reveal now shows as speech bubble overlay instead of replacing character
 - SeatPopover shows "Hover Near" button for occupied seats
 - advanceStation() now processes standing NPC claims for newly emptied seats
+- Enhanced win/lose screens with celebration animations and game statistics
+  - Confetti component: CSS-only confetti animation with 50 colorful pieces on win
+  - GameStats component: displays difficulty, stations standing, and seated status
+  - WinScene: celebratory win screen with confetti, happy character, bounce animation
+  - LoseScene: sympathetic lose screen with tired character and "how close" message
+  - PlayerCharacterHappy: happy player with raised arms celebrating victory
+  - PlayerCharacterSad: disappointed player looking tired from standing
+  - Animation skip: click overlay to skip confetti animation
+  - New CSS animations: confettiFall, celebrateBounce, fadeInUp
 
 ### Fixed
 

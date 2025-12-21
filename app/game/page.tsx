@@ -143,6 +143,9 @@ export default function GamePage() {
         <GameEndModal
           status={gameState.gameStatus as "won" | "lost"}
           destination={STATIONS[gameState.playerDestination]}
+          stationsStanding={gameState.currentStation - gameState.playerBoardingStation}
+          totalStations={gameState.playerDestination - gameState.playerBoardingStation}
+          difficulty={gameState.difficulty}
           onPlayAgain={handlePlayAgain}
         />
       )}
