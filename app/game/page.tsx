@@ -11,6 +11,7 @@ import {
   revealDestination,
   claimSeat,
   advanceStation,
+  setHoveredSeat,
 } from "@/lib/gameLogic";
 import { GameState, Difficulty } from "@/lib/types";
 import { STATIONS, DEFAULT_DIFFICULTY } from "@/lib/constants";
@@ -19,6 +20,7 @@ import { Compartment } from "@/components/game/Compartment";
 import { PlayerStatus } from "@/components/game/PlayerStatus";
 import { NextStationButton } from "@/components/game/NextStationButton";
 import { GameEndModal } from "@/components/game/GameEndModal";
+import { StandingArea } from "@/components/game/StandingArea";
 
 export default function GamePage() {
   const searchParams = useSearchParams();
@@ -73,6 +75,13 @@ export default function GamePage() {
     });
   }, []);
 
+  const handleHoverNear = useCallback((seatId: number) => {
+    setGameState((prevState) => {
+      if (!prevState) return null;
+      return setHoveredSeat(prevState, seatId);
+    });
+  }, []);
+
   const handlePlayAgain = useCallback(() => {
     router.push("/");
   }, [router]);
@@ -99,8 +108,15 @@ export default function GamePage() {
           seats={gameState.seats}
           playerSeatId={gameState.seatId}
           isPlayerSeated={gameState.playerSeated}
+          hoveredSeatId={gameState.hoveredSeatId}
           onRevealDestination={handleRevealDestination}
           onClaimSeat={handleClaimSeat}
+          onHoverNear={handleHoverNear}
+        />
+
+        <StandingArea
+          standingNPCs={gameState.standingNPCs}
+          lastClaimMessage={gameState.lastClaimMessage}
         />
 
         <PlayerStatus isSeated={gameState.playerSeated} />

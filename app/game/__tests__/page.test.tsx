@@ -31,6 +31,10 @@ jest.mock("@/lib/gameLogic", () => ({
       { id: 5, occupant: null },
     ],
     gameStatus: "playing" as const,
+    standingNPCs: [],
+    hoveredSeatId: null,
+    difficulty: "easy" as const,
+    lastClaimMessage: null,
   })),
   revealDestination: jest.fn((state: GameState, seatId: number) => ({
     ...state,
@@ -44,6 +48,7 @@ jest.mock("@/lib/gameLogic", () => ({
     ...state,
     playerSeated: true,
     seatId: seatId,
+    hoveredSeatId: null,
   })),
   advanceStation: jest.fn((state: GameState) => {
     const newStation = state.currentStation + 1;
@@ -62,8 +67,14 @@ jest.mock("@/lib/gameLogic", () => ({
       currentStation: newStation,
       seats: updatedSeats,
       gameStatus: newStatus,
+      hoveredSeatId: null,
+      lastClaimMessage: null,
     };
   }),
+  setHoveredSeat: jest.fn((state: GameState, seatId: number | null) => ({
+    ...state,
+    hoveredSeatId: seatId,
+  })),
 }));
 
 describe("GamePage", () => {

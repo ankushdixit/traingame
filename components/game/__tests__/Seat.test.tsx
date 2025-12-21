@@ -4,8 +4,10 @@ import { Seat as SeatType } from "@/lib/types";
 
 const defaultProps = {
   isPlayerSeated: false,
+  isHovered: false,
   onRevealDestination: jest.fn(),
   onClaimSeat: jest.fn(),
+  onHoverNear: jest.fn(),
 };
 
 describe("Seat", () => {
@@ -204,8 +206,10 @@ describe("Seat", () => {
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={true}
+          isHovered={false}
           onRevealDestination={jest.fn()}
           onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
         />
       );
 
@@ -225,8 +229,10 @@ describe("Seat", () => {
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={false}
+          isHovered={false}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
         />
       );
 
@@ -244,8 +250,10 @@ describe("Seat", () => {
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={false}
+          isHovered={false}
           onRevealDestination={jest.fn()}
           onClaimSeat={onClaimSeat}
+          onHoverNear={jest.fn()}
         />
       );
 
@@ -280,8 +288,10 @@ describe("Seat", () => {
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={true}
+          isHovered={false}
           onRevealDestination={jest.fn()}
           onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
         />
       );
 
@@ -313,6 +323,131 @@ describe("Seat", () => {
       fireEvent.keyDown(screen.getByTestId("seat-0"), { key: " " });
 
       expect(screen.getByTestId("seat-popover")).toBeInTheDocument();
+    });
+
+    it("calls onHoverNear when clicking 'Hover Near' button", () => {
+      const onHoverNear = jest.fn();
+      const seat: SeatType = {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+      };
+      render(
+        <Seat
+          seat={seat}
+          isPlayerSeat={false}
+          isPlayerSeated={false}
+          isHovered={false}
+          onRevealDestination={jest.fn()}
+          onClaimSeat={jest.fn()}
+          onHoverNear={onHoverNear}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId("seat-1"));
+      fireEvent.click(screen.getByTestId("hover-near-button"));
+
+      expect(onHoverNear).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe("hovered seat", () => {
+    it("displays 'Watching...' for hovered occupied seat", () => {
+      const seat: SeatType = {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+      };
+      render(
+        <Seat
+          seat={seat}
+          isPlayerSeat={false}
+          isPlayerSeated={false}
+          isHovered={true}
+          onRevealDestination={jest.fn()}
+          onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
+        />
+      );
+
+      expect(screen.getByText("Watching...")).toBeInTheDocument();
+    });
+
+    it("has hovered state data attribute", () => {
+      const seat: SeatType = {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+      };
+      render(
+        <Seat
+          seat={seat}
+          isPlayerSeat={false}
+          isPlayerSeated={false}
+          isHovered={true}
+          onRevealDestination={jest.fn()}
+          onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
+        />
+      );
+
+      expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "hovered");
+    });
+
+    it("has purple styling for hovered seat", () => {
+      const seat: SeatType = {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+      };
+      render(
+        <Seat
+          seat={seat}
+          isPlayerSeat={false}
+          isPlayerSeated={false}
+          isHovered={true}
+          onRevealDestination={jest.fn()}
+          onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
+        />
+      );
+
+      expect(screen.getByTestId("seat-0")).toHaveClass("bg-purple-100");
+    });
+
+    it("does not show hovered state for empty seat", () => {
+      const seat: SeatType = { id: 0, occupant: null };
+      render(
+        <Seat
+          seat={seat}
+          isPlayerSeat={false}
+          isPlayerSeated={false}
+          isHovered={true}
+          onRevealDestination={jest.fn()}
+          onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
+        />
+      );
+
+      // Empty seats don't get hovered state
+      expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "empty");
+    });
+
+    it("shows 'Watching this seat' in popover when already hovered", () => {
+      const seat: SeatType = {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+      };
+      render(
+        <Seat
+          seat={seat}
+          isPlayerSeat={false}
+          isPlayerSeated={false}
+          isHovered={true}
+          onRevealDestination={jest.fn()}
+          onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId("seat-0"));
+      expect(screen.getByText("Watching this seat")).toBeInTheDocument();
     });
   });
 });

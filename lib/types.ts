@@ -14,8 +14,18 @@ export interface DifficultyConfig {
   name: Difficulty;
   displayName: string;
   seatedNpcRange: [number, number]; // [min, max]
-  standingNpcRange: [number, number]; // For future Story 4.2
-  npcClaimChance: number; // For future Story 4.2
+  standingNpcRange: [number, number]; // Standing NPC count range
+  npcClaimChance: number; // Probability that standing NPC claims empty seat
+}
+
+/**
+ * Standing NPC who competes with player for seats
+ */
+export interface StandingNPC {
+  id: string;
+  targetSeatId: number | null; // Seat they're watching (or null for random)
+  claimPriority: number; // 0-1, used with difficulty's npcClaimChance
+  characterSprite: number; // For future visual feature
 }
 
 export interface StationSelection {
@@ -51,4 +61,8 @@ export interface GameState {
   seatId: number | null;
   seats: Seat[];
   gameStatus: "playing" | "won" | "lost";
+  standingNPCs: StandingNPC[];
+  hoveredSeatId: number | null; // Seat player is "hovering near"
+  difficulty: Difficulty;
+  lastClaimMessage: string | null; // "A passenger grabbed the seat!" or null
 }

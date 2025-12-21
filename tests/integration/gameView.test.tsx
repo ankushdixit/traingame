@@ -14,6 +14,8 @@ import { STATIONS } from "@/lib/constants";
 const defaultHandlers = {
   onRevealDestination: jest.fn(),
   onClaimSeat: jest.fn(),
+  onHoverNear: jest.fn(),
+  hoveredSeatId: null,
 };
 
 describe("Game View Integration", () => {
@@ -224,8 +226,10 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={null}
           isPlayerSeated={false}
+          hoveredSeatId={null}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
         />
       );
 
@@ -250,8 +254,10 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={null}
           isPlayerSeated={false}
+          hoveredSeatId={null}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
         />
       );
 
@@ -281,8 +287,10 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={null}
           isPlayerSeated={false}
+          hoveredSeatId={null}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
         />
       );
 
@@ -295,8 +303,10 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={null}
           isPlayerSeated={false}
+          hoveredSeatId={null}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
         />
       );
 
@@ -312,8 +322,10 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={null}
           isPlayerSeated={false}
+          hoveredSeatId={null}
           onRevealDestination={onRevealDestination}
           onClaimSeat={jest.fn()}
+          onHoverNear={jest.fn()}
         />
       );
 

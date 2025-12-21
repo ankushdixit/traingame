@@ -39,6 +39,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Game result display with "You Won!" or "You Lost!" messages
 - GameEndModal component: modal overlay for win/lose screens with destination message
 - "Play Again" / "Try Again" buttons to restart game from station selection
+- Standing passenger competition: standing NPCs compete with player for newly emptied seats
+- StandingNPC type with id, targetSeatId, claimPriority, and characterSprite fields
+- StandingArea component displaying standing passengers with claim message alerts
+- "Hover Near" seat action: player can hover near occupied seats to gain claim priority
+- `generateStandingNPCs()` function generating NPCs based on difficulty settings
+- `processStandingNPCClaims()` function handling NPC seat claims with probability
+- `setHoveredSeat()` function for player hover state management
+- Difficulty-based standing NPC counts: Easy (0), Normal (1-2), Rush Hour (2-3)
+- Difficulty-based claim chance: Easy (20%), Normal (50%), Rush Hour (80%)
 
 ### Changed
 
@@ -48,6 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ESLint config updated to properly handle TypeScript type annotations
 - Game result now displays as modal overlay instead of inline message
 - Mutation tests disabled in CI (takes too long)
+- GameState interface extended with standingNPCs, hoveredSeatId, difficulty, and lastClaimMessage fields
+- Seat component now supports "hovered" display state with purple styling
+- SeatPopover shows "Hover Near" button for occupied seats
+- advanceStation() now processes standing NPC claims for newly emptied seats
 
 ### Fixed
 

@@ -9,16 +9,20 @@ interface CompartmentProps {
   seats: SeatType[];
   playerSeatId: number | null;
   isPlayerSeated: boolean;
+  hoveredSeatId: number | null;
   onRevealDestination: (id: number) => void;
   onClaimSeat: (id: number) => void;
+  onHoverNear: (id: number) => void;
 }
 
 export function Compartment({
   seats,
   playerSeatId,
   isPlayerSeated,
+  hoveredSeatId,
   onRevealDestination,
   onClaimSeat,
+  onHoverNear,
 }: CompartmentProps) {
   // Arrange seats in 2 rows of 3
   const topRow = seats.slice(0, 3);
@@ -33,8 +37,10 @@ export function Compartment({
             seat={seat}
             isPlayerSeat={seat.id === playerSeatId}
             isPlayerSeated={isPlayerSeated}
+            isHovered={seat.id === hoveredSeatId}
             onRevealDestination={onRevealDestination}
             onClaimSeat={onClaimSeat}
+            onHoverNear={onHoverNear}
           />
         ))}
       </div>
@@ -45,8 +51,10 @@ export function Compartment({
             seat={seat}
             isPlayerSeat={seat.id === playerSeatId}
             isPlayerSeated={isPlayerSeated}
+            isHovered={seat.id === hoveredSeatId}
             onRevealDestination={onRevealDestination}
             onClaimSeat={onClaimSeat}
+            onHoverNear={onHoverNear}
           />
         ))}
       </div>
