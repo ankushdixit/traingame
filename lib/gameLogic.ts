@@ -2,8 +2,8 @@
  * Game logic functions for Mumbai Local Train Game
  */
 
-import { TOTAL_SEATS, MIN_NPCS, MAX_NPCS, STATIONS } from "./constants";
-import { GameState, NPC, Seat } from "./types";
+import { TOTAL_SEATS, STATIONS, DIFFICULTY_CONFIGS, DEFAULT_DIFFICULTY } from "./constants";
+import { GameState, NPC, Seat, Difficulty } from "./types";
 
 /**
  * Advances the train to the next station.
@@ -76,11 +76,18 @@ export function revealDestination(state: GameState, seatId: number): GameState {
  *
  * @param boardingStation - Index of the station where the player boards
  * @param destination - Index of the player's destination station
+ * @param difficulty - Game difficulty level (defaults to 'normal')
  * @returns A complete GameState object with NPCs placed in seats
  */
-export function generateInitialState(boardingStation: number, destination: number): GameState {
-  // 1. Determine NPC count (3 or 4)
-  const npcCount = Math.random() < 0.5 ? MIN_NPCS : MAX_NPCS;
+export function generateInitialState(
+  boardingStation: number,
+  destination: number,
+  difficulty: Difficulty = DEFAULT_DIFFICULTY
+): GameState {
+  // 1. Determine NPC count based on difficulty
+  const config = DIFFICULTY_CONFIGS[difficulty];
+  const [minNpcs, maxNpcs] = config.seatedNpcRange;
+  const npcCount = minNpcs + Math.floor(Math.random() * (maxNpcs - minNpcs + 1));
 
   // 2. Create 6 empty seats
   const seats: Seat[] = Array.from({ length: TOTAL_SEATS }, (_, i) => ({

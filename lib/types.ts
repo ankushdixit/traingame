@@ -2,6 +2,22 @@
  * TypeScript types for Mumbai Local Train Game
  */
 
+/**
+ * Game difficulty levels
+ */
+export type Difficulty = "easy" | "normal" | "rush";
+
+/**
+ * Configuration for each difficulty level
+ */
+export interface DifficultyConfig {
+  name: Difficulty;
+  displayName: string;
+  seatedNpcRange: [number, number]; // [min, max]
+  standingNpcRange: [number, number]; // For future Story 4.2
+  npcClaimChance: number; // For future Story 4.2
+}
+
 export interface StationSelection {
   boardingStation: number | null; // index in STATIONS array
   destination: number | null; // index in STATIONS array
