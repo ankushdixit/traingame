@@ -1,6 +1,6 @@
 import { generateInitialState, revealDestination, claimSeat, advanceStation } from "../gameLogic";
-import { STATIONS, TOTAL_SEATS, MIN_NPCS, MAX_NPCS } from "../constants";
-import { GameState, Seat } from "../types";
+import { STATIONS, TOTAL_SEATS, DIFFICULTY_CONFIGS, DEFAULT_DIFFICULTY } from "../constants";
+import { GameState, Seat, Difficulty } from "../types";
 
 describe("generateInitialState", () => {
   describe("seat generation", () => {
@@ -18,34 +18,37 @@ describe("generateInitialState", () => {
     });
   });
 
-  describe("NPC generation", () => {
-    it("generates between 3-4 NPCs (test multiple runs)", () => {
+  describe("NPC generation (easy difficulty)", () => {
+    const easyConfig = DIFFICULTY_CONFIGS["easy"];
+    const [minNpcs, maxNpcs] = easyConfig.seatedNpcRange;
+
+    it("generates between 3-4 NPCs on easy difficulty (test multiple runs)", () => {
       const npcCounts: number[] = [];
       for (let i = 0; i < 50; i++) {
-        const state = generateInitialState(0, 5);
+        const state = generateInitialState(0, 5, "easy");
         const npcCount = state.seats.filter((seat) => seat.occupant !== null).length;
         npcCounts.push(npcCount);
       }
 
       // All counts should be 3 or 4
-      expect(npcCounts.every((count) => count >= MIN_NPCS && count <= MAX_NPCS)).toBe(true);
+      expect(npcCounts.every((count) => count >= minNpcs && count <= maxNpcs)).toBe(true);
 
       // Should see both 3 and 4 over 50 runs (statistically likely)
-      expect(npcCounts.includes(MIN_NPCS)).toBe(true);
-      expect(npcCounts.includes(MAX_NPCS)).toBe(true);
+      expect(npcCounts.includes(minNpcs)).toBe(true);
+      expect(npcCounts.includes(maxNpcs)).toBe(true);
     });
 
-    it("ensures at least 2 empty seats at start", () => {
+    it("ensures at least 2 empty seats at start on easy difficulty", () => {
       for (let i = 0; i < 20; i++) {
-        const state = generateInitialState(0, 5);
+        const state = generateInitialState(0, 5, "easy");
         const emptySeats = state.seats.filter((seat) => seat.occupant === null).length;
         expect(emptySeats).toBeGreaterThanOrEqual(2);
       }
     });
 
-    it("ensures at most 3 empty seats at start", () => {
+    it("ensures at most 3 empty seats at start on easy difficulty", () => {
       for (let i = 0; i < 20; i++) {
-        const state = generateInitialState(0, 5);
+        const state = generateInitialState(0, 5, "easy");
         const emptySeats = state.seats.filter((seat) => seat.occupant === null).length;
         expect(emptySeats).toBeLessThanOrEqual(3);
       }
@@ -53,7 +56,7 @@ describe("generateInitialState", () => {
 
     it("gives each NPC a unique ID", () => {
       for (let i = 0; i < 10; i++) {
-        const state = generateInitialState(0, 5);
+        const state = generateInitialState(0, 5, "easy");
         const npcIds = state.seats
           .filter((seat) => seat.occupant !== null)
           .map((seat) => seat.occupant!.id);
@@ -63,12 +66,88 @@ describe("generateInitialState", () => {
     });
 
     it("sets destinationRevealed to false for all NPCs", () => {
-      const state = generateInitialState(0, 5);
+      const state = generateInitialState(0, 5, "easy");
       state.seats.forEach((seat) => {
         if (seat.occupant !== null) {
           expect(seat.occupant.destinationRevealed).toBe(false);
         }
       });
+    });
+  });
+
+  describe("NPC generation (normal difficulty - default)", () => {
+    it("uses normal difficulty by default", () => {
+      expect(DEFAULT_DIFFICULTY).toBe("normal");
+    });
+
+    it("generates exactly 5 NPCs on normal difficulty", () => {
+      for (let i = 0; i < 20; i++) {
+        const state = generateInitialState(0, 5, "normal");
+        const npcCount = state.seats.filter((seat) => seat.occupant !== null).length;
+        expect(npcCount).toBe(5);
+      }
+    });
+
+    it("generates exactly 5 NPCs when no difficulty specified (default)", () => {
+      for (let i = 0; i < 20; i++) {
+        const state = generateInitialState(0, 5);
+        const npcCount = state.seats.filter((seat) => seat.occupant !== null).length;
+        expect(npcCount).toBe(5);
+      }
+    });
+
+    it("ensures exactly 1 empty seat at start on normal difficulty", () => {
+      for (let i = 0; i < 20; i++) {
+        const state = generateInitialState(0, 5, "normal");
+        const emptySeats = state.seats.filter((seat) => seat.occupant === null).length;
+        expect(emptySeats).toBe(1);
+      }
+    });
+  });
+
+  describe("NPC generation (rush difficulty)", () => {
+    it("generates exactly 6 NPCs on rush difficulty", () => {
+      for (let i = 0; i < 20; i++) {
+        const state = generateInitialState(0, 5, "rush");
+        const npcCount = state.seats.filter((seat) => seat.occupant !== null).length;
+        expect(npcCount).toBe(6);
+      }
+    });
+
+    it("ensures 0 empty seats at start on rush difficulty", () => {
+      for (let i = 0; i < 20; i++) {
+        const state = generateInitialState(0, 5, "rush");
+        const emptySeats = state.seats.filter((seat) => seat.occupant === null).length;
+        expect(emptySeats).toBe(0);
+      }
+    });
+  });
+
+  describe("difficulty configuration validation", () => {
+    it("has valid configurations for all difficulties", () => {
+      const difficulties: Difficulty[] = ["easy", "normal", "rush"];
+      difficulties.forEach((difficulty) => {
+        const config = DIFFICULTY_CONFIGS[difficulty];
+        expect(config.name).toBe(difficulty);
+        expect(config.displayName).toBeTruthy();
+        expect(config.seatedNpcRange[0]).toBeLessThanOrEqual(config.seatedNpcRange[1]);
+        expect(config.seatedNpcRange[1]).toBeLessThanOrEqual(TOTAL_SEATS);
+      });
+    });
+
+    it("easy difficulty has 3-4 NPCs configured", () => {
+      const config = DIFFICULTY_CONFIGS["easy"];
+      expect(config.seatedNpcRange).toEqual([3, 4]);
+    });
+
+    it("normal difficulty has exactly 5 NPCs configured", () => {
+      const config = DIFFICULTY_CONFIGS["normal"];
+      expect(config.seatedNpcRange).toEqual([5, 5]);
+    });
+
+    it("rush difficulty has exactly 6 NPCs configured", () => {
+      const config = DIFFICULTY_CONFIGS["rush"];
+      expect(config.seatedNpcRange).toEqual([6, 6]);
     });
   });
 
@@ -165,10 +244,10 @@ describe("generateInitialState", () => {
   });
 
   describe("randomization", () => {
-    it("produces different NPC seat assignments across runs", () => {
+    it("produces different NPC seat assignments across runs (easy difficulty)", () => {
       const seatConfigs: string[] = [];
       for (let i = 0; i < 30; i++) {
-        const state = generateInitialState(0, 5);
+        const state = generateInitialState(0, 5, "easy");
         const config = state.seats.map((seat) => (seat.occupant ? "1" : "0")).join("");
         seatConfigs.push(config);
       }
@@ -180,7 +259,7 @@ describe("generateInitialState", () => {
     it("produces different NPC destinations across runs (when range allows)", () => {
       const destinationSets: string[] = [];
       for (let i = 0; i < 30; i++) {
-        const state = generateInitialState(0, 5);
+        const state = generateInitialState(0, 5, "easy");
         const destinations = state.seats
           .filter((seat) => seat.occupant !== null)
           .map((seat) => seat.occupant!.destination)
@@ -191,6 +270,18 @@ describe("generateInitialState", () => {
       // Should have multiple different destination combinations
       const uniqueSets = new Set(destinationSets);
       expect(uniqueSets.size).toBeGreaterThan(1);
+    });
+
+    it("produces different NPC seat positions on normal difficulty", () => {
+      const seatConfigs: string[] = [];
+      for (let i = 0; i < 30; i++) {
+        const state = generateInitialState(0, 5, "normal");
+        const config = state.seats.map((seat) => (seat.occupant ? "1" : "0")).join("");
+        seatConfigs.push(config);
+      }
+      // On normal difficulty, always 5 NPCs but which seat is empty should vary
+      const uniqueConfigs = new Set(seatConfigs);
+      expect(uniqueConfigs.size).toBeGreaterThan(1);
     });
   });
 

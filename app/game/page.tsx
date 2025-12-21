@@ -12,8 +12,8 @@ import {
   claimSeat,
   advanceStation,
 } from "@/lib/gameLogic";
-import { GameState } from "@/lib/types";
-import { STATIONS } from "@/lib/constants";
+import { GameState, Difficulty } from "@/lib/types";
+import { STATIONS, DEFAULT_DIFFICULTY } from "@/lib/constants";
 import { GameHeader } from "@/components/game/GameHeader";
 import { Compartment } from "@/components/game/Compartment";
 import { PlayerStatus } from "@/components/game/PlayerStatus";
@@ -27,6 +27,7 @@ export default function GamePage() {
   const initialState: GameState | null = useMemo(() => {
     const boardingParam = searchParams.get("boarding");
     const destinationParam = searchParams.get("destination");
+    const difficultyParam = searchParams.get("difficulty");
 
     if (boardingParam === null || destinationParam === null) {
       return null;
@@ -39,7 +40,14 @@ export default function GamePage() {
       return null;
     }
 
-    return generateInitialState(boarding, destination);
+    // Validate difficulty parameter
+    const validDifficulties: Difficulty[] = ["easy", "normal", "rush"];
+    const difficulty: Difficulty =
+      difficultyParam && validDifficulties.includes(difficultyParam as Difficulty)
+        ? (difficultyParam as Difficulty)
+        : DEFAULT_DIFFICULTY;
+
+    return generateInitialState(boarding, destination, difficulty);
   }, [searchParams]);
 
   const [gameState, setGameState] = useState<GameState | null>(initialState);

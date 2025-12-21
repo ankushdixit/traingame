@@ -6,8 +6,8 @@
  */
 
 import { generateInitialState } from "@/lib/gameLogic";
-import { GameState, NPC, Seat } from "@/lib/types";
-import { STATIONS, TOTAL_SEATS, MIN_NPCS, MAX_NPCS } from "@/lib/constants";
+import { GameState, NPC, Seat, Difficulty } from "@/lib/types";
+import { STATIONS, TOTAL_SEATS, DIFFICULTY_CONFIGS } from "@/lib/constants";
 
 describe("Game State Integration", () => {
   describe("type compatibility", () => {
@@ -53,12 +53,28 @@ describe("Game State Integration", () => {
       expect(state.seats.length).toBe(TOTAL_SEATS);
     });
 
-    it("respects MIN_NPCS and MAX_NPCS bounds", () => {
-      for (let i = 0; i < 50; i++) {
+    it("respects difficulty NPC bounds for all difficulties", () => {
+      const difficulties: Difficulty[] = ["easy", "normal", "rush"];
+      for (const difficulty of difficulties) {
+        const config = DIFFICULTY_CONFIGS[difficulty];
+        const [minNpcs, maxNpcs] = config.seatedNpcRange;
+        for (let i = 0; i < 20; i++) {
+          const state = generateInitialState(0, 5, difficulty);
+          const npcCount = state.seats.filter((s) => s.occupant !== null).length;
+          expect(npcCount).toBeGreaterThanOrEqual(minNpcs);
+          expect(npcCount).toBeLessThanOrEqual(maxNpcs);
+        }
+      }
+    });
+
+    it("uses normal difficulty by default", () => {
+      const normalConfig = DIFFICULTY_CONFIGS["normal"];
+      const [minNpcs, maxNpcs] = normalConfig.seatedNpcRange;
+      for (let i = 0; i < 20; i++) {
         const state = generateInitialState(0, 5);
         const npcCount = state.seats.filter((s) => s.occupant !== null).length;
-        expect(npcCount).toBeGreaterThanOrEqual(MIN_NPCS);
-        expect(npcCount).toBeLessThanOrEqual(MAX_NPCS);
+        expect(npcCount).toBeGreaterThanOrEqual(minNpcs);
+        expect(npcCount).toBeLessThanOrEqual(maxNpcs);
       }
     });
 
@@ -83,14 +99,17 @@ describe("Game State Integration", () => {
     });
 
     it("can count occupied and empty seats from state", () => {
-      const state = generateInitialState(0, 5);
+      // Use easy difficulty for testing varying NPC counts
+      const easyConfig = DIFFICULTY_CONFIGS["easy"];
+      const [minNpcs, maxNpcs] = easyConfig.seatedNpcRange;
+      const state = generateInitialState(0, 5, "easy");
 
       const occupiedSeats = state.seats.filter((s) => s.occupant !== null);
       const emptySeats = state.seats.filter((s) => s.occupant === null);
 
       expect(occupiedSeats.length + emptySeats.length).toBe(TOTAL_SEATS);
-      expect(occupiedSeats.length).toBeGreaterThanOrEqual(MIN_NPCS);
-      expect(emptySeats.length).toBeGreaterThanOrEqual(TOTAL_SEATS - MAX_NPCS);
+      expect(occupiedSeats.length).toBeGreaterThanOrEqual(minNpcs);
+      expect(emptySeats.length).toBeGreaterThanOrEqual(TOTAL_SEATS - maxNpcs);
     });
 
     it("can find specific seat by ID", () => {
