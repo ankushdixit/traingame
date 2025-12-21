@@ -3,14 +3,29 @@
  */
 
 import { STATIONS } from "@/lib/constants";
+import { Difficulty } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { SoundToggle } from "./SoundToggle";
 
 interface GameHeaderProps {
   currentStation: number;
   playerDestination: number;
+  difficulty: Difficulty;
 }
 
-export function GameHeader({ currentStation, playerDestination }: GameHeaderProps) {
+const DIFFICULTY_BADGE_STYLES: Record<Difficulty, string> = {
+  easy: "bg-green-100 text-green-800",
+  normal: "bg-blue-100 text-blue-800",
+  rush: "bg-red-100 text-red-800",
+};
+
+const DIFFICULTY_LABELS: Record<Difficulty, string> = {
+  easy: "Easy",
+  normal: "Normal",
+  rush: "Rush Hour",
+};
+
+export function GameHeader({ currentStation, playerDestination, difficulty }: GameHeaderProps) {
   const currentStationName = STATIONS[currentStation];
   const destinationName = STATIONS[playerDestination];
   const remainingStations = playerDestination - currentStation;
@@ -36,7 +51,18 @@ export function GameHeader({ currentStation, playerDestination }: GameHeaderProp
             </p>
           </div>
         </div>
-        <SoundToggle />
+        <div className="flex items-center gap-3">
+          <span
+            data-testid="difficulty-badge"
+            className={cn(
+              "rounded-full px-3 py-1 text-sm font-medium",
+              DIFFICULTY_BADGE_STYLES[difficulty]
+            )}
+          >
+            {DIFFICULTY_LABELS[difficulty]}
+          </span>
+          <SoundToggle />
+        </div>
       </div>
     </div>
   );

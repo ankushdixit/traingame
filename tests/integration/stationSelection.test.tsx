@@ -16,12 +16,33 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
+// Mock sessionStorage
+const mockSessionStorage = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: jest.fn((key: string) => store[key] || null),
+    setItem: jest.fn((key: string, value: string) => {
+      store[key] = value;
+    }),
+    clear: () => {
+      store = {};
+    },
+  };
+})();
+
+Object.defineProperty(window, "sessionStorage", {
+  value: mockSessionStorage,
+});
+
 describe("Station Selection Integration", () => {
   beforeEach(() => {
     mockPush.mockClear();
+    mockSessionStorage.clear();
+    mockSessionStorage.getItem.mockClear();
+    mockSessionStorage.setItem.mockClear();
   });
 
-  it("completes full form submission flow", async () => {
+  it("completes full form submission flow with default difficulty", async () => {
     const user = userEvent.setup();
     render(<Home />);
 
@@ -37,8 +58,8 @@ describe("Station Selection Integration", () => {
     // Submit form
     await user.click(screen.getByRole("button", { name: "Start Game" }));
 
-    // Verify navigation
-    expect(mockPush).toHaveBeenCalledWith("/game?boarding=0&destination=5");
+    // Verify navigation with difficulty
+    expect(mockPush).toHaveBeenCalledWith("/game?boarding=0&destination=5&difficulty=normal");
   });
 
   it("prevents invalid submissions via disabled button", async () => {
@@ -79,7 +100,40 @@ describe("Station Selection Integration", () => {
     await user.selectOptions(screen.getByLabelText("Get off at"), "5");
     await user.click(screen.getByRole("button", { name: "Start Game" }));
 
-    expect(mockPush).toHaveBeenCalledWith("/game?boarding=3&destination=5");
+    expect(mockPush).toHaveBeenCalledWith("/game?boarding=3&destination=5&difficulty=normal");
+  });
+
+  it("includes selected difficulty in navigation URL", async () => {
+    const user = userEvent.setup();
+    render(<Home />);
+
+    // Select stations
+    await user.selectOptions(screen.getByLabelText("Board at"), "0");
+    await user.selectOptions(screen.getByLabelText("Get off at"), "5");
+
+    // Select Rush Hour difficulty
+    await user.click(screen.getByTestId("difficulty-rush"));
+
+    // Submit form
+    await user.click(screen.getByRole("button", { name: "Start Game" }));
+
+    // Verify navigation with rush difficulty
+    expect(mockPush).toHaveBeenCalledWith("/game?boarding=0&destination=5&difficulty=rush");
+  });
+
+  it("remembers difficulty selection across renders", async () => {
+    const user = userEvent.setup();
+
+    // First render - select Easy
+    const { unmount } = render(<Home />);
+    await user.click(screen.getByTestId("difficulty-easy"));
+    unmount();
+
+    // Second render - should remember Easy
+    mockSessionStorage.getItem.mockReturnValue("easy");
+    render(<Home />);
+
+    expect(screen.getByTestId("difficulty-easy")).toHaveAttribute("data-state", "selected");
   });
 
   it("renders correct destination options based on boarding selection", async () => {

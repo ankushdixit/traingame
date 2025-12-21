@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Difficulty level selection UI on station selection screen
+- DifficultySelector component with segmented control for Easy/Normal/Rush Hour
+- Difficulty badge display in game header with color-coded styling
+- Session storage persistence for last selected difficulty
+- DifficultyOption type and DIFFICULTY_OPTIONS constant for selector UI
+
 - Sound effects system with SoundManager class for game audio
 - SoundContext and SoundProvider for React-based sound state management
 - Mute/unmute toggle button in game header with accessible icons

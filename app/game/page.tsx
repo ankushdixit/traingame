@@ -182,6 +182,7 @@ export default function GamePage() {
         <GameHeader
           currentStation={gameState.currentStation}
           playerDestination={gameState.playerDestination}
+          difficulty={gameState.difficulty}
         />
 
         <JourneyProgress
