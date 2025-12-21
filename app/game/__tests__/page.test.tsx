@@ -401,7 +401,7 @@ describe("GamePage", () => {
 
       // Fast-forward timers for animation completion
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       // Now at Marine Lines
@@ -419,7 +419,7 @@ describe("GamePage", () => {
 
       // Fast-forward timers
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       // Now 4 stations remaining
@@ -435,15 +435,15 @@ describe("GamePage", () => {
       // Advance to station 1, 2, 3
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       // NPC should have exited, seat is now empty
@@ -456,15 +456,15 @@ describe("GamePage", () => {
       // Advance to station 3 where NPC 0 exits
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       // Click the now-empty seat
@@ -494,7 +494,7 @@ describe("GamePage", () => {
       // Advance to destination
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       // Should show win modal
@@ -513,7 +513,7 @@ describe("GamePage", () => {
       // Don't claim a seat, just advance
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       // Should show lose modal
@@ -532,7 +532,7 @@ describe("GamePage", () => {
       // Advance to destination
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       // Button should be hidden
@@ -549,7 +549,7 @@ describe("GamePage", () => {
       fireEvent.click(screen.getByTestId("claim-seat-button"));
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       expect(screen.getByTestId("game-end-title")).toHaveClass("text-green-600");
@@ -563,7 +563,7 @@ describe("GamePage", () => {
       // Advance without claiming seat
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       expect(screen.getByTestId("game-end-title")).toHaveClass("text-red-600");
@@ -579,7 +579,7 @@ describe("GamePage", () => {
       fireEvent.click(screen.getByTestId("claim-seat-button"));
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       // Click Play Again
@@ -596,7 +596,7 @@ describe("GamePage", () => {
       // Advance without seat to lose
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       // Click Try Again
@@ -613,7 +613,7 @@ describe("GamePage", () => {
       // Advance to end game
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       // Modal and game area should both be present
@@ -629,19 +629,19 @@ describe("GamePage", () => {
       // Advance to station 4 where NPC at seat 2 exits
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
       fireEvent.click(screen.getByTestId("next-station-button"));
       act(() => {
-        jest.advanceTimersByTime(1300);
+        jest.advanceTimersByTime(3200);
       });
 
       // Both NPCs with dest 3 and 4 should have exited

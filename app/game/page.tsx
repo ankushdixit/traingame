@@ -26,8 +26,9 @@ import { NextStationButton } from "@/components/game/NextStationButton";
 import { GameEndModal } from "@/components/game/GameEndModal";
 import { StandingArea } from "@/components/game/StandingArea";
 
-// Animation phase total duration in ms
-const ANIMATION_TOTAL_DURATION = 1300;
+// Animation phase total duration in ms (must match useTransitionController phases)
+// shaking(2500) + departing(400) + claiming(200) + settling(100) = 3200ms
+const ANIMATION_TOTAL_DURATION = 3200;
 
 export default function GamePage() {
   const searchParams = useSearchParams();
@@ -103,7 +104,7 @@ export default function GamePage() {
   const handleAdvanceStation = useCallback(() => {
     if (!gameState || isAnimating) return;
 
-    // Play train moving sound
+    // Play train moving sound (start of journey)
     playSound("trainMoving");
 
     // Preview what will happen for animation
@@ -116,25 +117,31 @@ export default function GamePage() {
     const newState = advanceStation(gameState);
     pendingStateRef.current = newState;
 
-    // Play train stopping sound partway through
+    // Sound timeline (all within shaking phase: 0-2500ms)
+    // Train braking sounds
     setTimeout(() => {
       playSound("trainStopping");
     }, 300);
 
-    // Play announcement sound
+    // Station announcement
     setTimeout(() => {
       playSound("announcement");
-    }, 800);
+    }, 1000);
 
-    // Play door close sound and NPC grab if applicable
+    // Doors open/close (near end of journey)
     setTimeout(() => {
       playSound("doorClose");
+    }, 1600);
+
+    // NPC grab sound during claiming phase (after departing phase)
+    // shaking(2500) + departing(400) = 2900ms
+    setTimeout(() => {
       if (preview.claimingNpcId !== null) {
         playSound("npcGrab");
       }
-    }, 1100);
+    }, 2900);
 
-    // Update game state after animations complete
+    // Update game state after all animations complete
     setTimeout(() => {
       if (pendingStateRef.current) {
         setGameState(pendingStateRef.current);
@@ -182,6 +189,7 @@ export default function GamePage() {
           currentStation={gameState.currentStation}
           destination={gameState.playerDestination}
           boardingStation={gameState.playerBoardingStation}
+          isAnimating={isAnimating}
         />
 
         <Compartment
