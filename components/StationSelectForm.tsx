@@ -1,9 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { STATIONS, getDestinationOptions } from "@/lib/constants";
-import type { StationSelection } from "@/lib/types";
+import { STATIONS, getDestinationOptions, DEFAULT_DIFFICULTY } from "@/lib/constants";
+import type { StationSelection, Difficulty } from "@/lib/types";
+import { DifficultySelector } from "./DifficultySelector";
+
+const DIFFICULTY_STORAGE_KEY = "lastDifficulty";
+
+function getStoredDifficulty(): Difficulty {
+  if (typeof window === "undefined") return DEFAULT_DIFFICULTY;
+  const stored = sessionStorage.getItem(DIFFICULTY_STORAGE_KEY);
+  if (stored && ["easy", "normal", "rush"].includes(stored)) {
+    return stored as Difficulty;
+  }
+  return DEFAULT_DIFFICULTY;
+}
 
 export default function StationSelectForm() {
   const router = useRouter();
@@ -11,6 +23,21 @@ export default function StationSelectForm() {
     boardingStation: null,
     destination: null,
   });
+  const [difficulty, setDifficulty] = useState<Difficulty>(DEFAULT_DIFFICULTY);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Load last used difficulty from sessionStorage after hydration
+  useEffect(() => {
+    setDifficulty(getStoredDifficulty());
+    setIsHydrated(true);
+  }, []);
+
+  // Save difficulty to sessionStorage when it changes
+  useEffect(() => {
+    if (isHydrated) {
+      sessionStorage.setItem(DIFFICULTY_STORAGE_KEY, difficulty);
+    }
+  }, [difficulty, isHydrated]);
 
   const boardingOptions = STATIONS.slice(0, -1); // All stations except Dadar
   const destinationOptions =
@@ -42,7 +69,7 @@ export default function StationSelectForm() {
     e.preventDefault();
     if (isValid) {
       router.push(
-        `/game?boarding=${selection.boardingStation}&destination=${selection.destination}`
+        `/game?boarding=${selection.boardingStation}&destination=${selection.destination}&difficulty=${difficulty}`
       );
     }
   };
@@ -87,6 +114,8 @@ export default function StationSelectForm() {
           ))}
         </select>
       </div>
+
+      <DifficultySelector value={difficulty} onChange={setDifficulty} />
 
       <button
         type="submit"

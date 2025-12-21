@@ -19,6 +19,36 @@ export interface DifficultyConfig {
 }
 
 /**
+ * Option for difficulty selector UI
+ */
+export interface DifficultyOption {
+  value: Difficulty;
+  label: string;
+  description: string;
+}
+
+/**
+ * Available difficulty options for the selector
+ */
+export const DIFFICULTY_OPTIONS: DifficultyOption[] = [
+  {
+    value: "easy",
+    label: "Easy",
+    description: "Plenty of seats, few competitors",
+  },
+  {
+    value: "normal",
+    label: "Normal",
+    description: "One seat, some competition",
+  },
+  {
+    value: "rush",
+    label: "Rush Hour",
+    description: "No seats, fierce competition",
+  },
+];
+
+/**
  * Standing NPC who competes with player for seats
  */
 export interface StandingNPC {

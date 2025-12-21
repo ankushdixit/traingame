@@ -29,6 +29,7 @@ describe("Journey Progress Integration", () => {
           <GameHeader
             currentStation={state.currentStation}
             playerDestination={state.playerDestination}
+            difficulty={state.difficulty}
           />
           <JourneyProgress
             stations={STATIONS}
@@ -61,6 +62,7 @@ describe("Journey Progress Integration", () => {
           <GameHeader
             currentStation={state.currentStation}
             playerDestination={state.playerDestination}
+            difficulty={state.difficulty}
           />
           <JourneyProgress
             stations={STATIONS}

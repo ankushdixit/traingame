@@ -193,4 +193,39 @@ describe("Game State Integration", () => {
       }
     });
   });
+
+  describe("difficulty integration", () => {
+    it("stores difficulty in game state", () => {
+      const difficulties: Difficulty[] = ["easy", "normal", "rush"];
+      for (const difficulty of difficulties) {
+        const state = generateInitialState(0, 5, difficulty);
+        expect(state.difficulty).toBe(difficulty);
+      }
+    });
+
+    it("defaults to normal difficulty when not specified", () => {
+      const state = generateInitialState(0, 5);
+      expect(state.difficulty).toBe("normal");
+    });
+
+    it("easy difficulty has more empty seats", () => {
+      const easyStates = Array.from({ length: 10 }, () => generateInitialState(0, 5, "easy"));
+      const rushStates = Array.from({ length: 10 }, () => generateInitialState(0, 5, "rush"));
+
+      const avgEasyEmpty =
+        easyStates.reduce(
+          (sum, state) => sum + state.seats.filter((s) => s.occupant === null).length,
+          0
+        ) / easyStates.length;
+
+      const avgRushEmpty =
+        rushStates.reduce(
+          (sum, state) => sum + state.seats.filter((s) => s.occupant === null).length,
+          0
+        ) / rushStates.length;
+
+      // Easy should have more empty seats than Rush
+      expect(avgEasyEmpty).toBeGreaterThan(avgRushEmpty);
+    });
+  });
 });

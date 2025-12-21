@@ -41,6 +41,7 @@ describe("Game View Integration", () => {
           <GameHeader
             currentStation={state.currentStation}
             playerDestination={state.playerDestination}
+            difficulty={state.difficulty}
           />
           <Compartment
             seats={state.seats}
@@ -173,7 +174,13 @@ describe("Game View Integration", () => {
     ])(
       "displays correct info for boarding=%i, destination=%i",
       (boarding, destination, expectedCurrent, expectedNext, expectedDest, expectedRemaining) => {
-        render(<GameHeader currentStation={boarding} playerDestination={destination} />);
+        render(
+          <GameHeader
+            currentStation={boarding}
+            playerDestination={destination}
+            difficulty="normal"
+          />
+        );
 
         expect(screen.getByTestId("current-station")).toHaveTextContent(expectedCurrent);
         expect(screen.getByTestId("next-station")).toHaveTextContent(expectedNext);
@@ -198,6 +205,7 @@ describe("Game View Integration", () => {
             <GameHeader
               currentStation={state.currentStation}
               playerDestination={state.playerDestination}
+              difficulty={state.difficulty}
             />
             <Compartment
               seats={state.seats}
