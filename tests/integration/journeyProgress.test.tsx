@@ -10,6 +10,15 @@ import { GameHeader } from "@/components/game/GameHeader";
 import { generateInitialState, advanceStation } from "@/lib/gameLogic";
 import { STATIONS } from "@/lib/constants";
 
+// Mock SoundContext since GameHeader includes SoundToggle
+jest.mock("@/contexts/SoundContext", () => ({
+  useSound: () => ({
+    isMuted: false,
+    toggleMute: jest.fn(),
+    playSound: jest.fn(),
+  }),
+}));
+
 describe("Journey Progress Integration", () => {
   describe("progress indicator with game state", () => {
     it("renders correctly with state from generateInitialState", () => {

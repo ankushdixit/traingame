@@ -17,6 +17,7 @@ import {
 import { GameState, Difficulty } from "@/lib/types";
 import { STATIONS, DEFAULT_DIFFICULTY } from "@/lib/constants";
 import { useTransitionController } from "@/lib/useTransitionController";
+import { useSound } from "@/contexts/SoundContext";
 import { GameHeader } from "@/components/game/GameHeader";
 import { JourneyProgress } from "@/components/game/JourneyProgress";
 import { Compartment } from "@/components/game/Compartment";
@@ -59,6 +60,7 @@ export default function GamePage() {
   }, [searchParams]);
 
   const [gameState, setGameState] = useState<GameState | null>(initialState);
+  const { playSound } = useSound();
   const {
     state: transitionState,
     startTransition,
@@ -72,6 +74,7 @@ export default function GamePage() {
 
   const handleRevealDestination = useCallback(
     (seatId: number) => {
+      playSound("seatClick");
       queueInteraction(() => {
         setGameState((prevState) => {
           if (!prevState) return null;
@@ -79,11 +82,12 @@ export default function GamePage() {
         });
       });
     },
-    [queueInteraction]
+    [queueInteraction, playSound]
   );
 
   const handleClaimSeat = useCallback(
     (seatId: number) => {
+      playSound("seatClaim");
       queueInteraction(() => {
         setGameState((prevState) => {
           if (!prevState) return null;
@@ -93,11 +97,14 @@ export default function GamePage() {
         triggerPlayerClaimSuccess();
       });
     },
-    [queueInteraction, triggerPlayerClaimSuccess]
+    [queueInteraction, triggerPlayerClaimSuccess, playSound]
   );
 
   const handleAdvanceStation = useCallback(() => {
     if (!gameState || isAnimating) return;
+
+    // Play train moving sound
+    playSound("trainMoving");
 
     // Preview what will happen for animation
     const preview = previewStationAdvance(gameState);
@@ -109,6 +116,24 @@ export default function GamePage() {
     const newState = advanceStation(gameState);
     pendingStateRef.current = newState;
 
+    // Play train stopping sound partway through
+    setTimeout(() => {
+      playSound("trainStopping");
+    }, 300);
+
+    // Play announcement sound
+    setTimeout(() => {
+      playSound("announcement");
+    }, 800);
+
+    // Play door close sound and NPC grab if applicable
+    setTimeout(() => {
+      playSound("doorClose");
+      if (preview.claimingNpcId !== null) {
+        playSound("npcGrab");
+      }
+    }, 1100);
+
     // Update game state after animations complete
     setTimeout(() => {
       if (pendingStateRef.current) {
@@ -116,7 +141,7 @@ export default function GamePage() {
         pendingStateRef.current = null;
       }
     }, ANIMATION_TOTAL_DURATION);
-  }, [gameState, isAnimating, startTransition]);
+  }, [gameState, isAnimating, startTransition, playSound]);
 
   const handleHoverNear = useCallback(
     (seatId: number) => {

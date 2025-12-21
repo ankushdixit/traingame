@@ -11,6 +11,15 @@ import { PlayerStatus } from "@/components/game/PlayerStatus";
 import { generateInitialState, revealDestination } from "@/lib/gameLogic";
 import { STATIONS } from "@/lib/constants";
 
+// Mock SoundContext since GameHeader includes SoundToggle
+jest.mock("@/contexts/SoundContext", () => ({
+  useSound: () => ({
+    isMuted: false,
+    toggleMute: jest.fn(),
+    playSound: jest.fn(),
+  }),
+}));
+
 const defaultHandlers = {
   onRevealDestination: jest.fn(),
   onClaimSeat: jest.fn(),

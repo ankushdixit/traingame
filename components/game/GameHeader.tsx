@@ -3,6 +3,7 @@
  */
 
 import { STATIONS } from "@/lib/constants";
+import { SoundToggle } from "./SoundToggle";
 
 interface GameHeaderProps {
   currentStation: number;
@@ -22,15 +23,20 @@ export function GameHeader({ currentStation, playerDestination }: GameHeaderProp
 
   return (
     <div className="rounded-lg bg-slate-100 p-4" data-testid="game-header">
-      <h1 className="text-xl font-bold text-slate-800" data-testid="current-station">
-        {currentStationName}
-      </h1>
-      <div className="mt-2 space-y-1 text-sm text-slate-600">
-        <p data-testid="next-station">{nextStationText}</p>
-        <p data-testid="destination">Your destination: {destinationName}</p>
-        <p data-testid="remaining-stations">
-          {remainingStations} station{remainingStations !== 1 ? "s" : ""} remaining
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-slate-800" data-testid="current-station">
+            {currentStationName}
+          </h1>
+          <div className="mt-2 space-y-1 text-sm text-slate-600">
+            <p data-testid="next-station">{nextStationText}</p>
+            <p data-testid="destination">Your destination: {destinationName}</p>
+            <p data-testid="remaining-stations">
+              {remainingStations} station{remainingStations !== 1 ? "s" : ""} remaining
+            </p>
+          </div>
+        </div>
+        <SoundToggle />
       </div>
     </div>
   );
