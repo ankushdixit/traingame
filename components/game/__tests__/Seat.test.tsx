@@ -39,20 +39,21 @@ describe("Seat", () => {
   });
 
   describe("occupied seat", () => {
-    it("displays passenger emoji for seat with occupant", () => {
+    it("displays character illustration for seat with occupant", () => {
       const seat: SeatType = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByRole("img", { name: "passenger" })).toBeInTheDocument();
+      // Check for character SVG via aria-label pattern
+      expect(screen.getByRole("img", { name: /Passenger npc-0/i })).toBeInTheDocument();
     });
 
     it("has occupied state data attribute", () => {
       const seat: SeatType = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
@@ -62,7 +63,7 @@ describe("Seat", () => {
     it("has train maroon dark styling for occupied seat", () => {
       const seat: SeatType = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
@@ -71,20 +72,21 @@ describe("Seat", () => {
   });
 
   describe("occupied seat with revealed destination", () => {
-    it("displays passenger emoji for seat with revealed destination", () => {
+    it("displays character illustration for seat with revealed destination", () => {
       const seat: SeatType = {
         id: 2,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: true },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByRole("img", { name: "passenger" })).toBeInTheDocument();
+      // Check for character SVG via aria-label pattern
+      expect(screen.getByRole("img", { name: /Passenger npc-0/i })).toBeInTheDocument();
     });
 
     it("has occupied-known state data attribute", () => {
       const seat: SeatType = {
         id: 2,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: true },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
@@ -94,21 +96,22 @@ describe("Seat", () => {
     it("has blue styling for seat with known destination", () => {
       const seat: SeatType = {
         id: 2,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: true },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
       expect(screen.getByTestId("seat-2")).toHaveClass("bg-blue-800");
     });
 
-    it("displays destination station on seat", () => {
+    it("displays destination station in speech bubble", () => {
       const seat: SeatType = {
         id: 2,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: true },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByTestId("seat-2-destination")).toHaveTextContent("Grant Road");
+      expect(screen.getByTestId("speech-bubble")).toBeInTheDocument();
+      expect(screen.getByTestId("speech-bubble-destination")).toHaveTextContent("Grant Road");
     });
   });
 
@@ -165,7 +168,7 @@ describe("Seat", () => {
     it("opens popover when clicking occupied seat while standing", () => {
       const seat: SeatType = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
@@ -178,7 +181,7 @@ describe("Seat", () => {
     it("shows revealed destination in popover when already revealed", () => {
       const seat: SeatType = {
         id: 2,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: true },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
@@ -222,7 +225,7 @@ describe("Seat", () => {
       const onRevealDestination = jest.fn();
       const seat: SeatType = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(
         <Seat
@@ -329,7 +332,7 @@ describe("Seat", () => {
       const onHoverNear = jest.fn();
       const seat: SeatType = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(
         <Seat
@@ -354,7 +357,7 @@ describe("Seat", () => {
     it("displays 'Watching...' for hovered occupied seat", () => {
       const seat: SeatType = {
         id: 0,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(
         <Seat
@@ -374,7 +377,7 @@ describe("Seat", () => {
     it("has hovered state data attribute", () => {
       const seat: SeatType = {
         id: 0,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(
         <Seat
@@ -394,7 +397,7 @@ describe("Seat", () => {
     it("has purple styling for hovered seat", () => {
       const seat: SeatType = {
         id: 0,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(
         <Seat
@@ -432,7 +435,7 @@ describe("Seat", () => {
     it("shows 'Watching this seat' in popover when already hovered", () => {
       const seat: SeatType = {
         id: 0,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(
         <Seat

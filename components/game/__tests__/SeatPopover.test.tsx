@@ -60,7 +60,7 @@ describe("SeatPopover", () => {
     it("shows 'Ask destination?' button", () => {
       const seat: Seat = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(<SeatPopover seat={seat} isPlayerSeated={false} {...defaultHandlers} />);
 
@@ -72,7 +72,7 @@ describe("SeatPopover", () => {
       const onRevealDestination = jest.fn();
       const seat: Seat = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(
         <SeatPopover
@@ -94,7 +94,7 @@ describe("SeatPopover", () => {
     it("shows 'Hover Near' button for occupied seat", () => {
       const seat: Seat = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(<SeatPopover seat={seat} isPlayerSeated={false} {...defaultHandlers} />);
 
@@ -105,7 +105,7 @@ describe("SeatPopover", () => {
       const onHoverNear = jest.fn();
       const seat: Seat = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(
         <SeatPopover
@@ -129,7 +129,7 @@ describe("SeatPopover", () => {
     it("shows the destination station name", () => {
       const seat: Seat = {
         id: 2,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: true },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
       };
       render(<SeatPopover seat={seat} isPlayerSeated={false} {...defaultHandlers} />);
 
@@ -142,7 +142,7 @@ describe("SeatPopover", () => {
     it("does not show 'Ask destination?' button", () => {
       const seat: Seat = {
         id: 2,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: true },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
       };
       render(<SeatPopover seat={seat} isPlayerSeated={false} {...defaultHandlers} />);
 
@@ -154,7 +154,7 @@ describe("SeatPopover", () => {
     it("shows 'Watching this seat' for already hovered seat", () => {
       const seat: Seat = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(
         <SeatPopover
@@ -174,7 +174,7 @@ describe("SeatPopover", () => {
     it("disables 'Hover Near' button when already hovered", () => {
       const seat: Seat = {
         id: 1,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false },
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(
         <SeatPopover
@@ -271,7 +271,12 @@ describe("SeatPopover", () => {
       destinations.forEach(({ index, name }) => {
         const seat: Seat = {
           id: index,
-          occupant: { id: `npc-${index}`, destination: index, destinationRevealed: true },
+          occupant: {
+            id: `npc-${index}`,
+            destination: index,
+            destinationRevealed: true,
+            characterSprite: index,
+          },
         };
         const { unmount } = render(
           <SeatPopover seat={seat} isPlayerSeated={false} {...defaultHandlers} />

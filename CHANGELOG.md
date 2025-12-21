@@ -66,6 +66,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Aisle between seat rows for train interior authenticity
 - Passenger emoji icons (🧑) instead of text for occupied seats
 - Player emoji (😊) for player seat visualization
+- Character designs for passengers: 8 distinct NPC character illustrations
+  - Character1: Young professional man with glasses and blue shirt
+  - Character2: Middle-aged woman in maroon kurta with bindi
+  - Character3: Elderly uncle with white hair and white shirt
+  - Character4: Young college student with earphones and green t-shirt
+  - Character5: Business woman with handbag in formal blazer
+  - Character6: Working man in red checkered shirt
+  - Character7: Elderly aunty in green saree with bangles
+  - Character8: Young woman with ponytail in yellow top
+- PlayerCharacter component: distinct player character in orange hoodie with glow effect
+- SpeechBubble component: displays revealed destinations as speech bubble overlay
+- Character registry with getCharacterComponent() and renderCharacter() utilities
+- characterSprite field added to NPC interface for visual representation
+- Unique character assignment: no duplicate characters when fewer than 6 NPCs
 
 ### Changed
 
@@ -77,6 +91,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mutation tests disabled in CI (takes too long)
 - GameState interface extended with standingNPCs, hoveredSeatId, difficulty, and lastClaimMessage fields
 - Seat component now supports "hovered" display state with purple styling
+- Seat component now uses character SVG illustrations instead of emoji icons
+- StandingArea component now uses character illustrations with standing posture
+- Destination reveal now shows as speech bubble overlay instead of replacing character
 - SeatPopover shows "Hover Near" button for occupied seats
 - advanceStation() now processes standing NPC claims for newly emptied seats
 

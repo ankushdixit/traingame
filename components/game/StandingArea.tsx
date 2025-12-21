@@ -1,8 +1,10 @@
 /**
  * StandingArea component - displays standing NPCs who compete for seats
+ * Uses character illustrations with standing posture
  */
 
 import { StandingNPC } from "@/lib/types";
+import { renderCharacter } from "./characters";
 
 interface StandingAreaProps {
   standingNPCs: StandingNPC[];
@@ -21,12 +23,12 @@ export function StandingArea({ standingNPCs, lastClaimMessage }: StandingAreaPro
         {standingNPCs.map((npc) => (
           <div
             key={npc.id}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-200 border-2 border-orange-400"
+            className="flex h-16 w-10 items-center justify-center rounded-lg bg-orange-100 border-2 border-orange-300 p-1"
             data-testid={`standing-npc-${npc.id}`}
+            role="img"
+            aria-label={`Standing passenger ${npc.id}`}
           >
-            <span className="text-lg" role="img" aria-label="standing passenger">
-              🧍
-            </span>
+            {renderCharacter(npc.characterSprite, false)}
           </div>
         ))}
         {standingNPCs.length === 0 && !lastClaimMessage && (

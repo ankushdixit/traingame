@@ -74,11 +74,20 @@ describe("Compartment", () => {
 
   it("correctly renders mixed occupied and empty seats", () => {
     const seats: Seat[] = [
-      { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
       { id: 1, occupant: null },
-      { id: 2, occupant: { id: "npc-1", destination: 4, destinationRevealed: true } },
+      {
+        id: 2,
+        occupant: { id: "npc-1", destination: 4, destinationRevealed: true, characterSprite: 1 },
+      },
       { id: 3, occupant: null },
-      { id: 4, occupant: { id: "npc-2", destination: 5, destinationRevealed: false } },
+      {
+        id: 4,
+        occupant: { id: "npc-2", destination: 5, destinationRevealed: false, characterSprite: 2 },
+      },
       { id: 5, occupant: null },
     ];
     render(<Compartment seats={seats} playerSeatId={null} {...defaultProps} />);
@@ -120,8 +129,14 @@ describe("Compartment", () => {
 
   it("passes hoveredSeatId correctly to seats", () => {
     const seats: Seat[] = [
-      { id: 0, occupant: { id: "npc-0", destination: 3, destinationRevealed: false } },
-      { id: 1, occupant: { id: "npc-1", destination: 4, destinationRevealed: false } },
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      },
+      {
+        id: 1,
+        occupant: { id: "npc-1", destination: 4, destinationRevealed: false, characterSprite: 1 },
+      },
       { id: 2, occupant: null },
       { id: 3, occupant: null },
       { id: 4, occupant: null },

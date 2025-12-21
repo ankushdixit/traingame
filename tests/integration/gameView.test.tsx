@@ -264,8 +264,8 @@ describe("Game View Integration", () => {
       // Now the seat should show "occupied-known" state
       expect(screen.getByTestId(`seat-${seatId}`)).toHaveAttribute("data-state", "occupied-known");
 
-      // And the destination should be displayed on the seat
-      expect(screen.getByTestId(`seat-${seatId}-destination`)).toBeInTheDocument();
+      // And the destination should be displayed in the speech bubble
+      expect(screen.getByTestId("speech-bubble")).toBeInTheDocument();
     });
 
     it("revealed state persists across interactions", () => {
