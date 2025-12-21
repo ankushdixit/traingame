@@ -7,6 +7,63 @@ import { GameState, NPC, Seat, Difficulty, StandingNPC } from "./types";
 import { CHARACTER_COUNT } from "@/components/game/characters";
 
 /**
+ * Result of previewing a station advance for animation purposes.
+ */
+export interface StationAdvancePreview {
+  departingNpcIds: string[];
+  claimingNpcId: string | null;
+  claimedSeatId: number | null;
+}
+
+/**
+ * Previews the station advance to get animation information before the actual state update.
+ * This allows animations to start before state changes.
+ *
+ * @param state - Current game state
+ * @returns Preview information about departing NPCs and seat claims
+ */
+export function previewStationAdvance(state: GameState): StationAdvancePreview {
+  const newStation = state.currentStation + 1;
+
+  // Find departing NPCs (those whose destination is at or before new station)
+  const departingNpcIds: string[] = [];
+  const newlyEmptySeats: number[] = [];
+
+  state.seats.forEach((seat) => {
+    if (seat.occupant && seat.occupant.destination <= newStation) {
+      departingNpcIds.push(seat.occupant.id);
+      newlyEmptySeats.push(seat.id);
+    }
+  });
+
+  // Determine if an NPC will claim a seat (simulate the random roll)
+  const config = DIFFICULTY_CONFIGS[state.difficulty];
+  let claimingNpcId: string | null = null;
+  let claimedSeatId: number | null = null;
+
+  for (const seatId of newlyEmptySeats) {
+    // Player has priority if hovering near this seat
+    if (state.hoveredSeatId === seatId) {
+      continue;
+    }
+
+    // Check if any standing NPC claims this seat
+    const claimRoll = Math.random();
+    if (claimRoll < config.npcClaimChance && state.standingNPCs.length > 0) {
+      claimingNpcId = state.standingNPCs[0].id;
+      claimedSeatId = seatId;
+      break;
+    }
+  }
+
+  return {
+    departingNpcIds,
+    claimingNpcId,
+    claimedSeatId,
+  };
+}
+
+/**
  * Advances the train to the next station.
  * Removes NPCs whose destination is the new station or earlier.
  * Standing NPCs compete for newly empty seats.

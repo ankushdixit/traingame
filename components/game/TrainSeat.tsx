@@ -16,6 +16,7 @@ interface TrainSeatProps {
   onKeyDown?: (e: KeyboardEvent) => void;
   children: ReactNode;
   testId: string;
+  extraClasses?: string;
 }
 
 /**
@@ -60,6 +61,7 @@ export function TrainSeat({
   onKeyDown,
   children,
   testId,
+  extraClasses = "",
 }: TrainSeatProps) {
   const seatClasses = cn(
     // Base bench seat shape
@@ -72,7 +74,9 @@ export function TrainSeat({
     getTextColorClass(displayState),
     // Interactivity
     isClickable &&
-      "cursor-pointer hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-train-cream"
+      "cursor-pointer hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-train-cream",
+    // Extra classes for animations
+    extraClasses
   );
 
   return (

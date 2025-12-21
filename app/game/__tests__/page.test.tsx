@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import GamePage from "../page";
 import { GameState } from "@/lib/types";
 
@@ -11,6 +11,26 @@ jest.mock("next/navigation", () => ({
   }),
   useRouter: () => ({
     push: mockPush,
+  }),
+}));
+
+// Mock useTransitionController hook
+const mockStartTransition = jest.fn();
+const mockQueueInteraction = jest.fn((fn: () => void) => fn());
+const mockTriggerPlayerClaimSuccess = jest.fn();
+jest.mock("@/lib/useTransitionController", () => ({
+  useTransitionController: () => ({
+    state: {
+      phase: "idle",
+      departingNpcIds: [],
+      claimingNpcId: null,
+      claimedSeatId: null,
+      playerClaimSuccess: false,
+    },
+    startTransition: mockStartTransition,
+    queueInteraction: mockQueueInteraction,
+    isAnimating: false,
+    triggerPlayerClaimSuccess: mockTriggerPlayerClaimSuccess,
   }),
 }));
 
@@ -84,12 +104,35 @@ jest.mock("@/lib/gameLogic", () => ({
     ...state,
     hoveredSeatId: seatId,
   })),
+  previewStationAdvance: jest.fn((state: GameState) => {
+    const newStation = state.currentStation + 1;
+    const departingNpcIds: string[] = [];
+    state.seats.forEach((seat) => {
+      if (seat.occupant && seat.occupant.destination <= newStation) {
+        departingNpcIds.push(seat.occupant.id);
+      }
+    });
+    return {
+      departingNpcIds,
+      claimingNpcId: null,
+      claimedSeatId: null,
+    };
+  }),
 }));
 
 describe("GamePage", () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     mockSearchParams.clear();
     mockPush.mockClear();
+    mockStartTransition.mockClear();
+    mockQueueInteraction.mockClear();
+    mockTriggerPlayerClaimSuccess.mockClear();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   describe("with valid parameters", () => {
@@ -347,6 +390,11 @@ describe("GamePage", () => {
       // Click next station
       fireEvent.click(screen.getByTestId("next-station-button"));
 
+      // Fast-forward timers for animation completion
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
+
       // Now at Marine Lines
       expect(screen.getByTestId("current-station")).toHaveTextContent("Marine Lines");
     });
@@ -360,6 +408,11 @@ describe("GamePage", () => {
       // Click next station
       fireEvent.click(screen.getByTestId("next-station-button"));
 
+      // Fast-forward timers
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
+
       // Now 4 stations remaining
       expect(screen.getByTestId("remaining-stations")).toHaveTextContent("4 stations remaining");
     });
@@ -371,9 +424,18 @@ describe("GamePage", () => {
       expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "occupied");
 
       // Advance to station 1, 2, 3
-      fireEvent.click(screen.getByTestId("next-station-button")); // Station 1
-      fireEvent.click(screen.getByTestId("next-station-button")); // Station 2
-      fireEvent.click(screen.getByTestId("next-station-button")); // Station 3
+      fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
+      fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
+      fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
 
       // NPC should have exited, seat is now empty
       expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "empty");
@@ -384,8 +446,17 @@ describe("GamePage", () => {
 
       // Advance to station 3 where NPC 0 exits
       fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
       fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
       fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
 
       // Click the now-empty seat
       fireEvent.click(screen.getByTestId("seat-0"));
@@ -413,6 +484,9 @@ describe("GamePage", () => {
 
       // Advance to destination
       fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
 
       // Should show win modal
       expect(screen.getByTestId("game-end-modal")).toBeInTheDocument();
@@ -429,6 +503,9 @@ describe("GamePage", () => {
 
       // Don't claim a seat, just advance
       fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
 
       // Should show lose modal
       expect(screen.getByTestId("game-end-modal")).toBeInTheDocument();
@@ -445,6 +522,9 @@ describe("GamePage", () => {
 
       // Advance to destination
       fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
 
       // Button should be hidden
       expect(screen.queryByTestId("next-station-button")).not.toBeInTheDocument();
@@ -459,6 +539,9 @@ describe("GamePage", () => {
       fireEvent.click(screen.getByTestId("seat-1"));
       fireEvent.click(screen.getByTestId("claim-seat-button"));
       fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
 
       expect(screen.getByTestId("game-end-title")).toHaveClass("text-green-600");
     });
@@ -470,6 +553,9 @@ describe("GamePage", () => {
 
       // Advance without claiming seat
       fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
 
       expect(screen.getByTestId("game-end-title")).toHaveClass("text-red-600");
     });
@@ -483,6 +569,9 @@ describe("GamePage", () => {
       fireEvent.click(screen.getByTestId("seat-1"));
       fireEvent.click(screen.getByTestId("claim-seat-button"));
       fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
 
       // Click Play Again
       fireEvent.click(screen.getByTestId("play-again-button"));
@@ -497,6 +586,9 @@ describe("GamePage", () => {
 
       // Advance without seat to lose
       fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
 
       // Click Try Again
       fireEvent.click(screen.getByTestId("play-again-button"));
@@ -511,6 +603,9 @@ describe("GamePage", () => {
 
       // Advance to end game
       fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
 
       // Modal and game area should both be present
       expect(screen.getByTestId("game-end-modal")).toBeInTheDocument();
@@ -523,10 +618,22 @@ describe("GamePage", () => {
       render(<GamePage />);
 
       // Advance to station 4 where NPC at seat 2 exits
-      fireEvent.click(screen.getByTestId("next-station-button")); // Station 1
-      fireEvent.click(screen.getByTestId("next-station-button")); // Station 2
-      fireEvent.click(screen.getByTestId("next-station-button")); // Station 3
-      fireEvent.click(screen.getByTestId("next-station-button")); // Station 4
+      fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
+      fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
+      fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
+      fireEvent.click(screen.getByTestId("next-station-button"));
+      act(() => {
+        jest.advanceTimersByTime(1300);
+      });
 
       // Both NPCs with dest 3 and 4 should have exited
       expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "empty");

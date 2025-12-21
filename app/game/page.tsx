@@ -5,16 +5,18 @@
  */
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useRef } from "react";
 import {
   generateInitialState,
   revealDestination,
   claimSeat,
   advanceStation,
   setHoveredSeat,
+  previewStationAdvance,
 } from "@/lib/gameLogic";
 import { GameState, Difficulty } from "@/lib/types";
 import { STATIONS, DEFAULT_DIFFICULTY } from "@/lib/constants";
+import { useTransitionController } from "@/lib/useTransitionController";
 import { GameHeader } from "@/components/game/GameHeader";
 import { JourneyProgress } from "@/components/game/JourneyProgress";
 import { Compartment } from "@/components/game/Compartment";
@@ -22,6 +24,9 @@ import { PlayerStatus } from "@/components/game/PlayerStatus";
 import { NextStationButton } from "@/components/game/NextStationButton";
 import { GameEndModal } from "@/components/game/GameEndModal";
 import { StandingArea } from "@/components/game/StandingArea";
+
+// Animation phase total duration in ms
+const ANIMATION_TOTAL_DURATION = 1300;
 
 export default function GamePage() {
   const searchParams = useSearchParams();
@@ -54,34 +59,76 @@ export default function GamePage() {
   }, [searchParams]);
 
   const [gameState, setGameState] = useState<GameState | null>(initialState);
+  const {
+    state: transitionState,
+    startTransition,
+    queueInteraction,
+    isAnimating,
+    triggerPlayerClaimSuccess,
+  } = useTransitionController();
 
-  const handleRevealDestination = useCallback((seatId: number) => {
-    setGameState((prevState) => {
-      if (!prevState) return null;
-      return revealDestination(prevState, seatId);
-    });
-  }, []);
+  // Ref to store pending game state update during animation
+  const pendingStateRef = useRef<GameState | null>(null);
 
-  const handleClaimSeat = useCallback((seatId: number) => {
-    setGameState((prevState) => {
-      if (!prevState) return null;
-      return claimSeat(prevState, seatId);
-    });
-  }, []);
+  const handleRevealDestination = useCallback(
+    (seatId: number) => {
+      queueInteraction(() => {
+        setGameState((prevState) => {
+          if (!prevState) return null;
+          return revealDestination(prevState, seatId);
+        });
+      });
+    },
+    [queueInteraction]
+  );
+
+  const handleClaimSeat = useCallback(
+    (seatId: number) => {
+      queueInteraction(() => {
+        setGameState((prevState) => {
+          if (!prevState) return null;
+          return claimSeat(prevState, seatId);
+        });
+        // Trigger success animation
+        triggerPlayerClaimSuccess();
+      });
+    },
+    [queueInteraction, triggerPlayerClaimSuccess]
+  );
 
   const handleAdvanceStation = useCallback(() => {
-    setGameState((prevState) => {
-      if (!prevState) return null;
-      return advanceStation(prevState);
-    });
-  }, []);
+    if (!gameState || isAnimating) return;
 
-  const handleHoverNear = useCallback((seatId: number) => {
-    setGameState((prevState) => {
-      if (!prevState) return null;
-      return setHoveredSeat(prevState, seatId);
-    });
-  }, []);
+    // Preview what will happen for animation
+    const preview = previewStationAdvance(gameState);
+
+    // Start the animation
+    startTransition(preview.departingNpcIds, preview.claimingNpcId, preview.claimedSeatId);
+
+    // Calculate the new state
+    const newState = advanceStation(gameState);
+    pendingStateRef.current = newState;
+
+    // Update game state after animations complete
+    setTimeout(() => {
+      if (pendingStateRef.current) {
+        setGameState(pendingStateRef.current);
+        pendingStateRef.current = null;
+      }
+    }, ANIMATION_TOTAL_DURATION);
+  }, [gameState, isAnimating, startTransition]);
+
+  const handleHoverNear = useCallback(
+    (seatId: number) => {
+      queueInteraction(() => {
+        setGameState((prevState) => {
+          if (!prevState) return null;
+          return setHoveredSeat(prevState, seatId);
+        });
+      });
+    },
+    [queueInteraction]
+  );
 
   const handlePlayAgain = useCallback(() => {
     router.push("/");
@@ -118,6 +165,8 @@ export default function GamePage() {
           isPlayerSeated={gameState.playerSeated}
           hoveredSeatId={gameState.hoveredSeatId}
           currentStation={gameState.currentStation}
+          transitionState={transitionState}
+          playerClaimSuccess={transitionState.playerClaimSuccess}
           onRevealDestination={handleRevealDestination}
           onClaimSeat={handleClaimSeat}
           onHoverNear={handleHoverNear}
@@ -126,6 +175,7 @@ export default function GamePage() {
         <StandingArea
           standingNPCs={gameState.standingNPCs}
           lastClaimMessage={gameState.lastClaimMessage}
+          transitionState={transitionState}
         />
 
         <PlayerStatus isSeated={gameState.playerSeated} />
@@ -134,7 +184,7 @@ export default function GamePage() {
           <NextStationButton
             currentStation={gameState.currentStation}
             onAdvance={handleAdvanceStation}
-            disabled={false}
+            disabled={isAnimating}
           />
         )}
       </main>

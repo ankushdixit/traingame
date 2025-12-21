@@ -6,6 +6,7 @@ import {
   setHoveredSeat,
   generateStandingNPCs,
   processStandingNPCClaims,
+  previewStationAdvance,
 } from "../gameLogic";
 import { STATIONS, TOTAL_SEATS, DIFFICULTY_CONFIGS, DEFAULT_DIFFICULTY } from "../constants";
 import { GameState, Seat, Difficulty, StandingNPC } from "../types";
@@ -1375,5 +1376,145 @@ describe("advanceStation with standing NPCs", () => {
     const state = createTestState({ hoveredSeatId: 0 });
     const newState = advanceStation(state);
     expect(newState.hoveredSeatId).toBeNull();
+  });
+});
+
+describe("previewStationAdvance", () => {
+  const createTestState = (overrides: Partial<GameState> = {}): GameState => ({
+    currentStation: 0,
+    playerBoardingStation: 0,
+    playerDestination: 5,
+    playerSeated: false,
+    seatId: null,
+    seats: [
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 1, destinationRevealed: false, characterSprite: 0 },
+      },
+      { id: 1, occupant: null },
+      {
+        id: 2,
+        occupant: { id: "npc-1", destination: 3, destinationRevealed: false, characterSprite: 1 },
+      },
+      { id: 3, occupant: null },
+      {
+        id: 4,
+        occupant: { id: "npc-2", destination: 1, destinationRevealed: false, characterSprite: 2 },
+      },
+      { id: 5, occupant: null },
+    ],
+    gameStatus: "playing",
+    standingNPCs: [
+      { id: "standing-0", targetSeatId: null, claimPriority: 0.5, characterSprite: 3 },
+    ],
+    hoveredSeatId: null,
+    difficulty: "rush",
+    lastClaimMessage: null,
+    ...overrides,
+  });
+
+  it("identifies NPCs that will depart at next station", () => {
+    const state = createTestState();
+    const preview = previewStationAdvance(state);
+
+    // NPCs at seats 0 and 4 have destination 1, which is the next station
+    expect(preview.departingNpcIds).toContain("npc-0");
+    expect(preview.departingNpcIds).toContain("npc-2");
+    expect(preview.departingNpcIds).not.toContain("npc-1");
+  });
+
+  it("returns empty departing list when no NPCs leave", () => {
+    const state = createTestState({
+      seats: [
+        {
+          id: 0,
+          occupant: { id: "npc-0", destination: 5, destinationRevealed: false, characterSprite: 0 },
+        },
+        { id: 1, occupant: null },
+        { id: 2, occupant: null },
+        { id: 3, occupant: null },
+        { id: 4, occupant: null },
+        { id: 5, occupant: null },
+      ],
+    });
+    const preview = previewStationAdvance(state);
+
+    expect(preview.departingNpcIds).toEqual([]);
+  });
+
+  it("skips seat that player hovers near when claiming", () => {
+    jest.spyOn(Math, "random").mockReturnValue(0.1); // Would normally claim
+
+    // Create state where only seat 0 becomes empty
+    const state = createTestState({
+      hoveredSeatId: 0,
+      seats: [
+        {
+          id: 0,
+          occupant: { id: "npc-0", destination: 1, destinationRevealed: false, characterSprite: 0 },
+        },
+        { id: 1, occupant: null },
+        {
+          id: 2,
+          occupant: { id: "npc-1", destination: 5, destinationRevealed: false, characterSprite: 1 },
+        },
+        { id: 3, occupant: null },
+        {
+          id: 4,
+          occupant: { id: "npc-2", destination: 5, destinationRevealed: false, characterSprite: 2 },
+        },
+        { id: 5, occupant: null },
+      ],
+    });
+    const preview = previewStationAdvance(state);
+
+    // Player is hovering near seat 0, which is the only seat that will become empty
+    // So NPC should not claim any seat
+    expect(preview.claimingNpcId).toBeNull();
+    expect(preview.claimedSeatId).toBeNull();
+
+    jest.spyOn(Math, "random").mockRestore();
+  });
+
+  it("identifies claiming NPC when random roll succeeds", () => {
+    jest.spyOn(Math, "random").mockReturnValue(0.1); // Below rush hour 0.8 threshold
+
+    const state = createTestState();
+    const preview = previewStationAdvance(state);
+
+    expect(preview.claimingNpcId).toBe("standing-0");
+
+    jest.spyOn(Math, "random").mockRestore();
+  });
+
+  it("does not identify claiming NPC when random roll fails", () => {
+    jest.spyOn(Math, "random").mockReturnValue(0.9); // Above rush hour 0.8 threshold
+
+    const state = createTestState();
+    const preview = previewStationAdvance(state);
+
+    expect(preview.claimingNpcId).toBeNull();
+
+    jest.spyOn(Math, "random").mockRestore();
+  });
+
+  it("returns null claiming NPC when no standing NPCs exist", () => {
+    const state = createTestState({ standingNPCs: [] });
+    const preview = previewStationAdvance(state);
+
+    expect(preview.claimingNpcId).toBeNull();
+    expect(preview.claimedSeatId).toBeNull();
+  });
+
+  it("identifies which seat is being claimed", () => {
+    jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+    const state = createTestState();
+    const preview = previewStationAdvance(state);
+
+    // Seat 0 or 4 should be claimed (whichever is first in iteration)
+    expect([0, 4]).toContain(preview.claimedSeatId);
+
+    jest.spyOn(Math, "random").mockRestore();
   });
 });

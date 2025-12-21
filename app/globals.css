@@ -124,3 +124,121 @@ body {
 @utility animate-fade-in-up {
   animation: fadeInUp 0.3s ease-out forwards;
 }
+
+/* Train shake animation for station transitions */
+@keyframes trainShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@utility animate-train-shake {
+  animation: trainShake 0.5s ease-out;
+}
+
+/* NPC exit animation (slide out right) */
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@utility animate-npc-exit {
+  animation: slideOutRight 0.4s ease-in forwards;
+}
+
+/* Seat claim animation (pop in) */
+@keyframes seatClaim {
+  0% {
+    transform: scale(0.8) translateY(-20px);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@utility animate-seat-claim {
+  animation: seatClaim 0.3s ease-out forwards;
+}
+
+/* Success pulse animation for player seat claim */
+@keyframes successPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+@utility animate-success {
+  animation: successPulse 0.4s ease-out;
+}
+
+/* NPC claim indicator animation */
+@keyframes npcClaimIndicator {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@utility animate-npc-claim {
+  animation: npcClaimIndicator 0.3s ease-out forwards;
+}
+
+/* Standing NPC moving to seat animation */
+@keyframes moveToSeat {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-20px) scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-40px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@utility animate-move-to-seat {
+  animation: moveToSeat 0.4s ease-in forwards;
+}
