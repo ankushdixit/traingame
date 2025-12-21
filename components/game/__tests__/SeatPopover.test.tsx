@@ -32,7 +32,7 @@ describe("SeatPopover", () => {
       render(<SeatPopover seat={seat} isPlayerSeated={false} {...defaultHandlers} />);
 
       expect(screen.getByTestId("seat-popover")).toBeInTheDocument();
-      expect(screen.getByTestId("claim-seat-button")).toHaveTextContent("Claim Seat");
+      expect(screen.getByTestId("claim-seat-button")).toHaveTextContent("🎯 Claim Seat!");
     });
 
     it("calls onClaimSeat when 'Claim Seat' button is clicked", () => {
@@ -65,7 +65,7 @@ describe("SeatPopover", () => {
       render(<SeatPopover seat={seat} isPlayerSeated={false} {...defaultHandlers} />);
 
       expect(screen.getByTestId("seat-popover")).toBeInTheDocument();
-      expect(screen.getByTestId("ask-destination-button")).toHaveTextContent("Ask destination?");
+      expect(screen.getByTestId("ask-destination-button")).toHaveTextContent("🗣️ Ask Destination");
     });
 
     it("calls onRevealDestination when 'Ask destination?' button is clicked", () => {
@@ -126,7 +126,7 @@ describe("SeatPopover", () => {
   });
 
   describe("when seat is occupied with revealed destination", () => {
-    it("shows the destination station name", () => {
+    it("shows the ask button as disabled with 'Asked' text", () => {
       const seat: Seat = {
         id: 2,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
@@ -134,24 +134,24 @@ describe("SeatPopover", () => {
       render(<SeatPopover seat={seat} isPlayerSeated={false} {...defaultHandlers} />);
 
       expect(screen.getByTestId("seat-popover")).toBeInTheDocument();
-      expect(screen.getByTestId("destination-revealed")).toHaveTextContent(
-        "Getting off at: Grant Road"
-      );
+      expect(screen.getByTestId("ask-destination-button")).toHaveTextContent("✓ Asked");
+      expect(screen.getByTestId("ask-destination-button")).toBeDisabled();
     });
 
-    it("does not show 'Ask destination?' button", () => {
+    it("shows the Watch Seat button", () => {
       const seat: Seat = {
         id: 2,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
       };
       render(<SeatPopover seat={seat} isPlayerSeated={false} {...defaultHandlers} />);
 
-      expect(screen.queryByTestId("ask-destination-button")).not.toBeInTheDocument();
+      expect(screen.getByTestId("hover-near-button")).toBeInTheDocument();
+      expect(screen.getByTestId("hover-near-button")).toHaveTextContent("👁️ Watch Seat");
     });
   });
 
   describe("when seat is hovered", () => {
-    it("shows 'Watching this seat' for already hovered seat", () => {
+    it("shows 'Watching' for already hovered seat", () => {
       const seat: Seat = {
         id: 1,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
@@ -168,7 +168,7 @@ describe("SeatPopover", () => {
         />
       );
 
-      expect(screen.getByText("Watching this seat")).toBeInTheDocument();
+      expect(screen.getByText("👁️ Watching")).toBeInTheDocument();
     });
 
     it("disables 'Hover Near' button when already hovered", () => {
@@ -258,7 +258,7 @@ describe("SeatPopover", () => {
   });
 
   describe("destination display", () => {
-    it("displays correct station name for each destination index", () => {
+    it("shows disabled 'Asked' button when destination is revealed", () => {
       const destinations = [
         { index: 0, name: "Churchgate" },
         { index: 1, name: "Marine Lines" },
@@ -268,7 +268,7 @@ describe("SeatPopover", () => {
         { index: 5, name: "Dadar" },
       ];
 
-      destinations.forEach(({ index, name }) => {
+      destinations.forEach(({ index }) => {
         const seat: Seat = {
           id: index,
           occupant: {
@@ -282,9 +282,8 @@ describe("SeatPopover", () => {
           <SeatPopover seat={seat} isPlayerSeated={false} {...defaultHandlers} />
         );
 
-        expect(screen.getByTestId("destination-revealed")).toHaveTextContent(
-          `Getting off at: ${name}`
-        );
+        expect(screen.getByTestId("ask-destination-button")).toHaveTextContent("✓ Asked");
+        expect(screen.getByTestId("ask-destination-button")).toBeDisabled();
 
         unmount();
       });

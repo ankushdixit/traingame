@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Standing area positioned between top and bottom seat rows (aisle layout)
+- 6 individual standing spots with grab handles in the aisle
+- Player standing spot tracking with `playerStandingSpot` in GameState
+- NPC standing spot assignment with `standingSpot` in StandingNPC type
+- GameStatusBar component showing empty seats, waiting passengers, and stops remaining
+
+### Changed
+
+- TrainCompartment layout restructured with topRow, standingArea, bottomRow, statusBar props
+- Compartment component now uses standingArea and statusBar props instead of children
+- StandingArea displays 6-spot grid with "Aisle" label instead of flexible layout
+- UI matches single-shot design with stone/amber/emerald gradients throughout
+- Grab handles moved from TrainInterior to StandingArea component
+
 - Difficulty level selection UI on station selection screen
 - DifficultySelector component with segmented control for Easy/Normal/Rush Hour
 - Difficulty badge display in game header with color-coded styling

@@ -44,6 +44,10 @@ export default function StationSelectForm() {
     selection.boardingStation !== null ? getDestinationOptions(selection.boardingStation) : [];
 
   const isValid = selection.boardingStation !== null && selection.destination !== null;
+  const stopsCount =
+    selection.boardingStation !== null && selection.destination !== null
+      ? selection.destination - selection.boardingStation
+      : 0;
 
   const handleBoardingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
@@ -76,15 +80,19 @@ export default function StationSelectForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      {/* Difficulty Selection */}
+      <DifficultySelector value={difficulty} onChange={setDifficulty} />
+
+      {/* Boarding Station */}
       <div className="flex flex-col gap-2">
-        <label htmlFor="boarding" className="text-sm font-medium">
-          Board at
+        <label htmlFor="boarding" className="text-sm font-semibold text-stone-700">
+          📍 Boarding Station
         </label>
         <select
           id="boarding"
           value={selection.boardingStation ?? ""}
           onChange={handleBoardingChange}
-          className="rounded-md border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full p-3 rounded-xl border-2 border-stone-200 focus:border-amber-400 focus:ring-0 bg-white transition-all text-stone-800"
         >
           <option value="">Select station...</option>
           {boardingOptions.map((station, index) => (
@@ -95,16 +103,17 @@ export default function StationSelectForm() {
         </select>
       </div>
 
+      {/* Destination Station */}
       <div className="flex flex-col gap-2">
-        <label htmlFor="destination" className="text-sm font-medium">
-          Get off at
+        <label htmlFor="destination" className="text-sm font-semibold text-stone-700">
+          🚩 Destination
         </label>
         <select
           id="destination"
           value={selection.destination ?? ""}
           onChange={handleDestinationChange}
           disabled={selection.boardingStation === null}
-          className="rounded-md border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+          className="w-full p-3 rounded-xl border-2 border-stone-200 focus:border-amber-400 focus:ring-0 bg-white transition-all text-stone-800 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400"
         >
           <option value="">Select station...</option>
           {destinationOptions.map((stationIndex) => (
@@ -115,14 +124,26 @@ export default function StationSelectForm() {
         </select>
       </div>
 
-      <DifficultySelector value={difficulty} onChange={setDifficulty} />
+      {/* Journey Preview */}
+      {isValid && (
+        <div className="bg-stone-100 rounded-xl p-4">
+          <div className="text-sm text-stone-600 text-center">
+            Your journey:{" "}
+            <span className="font-bold text-stone-800">{STATIONS[selection.boardingStation!]}</span>
+            <span className="mx-2">→</span>
+            <span className="font-bold text-stone-800">{STATIONS[selection.destination!]}</span>
+            <span className="text-stone-500 ml-2">({stopsCount} stops)</span>
+          </div>
+        </div>
+      )}
 
+      {/* Start Button */}
       <button
         type="submit"
         disabled={!isValid}
-        className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-400"
+        className="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:from-stone-300 disabled:to-stone-400"
       >
-        Start Game
+        🚃 Board Train
       </button>
     </form>
   );

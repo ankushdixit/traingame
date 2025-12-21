@@ -2,6 +2,7 @@
 
 /**
  * GameEndModal component - displays enhanced win/lose screen as an overlay
+ * Matches single-shot design with celebratory styling
  */
 
 import { useState, useCallback, useEffect } from "react";
@@ -50,7 +51,7 @@ export function GameEndModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
       data-testid="game-end-modal"
       role="dialog"
       aria-modal="true"
@@ -58,7 +59,7 @@ export function GameEndModal({
       onClick={handleSkipAnimation}
     >
       <div
-        className="animate-fade-in-up max-w-md rounded-lg bg-white p-8"
+        className="animate-in fade-in zoom-in duration-300 w-full max-w-sm bg-white rounded-2xl shadow-2xl p-8"
         onClick={handleContentClick}
       >
         {isWin ? (
@@ -79,10 +80,14 @@ export function GameEndModal({
 
         <button
           onClick={onPlayAgain}
-          className="mt-4 w-full rounded-lg bg-blue-500 px-6 py-3 font-bold text-white hover:bg-blue-600"
+          className={`mt-6 w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] ${
+            isWin
+              ? "bg-gradient-to-r from-emerald-400 to-emerald-500 text-white hover:from-emerald-500 hover:to-emerald-600"
+              : "bg-gradient-to-r from-amber-400 to-orange-400 text-white hover:from-amber-500 hover:to-orange-500"
+          }`}
           data-testid="play-again-button"
         >
-          {isWin ? "Play Again" : "Try Again"}
+          {isWin ? "🎉 Play Again" : "🔄 Try Again"}
         </button>
       </div>
     </div>

@@ -62,11 +62,12 @@ describe("DifficultySelector", () => {
 
   describe("description display", () => {
     it.each(DIFFICULTY_OPTIONS)(
-      "displays correct description when $value is selected",
+      "displays correct description for $value option",
       ({ value, description }) => {
         render(<DifficultySelector value={value} onChange={mockOnChange} />);
 
-        expect(screen.getByTestId("difficulty-description")).toHaveTextContent(description);
+        // Description is shown inline on the button
+        expect(screen.getByText(description)).toBeInTheDocument();
       }
     );
   });

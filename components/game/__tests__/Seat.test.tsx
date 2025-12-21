@@ -16,11 +16,11 @@ describe("Seat", () => {
   });
 
   describe("empty seat", () => {
-    it("displays 'Empty' for seat with no occupant", () => {
+    it("displays 'Empty!' for seat with no occupant", () => {
       const seat: SeatType = { id: 0, occupant: null };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByText("Empty")).toBeInTheDocument();
+      expect(screen.getByText("Empty!")).toBeInTheDocument();
     });
 
     it("has empty state data attribute", () => {
@@ -30,11 +30,15 @@ describe("Seat", () => {
       expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "empty");
     });
 
-    it("has train maroon styling for empty seat", () => {
+    it("has emerald gradient styling for empty seat", () => {
       const seat: SeatType = { id: 0, occupant: null };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByTestId("seat-0")).toHaveClass("bg-train-maroon");
+      expect(screen.getByTestId("seat-0")).toHaveClass(
+        "bg-gradient-to-b",
+        "from-emerald-100",
+        "to-emerald-200"
+      );
     });
   });
 
@@ -60,14 +64,18 @@ describe("Seat", () => {
       expect(screen.getByTestId("seat-1")).toHaveAttribute("data-state", "occupied");
     });
 
-    it("has train maroon dark styling for occupied seat", () => {
+    it("has rose gradient styling for occupied seat", () => {
       const seat: SeatType = {
         id: 1,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByTestId("seat-1")).toHaveClass("bg-train-maroon-dark");
+      expect(screen.getByTestId("seat-1")).toHaveClass(
+        "bg-gradient-to-b",
+        "from-rose-100",
+        "to-rose-200"
+      );
     });
   });
 
@@ -93,14 +101,18 @@ describe("Seat", () => {
       expect(screen.getByTestId("seat-2")).toHaveAttribute("data-state", "occupied-known");
     });
 
-    it("has blue styling for seat with known destination", () => {
+    it("has rose gradient styling for seat with known destination", () => {
       const seat: SeatType = {
         id: 2,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: true, characterSprite: 0 },
       };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByTestId("seat-2")).toHaveClass("bg-blue-800");
+      expect(screen.getByTestId("seat-2")).toHaveClass(
+        "bg-gradient-to-b",
+        "from-rose-100",
+        "to-rose-200"
+      );
     });
 
     it("displays destination station in speech bubble", () => {
@@ -116,11 +128,11 @@ describe("Seat", () => {
   });
 
   describe("player seat", () => {
-    it("displays 'You' when player is seated", () => {
+    it("displays player character when player is seated", () => {
       const seat: SeatType = { id: 3, occupant: null };
       render(<Seat seat={seat} isPlayerSeat={true} {...defaultProps} />);
 
-      expect(screen.getByText("You")).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: /You - the player character/i })).toBeInTheDocument();
     });
 
     it("has player state data attribute", () => {
@@ -130,18 +142,22 @@ describe("Seat", () => {
       expect(screen.getByTestId("seat-3")).toHaveAttribute("data-state", "player");
     });
 
-    it("has yellow styling for player seat", () => {
+    it("has amber gradient styling for player seat", () => {
       const seat: SeatType = { id: 3, occupant: null };
       render(<Seat seat={seat} isPlayerSeat={true} {...defaultProps} />);
 
-      expect(screen.getByTestId("seat-3")).toHaveClass("bg-yellow-600");
+      expect(screen.getByTestId("seat-3")).toHaveClass(
+        "bg-gradient-to-b",
+        "from-amber-200",
+        "to-amber-300"
+      );
     });
 
     it("has ring styling for player seat", () => {
       const seat: SeatType = { id: 3, occupant: null };
       render(<Seat seat={seat} isPlayerSeat={true} {...defaultProps} />);
 
-      expect(screen.getByTestId("seat-3")).toHaveClass("ring-2", "ring-yellow-400");
+      expect(screen.getByTestId("seat-3")).toHaveClass("ring-4", "ring-amber-400");
     });
   });
 
@@ -188,9 +204,7 @@ describe("Seat", () => {
       fireEvent.click(screen.getByTestId("seat-2"));
 
       expect(screen.getByTestId("seat-popover")).toBeInTheDocument();
-      expect(screen.getByTestId("destination-revealed")).toHaveTextContent(
-        "Getting off at: Grant Road"
-      );
+      expect(screen.getByText(/Grant Road/i)).toBeInTheDocument();
     });
 
     it("does not open popover when clicking player's own seat", () => {
@@ -306,8 +320,7 @@ describe("Seat", () => {
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
       const seatElement = screen.getByTestId("seat-0");
-      expect(seatElement).toHaveAttribute("tabIndex", "0");
-      expect(seatElement).toHaveAttribute("role", "button");
+      expect(seatElement).toHaveAttribute("type", "button");
     });
 
     it("opens popover on Enter key press", () => {
@@ -394,7 +407,7 @@ describe("Seat", () => {
       expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "hovered");
     });
 
-    it("has purple styling for hovered seat", () => {
+    it("has purple gradient styling for hovered seat", () => {
       const seat: SeatType = {
         id: 0,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
@@ -411,7 +424,11 @@ describe("Seat", () => {
         />
       );
 
-      expect(screen.getByTestId("seat-0")).toHaveClass("bg-purple-800");
+      expect(screen.getByTestId("seat-0")).toHaveClass(
+        "bg-gradient-to-b",
+        "from-purple-100",
+        "to-purple-200"
+      );
     });
 
     it("does not show hovered state for empty seat", () => {
@@ -432,7 +449,7 @@ describe("Seat", () => {
       expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "empty");
     });
 
-    it("shows 'Watching this seat' in popover when already hovered", () => {
+    it("shows watching indicator when seat is hovered", () => {
       const seat: SeatType = {
         id: 0,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
@@ -449,8 +466,7 @@ describe("Seat", () => {
         />
       );
 
-      fireEvent.click(screen.getByTestId("seat-0"));
-      expect(screen.getByText("Watching this seat")).toBeInTheDocument();
+      expect(screen.getByText("Watching...")).toBeInTheDocument();
     });
   });
 });

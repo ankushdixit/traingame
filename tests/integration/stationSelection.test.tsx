@@ -47,16 +47,16 @@ describe("Station Selection Integration", () => {
     render(<Home />);
 
     // Verify initial state
-    expect(screen.getByRole("button", { name: "Start Game" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Board Train/i })).toBeDisabled();
 
     // Select boarding station
-    await user.selectOptions(screen.getByLabelText("Board at"), "0");
+    await user.selectOptions(screen.getByLabelText(/Boarding Station/i), "0");
 
     // Select destination
-    await user.selectOptions(screen.getByLabelText("Get off at"), "5");
+    await user.selectOptions(screen.getByLabelText(/Destination/i), "5");
 
     // Submit form
-    await user.click(screen.getByRole("button", { name: "Start Game" }));
+    await user.click(screen.getByRole("button", { name: /Board Train/i }));
 
     // Verify navigation with difficulty
     expect(mockPush).toHaveBeenCalledWith("/game?boarding=0&destination=5&difficulty=normal");
@@ -66,13 +66,13 @@ describe("Station Selection Integration", () => {
     const user = userEvent.setup();
     render(<Home />);
 
-    const submitButton = screen.getByRole("button", { name: "Start Game" });
+    const submitButton = screen.getByRole("button", { name: /Board Train/i });
 
     // Button should be disabled
     expect(submitButton).toBeDisabled();
 
     // Select only boarding (partial form)
-    await user.selectOptions(screen.getByLabelText("Board at"), "0");
+    await user.selectOptions(screen.getByLabelText(/Boarding Station/i), "0");
 
     // Button should still be disabled
     expect(submitButton).toBeDisabled();
@@ -86,19 +86,19 @@ describe("Station Selection Integration", () => {
     render(<Home />);
 
     // Select initial stations
-    await user.selectOptions(screen.getByLabelText("Board at"), "0");
-    await user.selectOptions(screen.getByLabelText("Get off at"), "2");
+    await user.selectOptions(screen.getByLabelText(/Boarding Station/i), "0");
+    await user.selectOptions(screen.getByLabelText(/Destination/i), "2");
 
     // Change boarding station
-    await user.selectOptions(screen.getByLabelText("Board at"), "3");
+    await user.selectOptions(screen.getByLabelText(/Boarding Station/i), "3");
 
     // Destination should be reset, button disabled
-    expect(screen.getByLabelText("Get off at")).toHaveValue("");
-    expect(screen.getByRole("button", { name: "Start Game" })).toBeDisabled();
+    expect(screen.getByLabelText(/Destination/i)).toHaveValue("");
+    expect(screen.getByRole("button", { name: /Board Train/i })).toBeDisabled();
 
     // Select new destination and submit
-    await user.selectOptions(screen.getByLabelText("Get off at"), "5");
-    await user.click(screen.getByRole("button", { name: "Start Game" }));
+    await user.selectOptions(screen.getByLabelText(/Destination/i), "5");
+    await user.click(screen.getByRole("button", { name: /Board Train/i }));
 
     expect(mockPush).toHaveBeenCalledWith("/game?boarding=3&destination=5&difficulty=normal");
   });
@@ -108,14 +108,14 @@ describe("Station Selection Integration", () => {
     render(<Home />);
 
     // Select stations
-    await user.selectOptions(screen.getByLabelText("Board at"), "0");
-    await user.selectOptions(screen.getByLabelText("Get off at"), "5");
+    await user.selectOptions(screen.getByLabelText(/Boarding Station/i), "0");
+    await user.selectOptions(screen.getByLabelText(/Destination/i), "5");
 
     // Select Rush Hour difficulty
     await user.click(screen.getByTestId("difficulty-rush"));
 
     // Submit form
-    await user.click(screen.getByRole("button", { name: "Start Game" }));
+    await user.click(screen.getByRole("button", { name: /Board Train/i }));
 
     // Verify navigation with rush difficulty
     expect(mockPush).toHaveBeenCalledWith("/game?boarding=0&destination=5&difficulty=rush");
@@ -141,9 +141,9 @@ describe("Station Selection Integration", () => {
     render(<Home />);
 
     // Select Grant Road (index 3)
-    await user.selectOptions(screen.getByLabelText("Board at"), "3");
+    await user.selectOptions(screen.getByLabelText(/Boarding Station/i), "3");
 
-    const destinationSelect = screen.getByLabelText("Get off at");
+    const destinationSelect = screen.getByLabelText(/Destination/i);
     const options = destinationSelect.querySelectorAll("option");
 
     // Should only show Mumbai Central and Dadar (+ placeholder)

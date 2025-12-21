@@ -40,9 +40,9 @@ describe("StationSelectForm", () => {
     it("renders with correct initial state", () => {
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
-      const destinationSelect = screen.getByLabelText("Get off at");
-      const submitButton = screen.getByRole("button", { name: "Start Game" });
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
+      const destinationSelect = screen.getByLabelText("🚩 Destination");
+      const submitButton = screen.getByRole("button", { name: "🚃 Board Train" });
 
       expect(boardingSelect).toHaveValue("");
       expect(destinationSelect).toHaveValue("");
@@ -52,7 +52,7 @@ describe("StationSelectForm", () => {
     it("renders boarding dropdown with 5 stations (excludes Dadar)", () => {
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
       const options = boardingSelect.querySelectorAll("option");
 
       // 5 stations + 1 placeholder option
@@ -68,7 +68,7 @@ describe("StationSelectForm", () => {
     it("renders destination dropdown disabled initially", () => {
       render(<StationSelectForm />);
 
-      const destinationSelect = screen.getByLabelText("Get off at");
+      const destinationSelect = screen.getByLabelText("🚩 Destination");
       expect(destinationSelect).toBeDisabled();
     });
   });
@@ -78,8 +78,8 @@ describe("StationSelectForm", () => {
       const user = userEvent.setup();
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
-      const destinationSelect = screen.getByLabelText("Get off at");
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
+      const destinationSelect = screen.getByLabelText("🚩 Destination");
 
       await user.selectOptions(boardingSelect, "0"); // Churchgate
 
@@ -90,10 +90,10 @@ describe("StationSelectForm", () => {
       const user = userEvent.setup();
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
       await user.selectOptions(boardingSelect, "0"); // Churchgate
 
-      const destinationSelect = screen.getByLabelText("Get off at");
+      const destinationSelect = screen.getByLabelText("🚩 Destination");
       const options = destinationSelect.querySelectorAll("option");
 
       // 5 destinations + 1 placeholder
@@ -109,10 +109,10 @@ describe("StationSelectForm", () => {
       const user = userEvent.setup();
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
       await user.selectOptions(boardingSelect, "4"); // Mumbai Central
 
-      const destinationSelect = screen.getByLabelText("Get off at");
+      const destinationSelect = screen.getByLabelText("🚩 Destination");
       const options = destinationSelect.querySelectorAll("option");
 
       // 1 destination + 1 placeholder
@@ -124,8 +124,8 @@ describe("StationSelectForm", () => {
       const user = userEvent.setup();
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
-      const destinationSelect = screen.getByLabelText("Get off at");
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
+      const destinationSelect = screen.getByLabelText("🚩 Destination");
 
       // Select Churchgate and Marine Lines as destination
       await user.selectOptions(boardingSelect, "0");
@@ -146,8 +146,8 @@ describe("StationSelectForm", () => {
       const user = userEvent.setup();
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
-      const submitButton = screen.getByRole("button", { name: "Start Game" });
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
+      const submitButton = screen.getByRole("button", { name: "🚃 Board Train" });
 
       await user.selectOptions(boardingSelect, "0");
 
@@ -158,9 +158,9 @@ describe("StationSelectForm", () => {
       const user = userEvent.setup();
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
-      const destinationSelect = screen.getByLabelText("Get off at");
-      const submitButton = screen.getByRole("button", { name: "Start Game" });
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
+      const destinationSelect = screen.getByLabelText("🚩 Destination");
+      const submitButton = screen.getByRole("button", { name: "🚃 Board Train" });
 
       await user.selectOptions(boardingSelect, "0");
       await user.selectOptions(destinationSelect, "5");
@@ -172,9 +172,9 @@ describe("StationSelectForm", () => {
       const user = userEvent.setup();
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
-      const destinationSelect = screen.getByLabelText("Get off at");
-      const submitButton = screen.getByRole("button", { name: "Start Game" });
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
+      const destinationSelect = screen.getByLabelText("🚩 Destination");
+      const submitButton = screen.getByRole("button", { name: "🚃 Board Train" });
 
       // Select both
       await user.selectOptions(boardingSelect, "0");
@@ -192,9 +192,9 @@ describe("StationSelectForm", () => {
       const user = userEvent.setup();
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
-      const destinationSelect = screen.getByLabelText("Get off at");
-      const submitButton = screen.getByRole("button", { name: "Start Game" });
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
+      const destinationSelect = screen.getByLabelText("🚩 Destination");
+      const submitButton = screen.getByRole("button", { name: "🚃 Board Train" });
 
       await user.selectOptions(boardingSelect, "0"); // Churchgate
       await user.selectOptions(destinationSelect, "5"); // Dadar
@@ -207,9 +207,9 @@ describe("StationSelectForm", () => {
       const user = userEvent.setup();
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
-      const destinationSelect = screen.getByLabelText("Get off at");
-      const submitButton = screen.getByRole("button", { name: "Start Game" });
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
+      const destinationSelect = screen.getByLabelText("🚩 Destination");
+      const submitButton = screen.getByRole("button", { name: "🚃 Board Train" });
 
       await user.selectOptions(boardingSelect, "2"); // Charni Road
       await user.selectOptions(destinationSelect, "4"); // Mumbai Central
@@ -222,10 +222,10 @@ describe("StationSelectForm", () => {
       const user = userEvent.setup();
       render(<StationSelectForm />);
 
-      const boardingSelect = screen.getByLabelText("Board at");
-      const destinationSelect = screen.getByLabelText("Get off at");
+      const boardingSelect = screen.getByLabelText("📍 Boarding Station");
+      const destinationSelect = screen.getByLabelText("🚩 Destination");
       const easyButton = screen.getByTestId("difficulty-easy");
-      const submitButton = screen.getByRole("button", { name: "Start Game" });
+      const submitButton = screen.getByRole("button", { name: "🚃 Board Train" });
 
       await user.selectOptions(boardingSelect, "0");
       await user.selectOptions(destinationSelect, "5");
@@ -238,7 +238,7 @@ describe("StationSelectForm", () => {
     it("does not navigate when form is invalid", async () => {
       render(<StationSelectForm />);
 
-      const form = screen.getByRole("button", { name: "Start Game" }).closest("form");
+      const form = screen.getByRole("button", { name: "🚃 Board Train" }).closest("form");
 
       // Try to submit directly (bypassing disabled button)
       fireEvent.submit(form!);
@@ -289,22 +289,19 @@ describe("StationSelectForm", () => {
       const user = userEvent.setup();
       render(<StationSelectForm />);
 
-      // Initial - Normal
-      expect(screen.getByTestId("difficulty-description")).toHaveTextContent(
-        "One seat, some competition"
-      );
+      // Initial - Normal button should contain the description
+      const normalButton = screen.getByTestId("difficulty-normal");
+      expect(normalButton).toHaveTextContent("One seat, some competition");
 
       // Click Easy
       await user.click(screen.getByTestId("difficulty-easy"));
-      expect(screen.getByTestId("difficulty-description")).toHaveTextContent(
-        "Plenty of seats, few competitors"
-      );
+      const easyButton = screen.getByTestId("difficulty-easy");
+      expect(easyButton).toHaveTextContent("Plenty of seats, few competitors");
 
       // Click Rush Hour
       await user.click(screen.getByTestId("difficulty-rush"));
-      expect(screen.getByTestId("difficulty-description")).toHaveTextContent(
-        "No seats, fierce competition"
-      );
+      const rushButton = screen.getByTestId("difficulty-rush");
+      expect(rushButton).toHaveTextContent("No seats, fierce competition");
     });
   });
 

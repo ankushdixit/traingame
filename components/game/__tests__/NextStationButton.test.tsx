@@ -13,10 +13,12 @@ describe("NextStationButton", () => {
   });
 
   describe("button text", () => {
-    it("shows 'Next: [station]' for non-final stations", () => {
+    it("shows 'Next Station: [station]' for all stations", () => {
       render(<NextStationButton {...defaultProps} currentStation={0} />);
 
-      expect(screen.getByTestId("next-station-button")).toHaveTextContent("Next: Marine Lines");
+      expect(screen.getByTestId("next-station-button")).toHaveTextContent(
+        "🚃 Next Station: Marine Lines"
+      );
     });
 
     it("shows correct next station name for each station", () => {
@@ -25,6 +27,7 @@ describe("NextStationButton", () => {
         { current: 1, next: "Charni Road" },
         { current: 2, next: "Grant Road" },
         { current: 3, next: "Mumbai Central" },
+        { current: 4, next: "Dadar" },
       ];
 
       expectedStations.forEach(({ current, next }) => {
@@ -32,15 +35,11 @@ describe("NextStationButton", () => {
           <NextStationButton {...defaultProps} currentStation={current} />
         );
 
-        expect(screen.getByTestId("next-station-button")).toHaveTextContent(`Next: ${next}`);
+        expect(screen.getByTestId("next-station-button")).toHaveTextContent(
+          `🚃 Next Station: ${next}`
+        );
         unmount();
       });
-    });
-
-    it("shows 'Arrive at [station]' for final station", () => {
-      render(<NextStationButton {...defaultProps} currentStation={4} />);
-
-      expect(screen.getByTestId("next-station-button")).toHaveTextContent("Arrive at Dadar");
     });
   });
 
@@ -77,17 +76,35 @@ describe("NextStationButton", () => {
       expect(screen.getByTestId("next-station-button")).toBeDisabled();
     });
 
-    it("has gray styling when disabled", () => {
+    it("has stone styling when disabled", () => {
       render(<NextStationButton {...defaultProps} disabled={true} />);
 
-      expect(screen.getByTestId("next-station-button")).toHaveClass("bg-gray-300");
+      expect(screen.getByTestId("next-station-button")).toHaveClass("bg-stone-300");
       expect(screen.getByTestId("next-station-button")).toHaveClass("cursor-not-allowed");
     });
 
-    it("has blue styling when enabled", () => {
+    it("has blue gradient styling when enabled", () => {
       render(<NextStationButton {...defaultProps} disabled={false} />);
 
-      expect(screen.getByTestId("next-station-button")).toHaveClass("bg-blue-500");
+      expect(screen.getByTestId("next-station-button")).toHaveClass(
+        "bg-gradient-to-r",
+        "from-blue-500",
+        "to-blue-600"
+      );
+    });
+
+    it("shows 'Moving...' text when disabled", () => {
+      render(<NextStationButton {...defaultProps} disabled={true} />);
+
+      expect(screen.getByTestId("next-station-button")).toHaveTextContent("Moving...");
+    });
+
+    it("shows loading spinner when disabled", () => {
+      render(<NextStationButton {...defaultProps} disabled={true} />);
+
+      const button = screen.getByTestId("next-station-button");
+      const spinner = button.querySelector("svg.animate-spin");
+      expect(spinner).toBeInTheDocument();
     });
   });
 

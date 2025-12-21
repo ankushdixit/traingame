@@ -1,110 +1,83 @@
 /**
  * TrainInterior component - background elements of the train compartment
- * Renders ceiling handles, poles, windows with scenery
+ * Renders ceiling handles, train window with parallax scenery
+ * Matches single-shot design with sun, buildings, and electric poles
  */
-
-import { cn } from "@/lib/utils";
 
 interface TrainInteriorProps {
   /** Used to trigger scenery animation on station change */
   stationKey?: number;
+  /** Whether the train is currently moving */
+  isMoving?: boolean;
 }
 
 /**
- * Ceiling handle bar element
+ * Train window with animated parallax scenery background
+ * Inspired by single-shot design with buildings and sun
  */
-function CeilingHandle() {
-  return (
-    <div className="flex h-10 w-2 flex-col items-center" data-testid="ceiling-handle">
-      {/* Attachment point */}
-      <div className="h-2 w-2 rounded-full bg-train-metallic-dark" />
-      {/* Handle strap */}
-      <div className="h-6 w-1 bg-train-handle" />
-      {/* Grip ring */}
-      <div className="h-3 w-3 rounded-full border-2 border-train-handle bg-transparent" />
-    </div>
-  );
-}
+function TrainWindow({ isMoving }: { isMoving?: boolean }) {
+  // Generate random building heights (consistent per render)
+  const buildings = Array.from({ length: 12 }, (_, i) => ({
+    width: 12 + ((i * 7) % 12),
+    height: 20 + ((i * 13) % 35),
+    opacity: 0.6 + ((i * 0.05) % 0.3),
+  }));
 
-/**
- * Vertical pole element
- */
-function Pole({ position }: { position: "left" | "right" }) {
   return (
     <div
-      className={cn(
-        "absolute top-0 bottom-0 w-2 rounded-full bg-train-metallic",
-        "shadow-md",
-        position === "left" ? "left-4" : "right-4"
-      )}
-      data-testid={`pole-${position}`}
-    />
-  );
-}
-
-/**
- * Train window with animated scenery background
- */
-function TrainWindow({ stationKey }: { stationKey?: number }) {
-  return (
-    <div
-      className="absolute right-0 top-16 bottom-16 w-20 overflow-hidden rounded-l-lg border-l-4 border-train-metallic-dark"
+      className="relative w-full h-24 rounded-lg overflow-hidden bg-gradient-to-b from-sky-300 to-sky-100 border-4 border-stone-400 shadow-inner"
       data-testid="train-window"
     >
-      {/* Window glass */}
-      <div className="absolute inset-0 bg-train-window opacity-70" />
-
-      {/* Scenery background */}
-      <div
-        key={stationKey}
-        className={cn(
-          "absolute inset-0",
-          stationKey !== undefined && stationKey > 0 && "animate-scenery"
-        )}
-        style={{
-          background: `linear-gradient(
-            to bottom,
-            #87CEEB 0%,
-            #87CEEB 55%,
-            #4A7023 55%,
-            #3D5A1F 70%,
-            #2D4A0F 100%
-          )`,
-        }}
-        data-testid="window-scenery"
-      />
-
       {/* Window frame */}
-      <div className="absolute inset-2 rounded border-2 border-train-metallic opacity-50" />
-    </div>
-  );
-}
+      <div className="absolute inset-0 border-8 border-stone-500 rounded pointer-events-none" />
 
-export function TrainInterior({ stationKey }: TrainInteriorProps) {
-  return (
-    <>
-      {/* Ceiling with handle bars */}
+      {/* Sun */}
+      <div className="absolute top-3 right-6 w-8 h-8 bg-yellow-300 rounded-full shadow-lg shadow-yellow-200" />
+
+      {/* Buildings background */}
       <div
-        className="absolute top-0 right-0 left-0 flex h-14 items-end justify-around rounded-t-lg bg-train-metallic-dark px-8"
-        data-testid="train-ceiling"
+        className={`absolute bottom-0 left-0 right-0 flex items-end gap-1 ${
+          isMoving ? "transition-transform duration-1000 -translate-x-8" : "translate-x-0"
+        }`}
       >
-        {[...Array(5)].map((_, i) => (
-          <CeilingHandle key={i} />
+        {buildings.map((building, i) => (
+          <div
+            key={i}
+            className="bg-stone-600"
+            style={{
+              width: `${building.width}px`,
+              height: `${building.height}px`,
+              opacity: building.opacity,
+            }}
+          />
         ))}
       </div>
 
-      {/* Vertical poles on sides */}
-      <Pole position="left" />
-      <Pole position="right" />
-
-      {/* Window with scenery */}
-      <TrainWindow stationKey={stationKey} />
-
-      {/* Floor */}
+      {/* Electric poles */}
       <div
-        className="absolute right-0 bottom-0 left-0 h-4 rounded-b-lg bg-train-floor"
-        data-testid="train-floor"
-      />
+        className={`absolute bottom-0 left-0 right-0 flex justify-around ${
+          isMoving ? "transition-transform duration-500 -translate-x-4" : "translate-x-0"
+        }`}
+      >
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="flex flex-col items-center">
+            <div className="w-0.5 h-1 bg-stone-800" />
+            <div className="w-6 h-0.5 bg-stone-800" />
+            <div className="w-1 h-16 bg-stone-700" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function TrainInterior({ stationKey: _stationKey, isMoving }: TrainInteriorProps) {
+  return (
+    <>
+      {/* Train Window at top */}
+      <div className="mb-4">
+        <TrainWindow isMoving={isMoving} />
+      </div>
     </>
   );
 }

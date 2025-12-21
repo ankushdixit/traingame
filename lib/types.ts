@@ -25,6 +25,7 @@ export interface DifficultyOption {
   value: Difficulty;
   label: string;
   description: string;
+  emoji: string;
 }
 
 /**
@@ -35,16 +36,19 @@ export const DIFFICULTY_OPTIONS: DifficultyOption[] = [
     value: "easy",
     label: "Easy",
     description: "Plenty of seats, few competitors",
+    emoji: "😌",
   },
   {
     value: "normal",
     label: "Normal",
     description: "One seat, some competition",
+    emoji: "😤",
   },
   {
     value: "rush",
     label: "Rush Hour",
     description: "No seats, fierce competition",
+    emoji: "🔥",
   },
 ];
 
@@ -56,6 +60,7 @@ export interface StandingNPC {
   targetSeatId: number | null; // Seat they're watching (or null for random)
   claimPriority: number; // 0-1, used with difficulty's npcClaimChance
   characterSprite: number; // For future visual feature
+  standingSpot: number; // Position in the aisle (0-5)
 }
 
 export interface StationSelection {
@@ -90,6 +95,7 @@ export interface GameState {
   playerDestination: number;
   playerSeated: boolean;
   seatId: number | null;
+  playerStandingSpot: number; // Player's position in the aisle (0-5) when standing
   seats: Seat[];
   gameStatus: "playing" | "won" | "lost";
   standingNPCs: StandingNPC[];

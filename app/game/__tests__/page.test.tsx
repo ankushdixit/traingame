@@ -170,19 +170,23 @@ describe("GamePage", () => {
       render(<GamePage />);
 
       expect(screen.getByTestId("player-status")).toBeInTheDocument();
-      expect(screen.getByTestId("standing-status")).toBeInTheDocument();
+      expect(screen.getByTestId("player-status")).toHaveTextContent(/Standing/);
     });
 
-    it("displays correct destination", () => {
+    it("displays destination in journey progress", () => {
       render(<GamePage />);
 
-      expect(screen.getByTestId("destination")).toHaveTextContent("Your destination: Dadar");
+      // Destination station (Dadar) is shown in the journey progress
+      expect(screen.getByText("Dadar")).toBeInTheDocument();
+      // The destination station dot should have the flag emoji
+      const destinationDot = screen.getByTestId("station-dot-5");
+      expect(destinationDot).toBeInTheDocument();
     });
 
-    it("displays remaining stations count", () => {
+    it("displays remaining stops in status bar", () => {
       render(<GamePage />);
 
-      expect(screen.getByTestId("remaining-stations")).toHaveTextContent("5 stations remaining");
+      expect(screen.getByText(/5 stops left/i)).toBeInTheDocument();
     });
 
     it("shows occupied and empty seats correctly", () => {
@@ -265,32 +269,33 @@ describe("GamePage", () => {
       fireEvent.click(screen.getByTestId("seat-1")); // Empty seat
 
       expect(screen.getByTestId("claim-seat-button")).toBeInTheDocument();
-      expect(screen.getByTestId("claim-seat-button")).toHaveTextContent("Claim Seat");
+      expect(screen.getByTestId("claim-seat-button")).toHaveTextContent("🎯 Claim Seat!");
     });
 
     it("updates player status to seated after claiming seat", () => {
       render(<GamePage />);
 
-      // Initially standing
-      expect(screen.getByTestId("standing-status")).toBeInTheDocument();
+      // Initially standing - check via player-status test id
+      expect(screen.getByTestId("player-status")).toHaveTextContent(/Standing/);
 
       // Click empty seat and claim it
       fireEvent.click(screen.getByTestId("seat-1"));
       fireEvent.click(screen.getByTestId("claim-seat-button"));
 
       // Now seated
-      expect(screen.getByTestId("seated-status")).toBeInTheDocument();
-      expect(screen.getByTestId("seated-status")).toHaveTextContent("You are seated!");
+      expect(screen.getByTestId("player-status")).toHaveTextContent(/Seated/);
     });
 
-    it("shows player seat with 'You' text after claiming", () => {
+    it("shows player seat with player styling after claiming", () => {
       render(<GamePage />);
 
       fireEvent.click(screen.getByTestId("seat-1"));
       fireEvent.click(screen.getByTestId("claim-seat-button"));
 
       expect(screen.getByTestId("seat-1")).toHaveAttribute("data-state", "player");
-      expect(screen.getByText("You")).toBeInTheDocument();
+      // Player character is rendered - check by role
+      const playerCharacters = screen.getAllByLabelText("You - the player character");
+      expect(playerCharacters.length).toBeGreaterThan(0);
     });
 
     it("player seat has distinct styling after claiming", () => {
@@ -299,9 +304,9 @@ describe("GamePage", () => {
       fireEvent.click(screen.getByTestId("seat-1"));
       fireEvent.click(screen.getByTestId("claim-seat-button"));
 
-      expect(screen.getByTestId("seat-1")).toHaveClass("bg-yellow-600");
-      expect(screen.getByTestId("seat-1")).toHaveClass("ring-2");
-      expect(screen.getByTestId("seat-1")).toHaveClass("ring-yellow-400");
+      expect(screen.getByTestId("seat-1")).toHaveClass("bg-gradient-to-b");
+      expect(screen.getByTestId("seat-1")).toHaveClass("from-amber-200");
+      expect(screen.getByTestId("seat-1")).toHaveClass("border-amber-500");
     });
 
     it("seated player cannot interact with other seats", () => {
@@ -387,7 +392,9 @@ describe("GamePage", () => {
       render(<GamePage />);
 
       expect(screen.getByTestId("next-station-button")).toBeInTheDocument();
-      expect(screen.getByTestId("next-station-button")).toHaveTextContent("Next: Marine Lines");
+      expect(screen.getByTestId("next-station-button")).toHaveTextContent(
+        "🚃 Next Station: Marine Lines"
+      );
     });
 
     it("updates station display when clicking Next Station", () => {
@@ -411,8 +418,8 @@ describe("GamePage", () => {
     it("updates remaining stations count after advancing", () => {
       render(<GamePage />);
 
-      // Initially 5 stations remaining
-      expect(screen.getByTestId("remaining-stations")).toHaveTextContent("5 stations remaining");
+      // Check status bar shows 5 stops remaining
+      expect(screen.getByText(/5 stops left/i)).toBeInTheDocument();
 
       // Click next station
       fireEvent.click(screen.getByTestId("next-station-button"));
@@ -422,8 +429,8 @@ describe("GamePage", () => {
         jest.advanceTimersByTime(3200);
       });
 
-      // Now 4 stations remaining
-      expect(screen.getByTestId("remaining-stations")).toHaveTextContent("4 stations remaining");
+      // Now 4 stops remaining
+      expect(screen.getByText(/4 stops left/i)).toBeInTheDocument();
     });
 
     it("removes NPC when reaching their destination", () => {
@@ -474,12 +481,12 @@ describe("GamePage", () => {
       expect(screen.getByTestId("claim-seat-button")).toBeInTheDocument();
     });
 
-    it("shows 'Arrive at' for final station", () => {
+    it("shows 'Next Station' for final station", () => {
       mockSearchParams.set("boarding", "4");
       mockSearchParams.set("destination", "5");
       render(<GamePage />);
 
-      expect(screen.getByTestId("next-station-button")).toHaveTextContent("Arrive at Dadar");
+      expect(screen.getByTestId("next-station-button")).toHaveTextContent("🚃 Next Station: Dadar");
     });
 
     it("shows win modal when seated at destination", () => {
@@ -499,9 +506,9 @@ describe("GamePage", () => {
 
       // Should show win modal
       expect(screen.getByTestId("game-end-modal")).toBeInTheDocument();
-      expect(screen.getByTestId("game-end-title")).toHaveTextContent("You Won!");
+      expect(screen.getByTestId("game-end-title")).toHaveTextContent("You Found a Seat!");
       expect(screen.getByTestId("game-end-message")).toHaveTextContent(
-        "You found a seat before reaching Dadar!"
+        "You made it to Dadar comfortably seated!"
       );
     });
 
@@ -518,9 +525,9 @@ describe("GamePage", () => {
 
       // Should show lose modal
       expect(screen.getByTestId("game-end-modal")).toBeInTheDocument();
-      expect(screen.getByTestId("game-end-title")).toHaveTextContent("You Lost!");
+      expect(screen.getByTestId("game-end-title")).toHaveTextContent("No Seat Found");
       expect(screen.getByTestId("game-end-message")).toHaveTextContent(
-        "You arrived at Dadar still standing!"
+        "You arrived at Dadar standing the whole way!"
       );
     });
 
@@ -552,10 +559,10 @@ describe("GamePage", () => {
         jest.advanceTimersByTime(3200);
       });
 
-      expect(screen.getByTestId("game-end-title")).toHaveClass("text-green-600");
+      expect(screen.getByTestId("game-end-title")).toHaveClass("text-emerald-600");
     });
 
-    it("lose modal has red title styling", () => {
+    it("lose modal has rose title styling", () => {
       mockSearchParams.set("boarding", "4");
       mockSearchParams.set("destination", "5");
       render(<GamePage />);
@@ -566,7 +573,7 @@ describe("GamePage", () => {
         jest.advanceTimersByTime(3200);
       });
 
-      expect(screen.getByTestId("game-end-title")).toHaveClass("text-red-600");
+      expect(screen.getByTestId("game-end-title")).toHaveClass("text-rose-600");
     });
 
     it("Play Again button navigates to home page", () => {

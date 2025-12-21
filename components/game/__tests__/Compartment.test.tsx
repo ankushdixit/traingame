@@ -24,33 +24,53 @@ describe("Compartment", () => {
 
   it("renders exactly 6 Seat components", () => {
     const seats = createSeats(6);
-    render(<Compartment seats={seats} playerSeatId={null} {...defaultProps} />);
+    render(
+      <Compartment
+        seats={seats}
+        playerSeatId={null}
+        standingArea={<div>Aisle</div>}
+        statusBar={<div>Status</div>}
+        {...defaultProps}
+      />
+    );
 
     for (let i = 0; i < 6; i++) {
       expect(screen.getByTestId(`seat-${i}`)).toBeInTheDocument();
     }
   });
 
-  it("renders seats in 2 rows of 3 with aisle between", () => {
+  it("renders seats in 2 rows of 3 with standing area between", () => {
     const seats = createSeats(6);
-    render(<Compartment seats={seats} playerSeatId={null} {...defaultProps} />);
+    render(
+      <Compartment
+        seats={seats}
+        playerSeatId={null}
+        standingArea={<div data-testid="test-standing-area">Aisle</div>}
+        statusBar={<div>Status</div>}
+        {...defaultProps}
+      />
+    );
 
-    const compartment = screen.getByTestId("compartment");
-    // Get only direct children (top row, aisle, bottom row)
-    const children = Array.from(compartment.children);
+    // All 6 seats should be present
+    for (let i = 0; i < 6; i++) {
+      expect(screen.getByTestId(`seat-${i}`)).toBeInTheDocument();
+    }
 
-    expect(children).toHaveLength(3);
-    // First row has 3 seats
-    expect(children[0].children).toHaveLength(3);
-    // Aisle between rows
-    expect(screen.getByTestId("aisle")).toBeInTheDocument();
-    // Second row has 3 seats
-    expect(children[2].children).toHaveLength(3);
+    // Standing area should be rendered
+    expect(screen.getByTestId("test-standing-area")).toBeInTheDocument();
   });
 
   it("passes isPlayerSeat=true only to player's seat", () => {
     const seats = createSeats(6);
-    render(<Compartment seats={seats} playerSeatId={2} {...defaultProps} />);
+    render(
+      <Compartment
+        seats={seats}
+        playerSeatId={2}
+        standingArea={<div>Aisle</div>}
+        statusBar={<div>Status</div>}
+        {...defaultProps}
+      />
+    );
 
     // Player's seat should have player state
     expect(screen.getByTestId("seat-2")).toHaveAttribute("data-state", "player");
@@ -65,7 +85,15 @@ describe("Compartment", () => {
 
   it("renders all seats as empty when playerSeatId is null", () => {
     const seats = createSeats(6);
-    render(<Compartment seats={seats} playerSeatId={null} {...defaultProps} />);
+    render(
+      <Compartment
+        seats={seats}
+        playerSeatId={null}
+        standingArea={<div>Aisle</div>}
+        statusBar={<div>Status</div>}
+        {...defaultProps}
+      />
+    );
 
     for (let i = 0; i < 6; i++) {
       expect(screen.getByTestId(`seat-${i}`)).toHaveAttribute("data-state", "empty");
@@ -90,7 +118,15 @@ describe("Compartment", () => {
       },
       { id: 5, occupant: null },
     ];
-    render(<Compartment seats={seats} playerSeatId={null} {...defaultProps} />);
+    render(
+      <Compartment
+        seats={seats}
+        playerSeatId={null}
+        standingArea={<div>Aisle</div>}
+        statusBar={<div>Status</div>}
+        {...defaultProps}
+      />
+    );
 
     expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "occupied");
     expect(screen.getByTestId("seat-1")).toHaveAttribute("data-state", "empty");
@@ -102,7 +138,15 @@ describe("Compartment", () => {
 
   it("has compartment testid", () => {
     const seats = createSeats(6);
-    render(<Compartment seats={seats} playerSeatId={null} {...defaultProps} />);
+    render(
+      <Compartment
+        seats={seats}
+        playerSeatId={null}
+        standingArea={<div>Aisle</div>}
+        statusBar={<div>Status</div>}
+        {...defaultProps}
+      />
+    );
 
     expect(screen.getByTestId("compartment")).toBeInTheDocument();
   });
@@ -115,6 +159,8 @@ describe("Compartment", () => {
         playerSeatId={null}
         isPlayerSeated={true}
         hoveredSeatId={null}
+        standingArea={<div>Aisle</div>}
+        statusBar={<div>Status</div>}
         onRevealDestination={jest.fn()}
         onClaimSeat={jest.fn()}
         onHoverNear={jest.fn()}
@@ -148,6 +194,8 @@ describe("Compartment", () => {
         playerSeatId={null}
         isPlayerSeated={false}
         hoveredSeatId={0}
+        standingArea={<div>Aisle</div>}
+        statusBar={<div>Status</div>}
         onRevealDestination={jest.fn()}
         onClaimSeat={jest.fn()}
         onHoverNear={jest.fn()}

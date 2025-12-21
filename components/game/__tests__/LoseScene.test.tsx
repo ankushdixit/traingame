@@ -22,19 +22,19 @@ describe("LoseScene", () => {
     expect(screen.getByTestId("player-character-sad")).toBeInTheDocument();
   });
 
-  it("displays lose title with red color", () => {
+  it("displays lose title with rose color", () => {
     render(<LoseScene {...defaultProps} />);
 
     const title = screen.getByTestId("game-end-title");
-    expect(title).toHaveTextContent("You Lost!");
-    expect(title).toHaveClass("text-red-600");
+    expect(title).toHaveTextContent("No Seat Found");
+    expect(title).toHaveClass("text-rose-600");
   });
 
   it("displays lose message with destination", () => {
     render(<LoseScene {...defaultProps} destination="Dadar" />);
 
     expect(screen.getByTestId("game-end-message")).toHaveTextContent(
-      "You arrived at Dadar still standing!"
+      "You arrived at Dadar standing the whole way!"
     );
   });
 
@@ -42,65 +42,50 @@ describe("LoseScene", () => {
     it("shows 'So close!' when one station away", () => {
       render(<LoseScene {...defaultProps} stationsStanding={4} totalStations={5} />);
 
-      expect(screen.getByTestId("close-message")).toHaveTextContent(
-        "So close! Just one more station..."
-      );
+      const message = screen.getByTestId("game-end-message");
+      expect(message).toHaveTextContent("So close!");
     });
 
-    it("shows stations survived message for earlier loss", () => {
+    it("does not show close message for earlier loss", () => {
       render(<LoseScene {...defaultProps} stationsStanding={2} totalStations={5} />);
 
-      expect(screen.getByTestId("close-message")).toHaveTextContent(
-        "You survived 2 stations standing!"
-      );
-    });
-
-    it("handles singular station grammatically", () => {
-      render(<LoseScene {...defaultProps} stationsStanding={1} totalStations={5} />);
-
-      expect(screen.getByTestId("close-message")).toHaveTextContent(
-        "You survived 1 station standing!"
-      );
-    });
-
-    it("handles zero stations standing", () => {
-      render(<LoseScene {...defaultProps} stationsStanding={0} totalStations={5} />);
-
-      expect(screen.getByTestId("close-message")).toHaveTextContent(
-        "You survived 0 stations standing!"
-      );
+      const message = screen.getByTestId("game-end-message");
+      expect(message).not.toHaveTextContent("So close!");
     });
 
     it("shows close message when exactly at totalStations - 1", () => {
       render(<LoseScene {...defaultProps} stationsStanding={4} totalStations={5} />);
 
-      expect(screen.getByTestId("close-message")).toHaveTextContent("So close!");
+      expect(screen.getByText("So close!")).toBeInTheDocument();
     });
   });
 
-  describe("game stats", () => {
-    it("renders game stats component", () => {
-      render(<LoseScene {...defaultProps} />);
-
-      expect(screen.getByTestId("game-stats")).toBeInTheDocument();
-    });
-
-    it("passes correct difficulty to stats", () => {
-      render(<LoseScene {...defaultProps} difficulty="easy" />);
-
-      expect(screen.getByTestId("stats-difficulty")).toHaveTextContent("Easy");
-    });
-
-    it("passes correct stations standing to stats", () => {
+  describe("stats display", () => {
+    it("displays stations standing count", () => {
       render(<LoseScene {...defaultProps} stationsStanding={3} />);
 
-      expect(screen.getByTestId("stats-stations")).toHaveTextContent("3");
+      expect(screen.getByText(/Stood for/i)).toBeInTheDocument();
+      expect(screen.getByText(/3/)).toBeInTheDocument();
+      expect(screen.getByText(/stations/)).toBeInTheDocument();
     });
 
-    it("does not show seated status in stats", () => {
-      render(<LoseScene {...defaultProps} />);
+    it("displays singular station when standing is 1", () => {
+      render(<LoseScene {...defaultProps} stationsStanding={1} />);
 
-      expect(screen.queryByTestId("stats-status")).not.toBeInTheDocument();
+      expect(screen.getByText(/1/)).toBeInTheDocument();
+      expect(screen.getByText(/station$/)).toBeInTheDocument();
+    });
+
+    it("displays difficulty level", () => {
+      render(<LoseScene {...defaultProps} difficulty="easy" />);
+
+      expect(screen.getByText(/Easy/i)).toBeInTheDocument();
+    });
+
+    it("displays difficulty emoji", () => {
+      render(<LoseScene {...defaultProps} difficulty="normal" />);
+
+      expect(screen.getByText(/😤/)).toBeInTheDocument();
     });
   });
 

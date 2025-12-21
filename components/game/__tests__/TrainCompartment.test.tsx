@@ -4,72 +4,149 @@ import { TrainCompartment } from "../TrainCompartment";
 describe("TrainCompartment", () => {
   describe("rendering", () => {
     it("renders train compartment container", () => {
-      render(<TrainCompartment>Content</TrainCompartment>);
+      render(
+        <TrainCompartment
+          topRow={<div>Top Row</div>}
+          standingArea={<div>Standing Area</div>}
+          bottomRow={<div>Bottom Row</div>}
+          statusBar={<div>Status Bar</div>}
+        />
+      );
 
       expect(screen.getByTestId("train-compartment")).toBeInTheDocument();
     });
 
-    it("renders children content", () => {
+    it("renders all sections content", () => {
       render(
-        <TrainCompartment>
-          <div data-testid="test-child">Test Content</div>
-        </TrainCompartment>
+        <TrainCompartment
+          topRow={<div data-testid="test-top-row">Top Row Content</div>}
+          standingArea={<div data-testid="test-standing-area">Standing Area Content</div>}
+          bottomRow={<div data-testid="test-bottom-row">Bottom Row Content</div>}
+          statusBar={<div data-testid="test-status-bar">Status Bar Content</div>}
+        />
       );
 
-      expect(screen.getByTestId("test-child")).toBeInTheDocument();
-      expect(screen.getByText("Test Content")).toBeInTheDocument();
+      expect(screen.getByTestId("test-top-row")).toBeInTheDocument();
+      expect(screen.getByText("Top Row Content")).toBeInTheDocument();
+      expect(screen.getByTestId("test-standing-area")).toBeInTheDocument();
+      expect(screen.getByText("Standing Area Content")).toBeInTheDocument();
+      expect(screen.getByTestId("test-bottom-row")).toBeInTheDocument();
+      expect(screen.getByText("Bottom Row Content")).toBeInTheDocument();
+      expect(screen.getByTestId("test-status-bar")).toBeInTheDocument();
+      expect(screen.getByText("Status Bar Content")).toBeInTheDocument();
     });
 
     it("renders train interior elements", () => {
-      render(<TrainCompartment>Content</TrainCompartment>);
+      render(
+        <TrainCompartment
+          topRow={<div>Top Row</div>}
+          standingArea={<div>Standing Area</div>}
+          bottomRow={<div>Bottom Row</div>}
+          statusBar={<div>Status Bar</div>}
+        />
+      );
 
-      // Interior elements should be present
-      expect(screen.getByTestId("train-ceiling")).toBeInTheDocument();
+      // Interior elements should be present (window only, no grab handles)
       expect(screen.getByTestId("train-window")).toBeInTheDocument();
-      expect(screen.getByTestId("train-floor")).toBeInTheDocument();
     });
   });
 
   describe("styling", () => {
-    it("has train cream background", () => {
-      render(<TrainCompartment>Content</TrainCompartment>);
+    it("has gradient background", () => {
+      render(
+        <TrainCompartment
+          topRow={<div>Top Row</div>}
+          standingArea={<div>Standing Area</div>}
+          bottomRow={<div>Bottom Row</div>}
+          statusBar={<div>Status Bar</div>}
+        />
+      );
 
-      expect(screen.getByTestId("train-compartment")).toHaveClass("bg-train-cream");
+      expect(screen.getByTestId("train-compartment")).toHaveClass("bg-gradient-to-b");
+      expect(screen.getByTestId("train-compartment")).toHaveClass("from-stone-300");
     });
 
-    it("has train maroon border", () => {
-      render(<TrainCompartment>Content</TrainCompartment>);
+    it("has border styling", () => {
+      render(
+        <TrainCompartment
+          topRow={<div>Top Row</div>}
+          standingArea={<div>Standing Area</div>}
+          bottomRow={<div>Bottom Row</div>}
+          statusBar={<div>Status Bar</div>}
+        />
+      );
 
-      expect(screen.getByTestId("train-compartment")).toHaveClass("border-train-maroon");
+      expect(screen.getByTestId("train-compartment")).toHaveClass("border-4");
+      expect(screen.getByTestId("train-compartment")).toHaveClass("border-stone-500");
     });
 
     it("has rounded corners", () => {
-      render(<TrainCompartment>Content</TrainCompartment>);
+      render(
+        <TrainCompartment
+          topRow={<div>Top Row</div>}
+          standingArea={<div>Standing Area</div>}
+          bottomRow={<div>Bottom Row</div>}
+          statusBar={<div>Status Bar</div>}
+        />
+      );
 
-      expect(screen.getByTestId("train-compartment")).toHaveClass("rounded-lg");
+      expect(screen.getByTestId("train-compartment")).toHaveClass("rounded-2xl");
     });
 
     it("has shadow", () => {
-      render(<TrainCompartment>Content</TrainCompartment>);
+      render(
+        <TrainCompartment
+          topRow={<div>Top Row</div>}
+          standingArea={<div>Standing Area</div>}
+          bottomRow={<div>Bottom Row</div>}
+          statusBar={<div>Status Bar</div>}
+        />
+      );
 
       expect(screen.getByTestId("train-compartment")).toHaveClass("shadow-xl");
     });
   });
 
-  describe("station animation", () => {
-    it("passes currentStation to TrainInterior for animation", () => {
-      render(<TrainCompartment currentStation={3}>Content</TrainCompartment>);
+  describe("shaking animation", () => {
+    it("applies shake animation class when isShaking is true", () => {
+      render(
+        <TrainCompartment
+          topRow={<div>Top Row</div>}
+          standingArea={<div>Standing Area</div>}
+          bottomRow={<div>Bottom Row</div>}
+          statusBar={<div>Status Bar</div>}
+          isShaking={true}
+        />
+      );
 
-      // When currentStation > 0, scenery should animate
-      const scenery = screen.getByTestId("window-scenery");
-      expect(scenery).toHaveClass("animate-scenery");
+      expect(screen.getByTestId("train-compartment")).toHaveClass("animate-train-shake");
     });
 
-    it("does not animate on initial render (station 0)", () => {
-      render(<TrainCompartment currentStation={0}>Content</TrainCompartment>);
+    it("does not apply shake animation when isShaking is false", () => {
+      render(
+        <TrainCompartment
+          topRow={<div>Top Row</div>}
+          standingArea={<div>Standing Area</div>}
+          bottomRow={<div>Bottom Row</div>}
+          statusBar={<div>Status Bar</div>}
+          isShaking={false}
+        />
+      );
 
-      const scenery = screen.getByTestId("window-scenery");
-      expect(scenery).not.toHaveClass("animate-scenery");
+      expect(screen.getByTestId("train-compartment")).not.toHaveClass("animate-train-shake");
+    });
+
+    it("does not apply shake animation by default", () => {
+      render(
+        <TrainCompartment
+          topRow={<div>Top Row</div>}
+          standingArea={<div>Standing Area</div>}
+          bottomRow={<div>Bottom Row</div>}
+          statusBar={<div>Status Bar</div>}
+        />
+      );
+
+      expect(screen.getByTestId("train-compartment")).not.toHaveClass("animate-train-shake");
     });
   });
 });
