@@ -5,9 +5,9 @@
  * and can be used with game components.
  */
 
-import { generateInitialState } from "@/lib/gameLogic";
-import { GameState, NPC, Seat, Difficulty } from "@/lib/types";
-import { STATIONS, TOTAL_SEATS, DIFFICULTY_CONFIGS } from "@/lib/constants";
+import { generateInitialState, advanceStation, processNewBoarders } from "@/lib/gameLogic";
+import { GameState, NPC, Seat, Difficulty, Line } from "@/lib/types";
+import { STATIONS, TOTAL_SEATS, DIFFICULTY_CONFIGS, getStations } from "@/lib/constants";
 
 describe("Game State Integration", () => {
   describe("type compatibility", () => {
@@ -226,6 +226,154 @@ describe("Game State Integration", () => {
 
       // Easy should have more empty seats than Rush
       expect(avgEasyEmpty).toBeGreaterThan(avgRushEmpty);
+    });
+  });
+
+  describe("line integration", () => {
+    it("stores line in game state", () => {
+      const lines: Line[] = ["short", "full"];
+      for (const line of lines) {
+        const destination = line === "full" ? 14 : 5;
+        const state = generateInitialState(0, destination, "normal", line);
+        expect(state.line).toBe(line);
+      }
+    });
+
+    it("defaults to short line when not specified", () => {
+      const state = generateInitialState(0, 5);
+      expect(state.line).toBe("short");
+    });
+
+    it("short line uses 6 stations", () => {
+      const state = generateInitialState(0, 5, "normal", "short");
+      const stations = getStations(state.line);
+      expect(stations.length).toBe(6);
+      expect(stations[0]).toBe("Churchgate");
+      expect(stations[5]).toBe("Dadar");
+    });
+
+    it("full line uses 15 stations", () => {
+      const state = generateInitialState(0, 14, "normal", "full");
+      const stations = getStations(state.line);
+      expect(stations.length).toBe(15);
+      expect(stations[0]).toBe("Churchgate");
+      expect(stations[14]).toBe("Borivali");
+    });
+
+    it("NPCs can have destinations beyond Dadar on full line", () => {
+      let foundBeyondDadar = false;
+      for (let i = 0; i < 50; i++) {
+        const state = generateInitialState(0, 14, "normal", "full");
+        state.seats.forEach((seat) => {
+          if (seat.occupant !== null && seat.occupant.destination > 5) {
+            foundBeyondDadar = true;
+          }
+        });
+        if (foundBeyondDadar) break;
+      }
+      expect(foundBeyondDadar).toBe(true);
+    });
+
+    it("handles all valid full line boarding/destination combinations", () => {
+      const fullStations = getStations("full");
+      // Test a sample of combinations to avoid too long test
+      const boardingStations = [0, 5, 10];
+      for (const boarding of boardingStations) {
+        for (let dest = boarding + 1; dest < fullStations.length; dest += 2) {
+          const state = generateInitialState(boarding, dest, "normal", "full");
+          expect(state.playerBoardingStation).toBe(boarding);
+          expect(state.playerDestination).toBe(dest);
+          expect(state.gameStatus).toBe("playing");
+        }
+      }
+    });
+  });
+
+  describe("full journey simulation", () => {
+    it("completes a short line journey from Churchgate to Dadar", () => {
+      let state = generateInitialState(0, 5, "normal", "short");
+      expect(state.currentStation).toBe(0);
+      expect(state.line).toBe("short");
+
+      // Simulate player claiming a seat
+      const emptySeat = state.seats.find((s) => s.occupant === null);
+      if (emptySeat) {
+        state = { ...state, playerSeated: true, seatId: emptySeat.id };
+      }
+
+      // Advance through all stations
+      while (state.currentStation < 5) {
+        state = advanceStation(state);
+      }
+
+      expect(state.currentStation).toBe(5);
+      expect(state.gameStatus).toBe(state.playerSeated ? "won" : "lost");
+    });
+
+    it("completes a full line journey from Churchgate to Borivali", () => {
+      let state = generateInitialState(0, 14, "normal", "full");
+      expect(state.currentStation).toBe(0);
+      expect(state.line).toBe("full");
+
+      // Simulate player claiming a seat
+      const emptySeat = state.seats.find((s) => s.occupant === null);
+      if (emptySeat) {
+        state = { ...state, playerSeated: true, seatId: emptySeat.id };
+      }
+
+      // Advance through all stations
+      while (state.currentStation < 14) {
+        state = advanceStation(state);
+      }
+
+      expect(state.currentStation).toBe(14);
+      expect(state.gameStatus).toBe(state.playerSeated ? "won" : "lost");
+    });
+
+    it("processes new boarders at major stations on full line", () => {
+      // Start from Dadar (station 5) heading to Borivali with all empty seats
+      // Mock random to control boarding behavior
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      let state = generateInitialState(4, 14, "normal", "full");
+
+      // Clear all seats for testing and advance to Dadar
+      state = {
+        ...state,
+        currentStation: 5, // Dadar
+        seats: state.seats.map((s) => ({ ...s, occupant: null })),
+      };
+
+      // Process boarding at Dadar
+      state = processNewBoarders(state, "Dadar");
+
+      // Should have some passengers on full line at major station
+      const occupiedSeats = state.seats.filter((s) => s.occupant !== null);
+      expect(occupiedSeats.length).toBeGreaterThan(0);
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+
+    it("does not process new boarders on short line", () => {
+      let state = generateInitialState(0, 5, "easy", "short");
+
+      // Clear all seats for testing
+      state = {
+        ...state,
+        seats: state.seats.map((s) => ({ ...s, occupant: null })),
+      };
+
+      // Mock random to ensure boarding would happen on full line
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      // Process boarding at Dadar (final station of short line)
+      state = processNewBoarders(state, "Dadar");
+
+      // Should have no passengers since short line doesn't allow boarding
+      const occupiedSeats = state.seats.filter((s) => s.occupant !== null);
+      expect(occupiedSeats.length).toBe(0);
+
+      jest.spyOn(Math, "random").mockRestore();
     });
   });
 });

@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Extended journey option: choice between Short Line (6 stations) and Full Line (15 stations)
+- LineSelector component for selecting journey length with visual toggle
+- Full Western Line stations: Churchgate to Borivali (15 stations total)
+- Intermediate station boarding: new passengers may board at major stations (Dadar, Bandra, Andheri) on Full Line
+- Difficulty-based boarding configuration with varying boarding chances and passenger counts
+- Compact mode for JourneyProgress component when displaying 15+ stations
+- Line parameter in URL (`&line=short` or `&line=full`) for game state
+- Session storage persistence for last selected line
+- STATIONS_FULL constant with all 15 Western Line stations
+- getStations(line) helper function for line-aware station retrieval
+- BOARDING_STATIONS set for major intermediate stations
+- BoardingConfig interface and boardingConfig in DifficultyConfig
+- processNewBoarders() function for intermediate station boarding logic
+- lastBoardingMessage field in GameState for boarding notifications
+
 - Standing area positioned between top and bottom seat rows (aisle layout)
 - 6 individual standing spots with grab handles in the aisle
 - Player standing spot tracking with `playerStandingSpot` in GameState

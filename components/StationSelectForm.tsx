@@ -2,11 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { STATIONS, getDestinationOptions, DEFAULT_DIFFICULTY } from "@/lib/constants";
-import type { StationSelection, Difficulty } from "@/lib/types";
+import {
+  getStations,
+  getDestinationOptions,
+  DEFAULT_DIFFICULTY,
+  DEFAULT_LINE,
+} from "@/lib/constants";
+import type { StationSelection, Difficulty, Line } from "@/lib/types";
 import { DifficultySelector } from "./DifficultySelector";
+import { LineSelector } from "./LineSelector";
 
 const DIFFICULTY_STORAGE_KEY = "lastDifficulty";
+const LINE_STORAGE_KEY = "lastLine";
 
 function getStoredDifficulty(): Difficulty {
   if (typeof window === "undefined") return DEFAULT_DIFFICULTY;
@@ -17,6 +24,15 @@ function getStoredDifficulty(): Difficulty {
   return DEFAULT_DIFFICULTY;
 }
 
+function getStoredLine(): Line {
+  if (typeof window === "undefined") return DEFAULT_LINE;
+  const stored = sessionStorage.getItem(LINE_STORAGE_KEY);
+  if (stored && ["short", "full"].includes(stored)) {
+    return stored as Line;
+  }
+  return DEFAULT_LINE;
+}
+
 export default function StationSelectForm() {
   const router = useRouter();
   const [selection, setSelection] = useState<StationSelection>({
@@ -24,24 +40,43 @@ export default function StationSelectForm() {
     destination: null,
   });
   const [difficulty, setDifficulty] = useState<Difficulty>(DEFAULT_DIFFICULTY);
+  const [line, setLine] = useState<Line>(DEFAULT_LINE);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Load last used difficulty from sessionStorage after hydration
+  // Get stations based on selected line
+  const stations = getStations(line);
+
+  // Load last used difficulty and line from sessionStorage after hydration
   useEffect(() => {
     setDifficulty(getStoredDifficulty());
+    setLine(getStoredLine());
     setIsHydrated(true);
   }, []);
 
-  // Save difficulty to sessionStorage when it changes
+  // Save difficulty and line to sessionStorage when they change
   useEffect(() => {
     if (isHydrated) {
       sessionStorage.setItem(DIFFICULTY_STORAGE_KEY, difficulty);
     }
   }, [difficulty, isHydrated]);
 
-  const boardingOptions = STATIONS.slice(0, -1); // All stations except Dadar
+  useEffect(() => {
+    if (isHydrated) {
+      sessionStorage.setItem(LINE_STORAGE_KEY, line);
+    }
+  }, [line, isHydrated]);
+
+  // Reset station selection when line changes
+  const handleLineChange = (newLine: Line) => {
+    setLine(newLine);
+    setSelection({ boardingStation: null, destination: null });
+  };
+
+  const boardingOptions = stations.slice(0, -1); // All stations except last
   const destinationOptions =
-    selection.boardingStation !== null ? getDestinationOptions(selection.boardingStation) : [];
+    selection.boardingStation !== null
+      ? getDestinationOptions(selection.boardingStation, line)
+      : [];
 
   const isValid = selection.boardingStation !== null && selection.destination !== null;
   const stopsCount =
@@ -73,13 +108,16 @@ export default function StationSelectForm() {
     e.preventDefault();
     if (isValid) {
       router.push(
-        `/game?boarding=${selection.boardingStation}&destination=${selection.destination}&difficulty=${difficulty}`
+        `/game?boarding=${selection.boardingStation}&destination=${selection.destination}&difficulty=${difficulty}&line=${line}`
       );
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      {/* Line Selection */}
+      <LineSelector value={line} onChange={handleLineChange} />
+
       {/* Difficulty Selection */}
       <DifficultySelector value={difficulty} onChange={setDifficulty} />
 
@@ -118,7 +156,7 @@ export default function StationSelectForm() {
           <option value="">Select station...</option>
           {destinationOptions.map((stationIndex) => (
             <option key={stationIndex} value={stationIndex}>
-              {STATIONS[stationIndex]}
+              {stations[stationIndex]}
             </option>
           ))}
         </select>
@@ -129,10 +167,12 @@ export default function StationSelectForm() {
         <div className="bg-stone-100 rounded-xl p-4">
           <div className="text-sm text-stone-600 text-center">
             Your journey:{" "}
-            <span className="font-bold text-stone-800">{STATIONS[selection.boardingStation!]}</span>
+            <span className="font-bold text-stone-800">{stations[selection.boardingStation!]}</span>
             <span className="mx-2">→</span>
-            <span className="font-bold text-stone-800">{STATIONS[selection.destination!]}</span>
-            <span className="text-stone-500 ml-2">({stopsCount} stops)</span>
+            <span className="font-bold text-stone-800">{stations[selection.destination!]}</span>
+            <span className="text-stone-500 ml-2">
+              ({stopsCount} {stopsCount === 1 ? "stop" : "stops"})
+            </span>
           </div>
         </div>
       )}

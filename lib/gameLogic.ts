@@ -2,8 +2,15 @@
  * Game logic functions for Mumbai Local Train Game
  */
 
-import { TOTAL_SEATS, STATIONS, DIFFICULTY_CONFIGS, DEFAULT_DIFFICULTY } from "./constants";
-import { GameState, NPC, Seat, Difficulty, StandingNPC } from "./types";
+import {
+  TOTAL_SEATS,
+  DIFFICULTY_CONFIGS,
+  DEFAULT_DIFFICULTY,
+  DEFAULT_LINE,
+  getStations,
+  BOARDING_STATIONS,
+} from "./constants";
+import { GameState, NPC, Seat, Difficulty, StandingNPC, Line } from "./types";
 import { CHARACTER_COUNT } from "@/components/game/characters";
 
 /**
@@ -67,6 +74,7 @@ export function previewStationAdvance(state: GameState): StationAdvancePreview {
  * Advances the train to the next station.
  * Removes NPCs whose destination is the new station or earlier.
  * Standing NPCs compete for newly empty seats.
+ * New passengers may board at major stations (Full Line only).
  * Checks for game end conditions.
  *
  * @param state - Current game state
@@ -74,6 +82,7 @@ export function previewStationAdvance(state: GameState): StationAdvancePreview {
  */
 export function advanceStation(state: GameState): GameState {
   const newStation = state.currentStation + 1;
+  const stations = getStations(state.line);
 
   // Identify seats that will become empty and remove departing NPCs
   const newlyEmptySeats: number[] = [];
@@ -86,7 +95,7 @@ export function advanceStation(state: GameState): GameState {
   });
 
   // Process standing NPC claims for newly empty seats
-  const claimResult = processStandingNPCClaims(
+  let claimResult = processStandingNPCClaims(
     {
       ...state,
       seats: updatedSeats,
@@ -94,6 +103,10 @@ export function advanceStation(state: GameState): GameState {
     },
     newlyEmptySeats
   );
+
+  // Process new boarders at major stations (Full Line only)
+  const stationName = stations[newStation];
+  claimResult = processNewBoarders(claimResult, stationName);
 
   // Check for game end
   let newStatus: "playing" | "won" | "lost" = "playing";
@@ -119,6 +132,7 @@ export function advanceStation(state: GameState): GameState {
  */
 export function processStandingNPCClaims(state: GameState, newlyEmptySeats: number[]): GameState {
   const config = DIFFICULTY_CONFIGS[state.difficulty];
+  const stations = getStations(state.line);
   let updatedState: GameState = { ...state, lastClaimMessage: null };
 
   for (const seatId of newlyEmptySeats) {
@@ -134,7 +148,7 @@ export function processStandingNPCClaims(state: GameState, newlyEmptySeats: numb
 
       // Generate destination for the claiming NPC
       const minDest = state.currentStation + 1;
-      const maxDest = STATIONS.length - 1;
+      const maxDest = stations.length - 1;
       const npcDestination = minDest + Math.floor(Math.random() * (maxDest - minDest + 1));
 
       // Create seated NPC from standing NPC, preserving their character sprite
@@ -243,13 +257,18 @@ export function generateStandingNPCs(
  * @param boardingStation - Index of the station where the player boards
  * @param destination - Index of the player's destination station
  * @param difficulty - Game difficulty level (defaults to 'normal')
+ * @param line - Journey length (defaults to 'short')
  * @returns A complete GameState object with NPCs placed in seats
  */
 export function generateInitialState(
   boardingStation: number,
   destination: number,
-  difficulty: Difficulty = DEFAULT_DIFFICULTY
+  difficulty: Difficulty = DEFAULT_DIFFICULTY,
+  line: Line = DEFAULT_LINE
 ): GameState {
+  // Get stations based on line
+  const stations = getStations(line);
+
   // 1. Determine NPC count based on difficulty
   const config = DIFFICULTY_CONFIGS[difficulty];
   const [minNpcs, maxNpcs] = config.seatedNpcRange;
@@ -268,7 +287,7 @@ export function generateInitialState(
 
   // 4. Generate NPCs with destinations and unique character sprites
   const minDest = boardingStation + 1;
-  const maxDest = STATIONS.length - 1; // Dadar (final station)
+  const maxDest = stations.length - 1; // Final station based on line
 
   // Shuffle character indices to ensure no duplicates when possible
   const characterIndices = Array.from({ length: CHARACTER_COUNT }, (_, i) => i);
@@ -306,6 +325,82 @@ export function generateInitialState(
     standingNPCs,
     hoveredSeatId: null,
     difficulty,
+    line,
     lastClaimMessage: null,
+    lastBoardingMessage: null,
+  };
+}
+
+/**
+ * Generates a random number within range [min, max] inclusive.
+ */
+function randomInRange(min: number, max: number): number {
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+/**
+ * Processes new passengers boarding at major intermediate stations (Full Line only).
+ * Major stations: Dadar, Bandra, Andheri
+ *
+ * @param state - Current game state
+ * @param stationName - Name of the current station
+ * @returns Updated game state with new boarders (if any)
+ */
+export function processNewBoarders(state: GameState, stationName: string): GameState {
+  // Only on full line and at major stations
+  if (state.line !== "full") return { ...state, lastBoardingMessage: null };
+  if (!BOARDING_STATIONS.has(stationName)) return { ...state, lastBoardingMessage: null };
+
+  const config = DIFFICULTY_CONFIGS[state.difficulty];
+  const boardingConfig = config.boardingConfig;
+
+  // Check boarding chance
+  if (Math.random() > boardingConfig.boardingChance) {
+    return { ...state, lastBoardingMessage: null };
+  }
+
+  // Count empty seats
+  const emptySeats = state.seats.filter((s) => s.occupant === null);
+  if (emptySeats.length === 0) return { ...state, lastBoardingMessage: null };
+
+  // Determine number of boarders
+  const numBoarders = Math.min(
+    randomInRange(boardingConfig.minBoard, boardingConfig.maxBoard),
+    emptySeats.length
+  );
+
+  if (numBoarders === 0) return { ...state, lastBoardingMessage: null };
+
+  // Create new NPCs and place in empty seats
+  let updatedSeats = [...state.seats];
+  const stations = getStations(state.line);
+
+  for (let i = 0; i < numBoarders; i++) {
+    const emptySeat = updatedSeats.find((s) => s.occupant === null);
+    if (!emptySeat) break;
+
+    // Generate destination after current station
+    const minDest = state.currentStation + 2;
+    const maxDest = stations.length - 1;
+    if (minDest > maxDest) continue;
+
+    const destination = randomInRange(minDest, maxDest);
+
+    const newNpc: NPC = {
+      id: `npc-boarded-${Date.now()}-${i}`,
+      destination,
+      destinationRevealed: false,
+      characterSprite: Math.floor(Math.random() * CHARACTER_COUNT),
+    };
+
+    updatedSeats = updatedSeats.map((seat) =>
+      seat.id === emptySeat.id ? { ...seat, occupant: newNpc } : seat
+    );
+  }
+
+  return {
+    ...state,
+    seats: updatedSeats,
+    lastBoardingMessage: `${numBoarders} passenger${numBoarders > 1 ? "s" : ""} boarded!`,
   };
 }

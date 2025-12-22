@@ -1,9 +1,14 @@
 import {
   STATIONS,
+  STATIONS_SHORT,
+  STATIONS_FULL,
   getDestinationOptions,
+  getStations,
   TOTAL_SEATS,
   DIFFICULTY_CONFIGS,
   DEFAULT_DIFFICULTY,
+  DEFAULT_LINE,
+  BOARDING_STATIONS,
 } from "../constants";
 import { Difficulty } from "../types";
 
@@ -154,5 +159,149 @@ describe("DEFAULT_DIFFICULTY", () => {
 
   it("references a valid difficulty in DIFFICULTY_CONFIGS", () => {
     expect(DIFFICULTY_CONFIGS[DEFAULT_DIFFICULTY]).toBeDefined();
+  });
+});
+
+describe("STATIONS_SHORT constant", () => {
+  it("contains exactly 6 stations", () => {
+    expect(STATIONS_SHORT).toHaveLength(6);
+  });
+
+  it("has Churchgate as first station", () => {
+    expect(STATIONS_SHORT[0]).toBe("Churchgate");
+  });
+
+  it("has Dadar as last station", () => {
+    expect(STATIONS_SHORT[STATIONS_SHORT.length - 1]).toBe("Dadar");
+  });
+});
+
+describe("STATIONS_FULL constant", () => {
+  it("contains exactly 15 stations", () => {
+    expect(STATIONS_FULL).toHaveLength(15);
+  });
+
+  it("has Churchgate as first station", () => {
+    expect(STATIONS_FULL[0]).toBe("Churchgate");
+  });
+
+  it("has Borivali as last station", () => {
+    expect(STATIONS_FULL[STATIONS_FULL.length - 1]).toBe("Borivali");
+  });
+
+  it("starts with the same stations as STATIONS_SHORT", () => {
+    expect(STATIONS_FULL.slice(0, 6)).toEqual([...STATIONS_SHORT]);
+  });
+
+  it("contains all expected stations in order", () => {
+    expect(STATIONS_FULL).toEqual([
+      "Churchgate",
+      "Marine Lines",
+      "Charni Road",
+      "Grant Road",
+      "Mumbai Central",
+      "Dadar",
+      "Matunga Road",
+      "Mahim",
+      "Bandra",
+      "Khar Road",
+      "Santacruz",
+      "Vile Parle",
+      "Andheri",
+      "Jogeshwari",
+      "Borivali",
+    ]);
+  });
+});
+
+describe("getStations", () => {
+  it("returns short line stations for 'short' line", () => {
+    const stations = getStations("short");
+    expect(stations).toHaveLength(6);
+    expect(stations[0]).toBe("Churchgate");
+    expect(stations[stations.length - 1]).toBe("Dadar");
+  });
+
+  it("returns full line stations for 'full' line", () => {
+    const stations = getStations("full");
+    expect(stations).toHaveLength(15);
+    expect(stations[0]).toBe("Churchgate");
+    expect(stations[stations.length - 1]).toBe("Borivali");
+  });
+});
+
+describe("getDestinationOptions with line parameter", () => {
+  it("returns correct destinations for short line from Churchgate", () => {
+    const options = getDestinationOptions(0, "short");
+    expect(options).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it("returns correct destinations for full line from Churchgate", () => {
+    const options = getDestinationOptions(0, "full");
+    expect(options).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+    expect(options).toHaveLength(14);
+  });
+
+  it("returns correct destinations for full line from Dadar (index 5)", () => {
+    const options = getDestinationOptions(5, "full");
+    expect(options).toEqual([6, 7, 8, 9, 10, 11, 12, 13, 14]);
+    expect(options).toHaveLength(9);
+  });
+
+  it("returns empty array for last station on full line", () => {
+    const options = getDestinationOptions(14, "full");
+    expect(options).toEqual([]);
+  });
+
+  it("defaults to short line when line parameter is omitted", () => {
+    const options = getDestinationOptions(0);
+    expect(options).toEqual([1, 2, 3, 4, 5]);
+  });
+});
+
+describe("DEFAULT_LINE", () => {
+  it("is set to short", () => {
+    expect(DEFAULT_LINE).toBe("short");
+  });
+});
+
+describe("BOARDING_STATIONS", () => {
+  it("contains major boarding stations", () => {
+    expect(BOARDING_STATIONS.has("Dadar")).toBe(true);
+    expect(BOARDING_STATIONS.has("Bandra")).toBe(true);
+    expect(BOARDING_STATIONS.has("Andheri")).toBe(true);
+  });
+
+  it("has exactly 3 major stations", () => {
+    expect(BOARDING_STATIONS.size).toBe(3);
+  });
+
+  it("does not contain non-major stations", () => {
+    expect(BOARDING_STATIONS.has("Churchgate")).toBe(false);
+    expect(BOARDING_STATIONS.has("Marine Lines")).toBe(false);
+    expect(BOARDING_STATIONS.has("Borivali")).toBe(false);
+  });
+});
+
+describe("DIFFICULTY_CONFIGS boarding config", () => {
+  it("all difficulties have boarding config", () => {
+    const difficulties: Difficulty[] = ["easy", "normal", "rush"];
+    difficulties.forEach((difficulty) => {
+      const config = DIFFICULTY_CONFIGS[difficulty];
+      expect(config.boardingConfig).toBeDefined();
+      expect(config.boardingConfig.minBoard).toBeGreaterThanOrEqual(0);
+      expect(config.boardingConfig.maxBoard).toBeGreaterThanOrEqual(config.boardingConfig.minBoard);
+      expect(config.boardingConfig.boardingChance).toBeGreaterThan(0);
+      expect(config.boardingConfig.boardingChance).toBeLessThanOrEqual(1);
+    });
+  });
+
+  it("harder difficulties have higher boarding chances", () => {
+    expect(DIFFICULTY_CONFIGS.easy.boardingConfig.boardingChance).toBeLessThan(
+      DIFFICULTY_CONFIGS.normal.boardingConfig.boardingChance
+    );
+    expect(DIFFICULTY_CONFIGS.normal.boardingConfig.boardingChance).toBeLessThan(
+      DIFFICULTY_CONFIGS.rush.boardingConfig.boardingChance
+    );
   });
 });
