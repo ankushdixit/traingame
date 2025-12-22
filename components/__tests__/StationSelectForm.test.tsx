@@ -297,17 +297,17 @@ describe("StationSelectForm", () => {
 
       // Initial - Normal button should contain the description
       const normalButton = screen.getByTestId("difficulty-normal");
-      expect(normalButton).toHaveTextContent("One seat, some competition");
+      expect(normalButton).toHaveTextContent("3-4 competitors, moderate speed");
 
       // Click Easy
       await user.click(screen.getByTestId("difficulty-easy"));
       const easyButton = screen.getByTestId("difficulty-easy");
-      expect(easyButton).toHaveTextContent("Plenty of seats, few competitors");
+      expect(easyButton).toHaveTextContent("2-3 competitors, slower reactions");
 
       // Click Rush Hour
       await user.click(screen.getByTestId("difficulty-rush"));
       const rushButton = screen.getByTestId("difficulty-rush");
-      expect(rushButton).toHaveTextContent("No seats, fierce competition");
+      expect(rushButton).toHaveTextContent("5-6 competitors, lightning fast!");
     });
   });
 

@@ -4,10 +4,14 @@ import { Seat as SeatType } from "@/lib/types";
 
 const defaultProps = {
   isPlayerSeated: false,
-  isHovered: false,
-  onRevealDestination: jest.fn(),
-  onClaimSeat: jest.fn(),
-  onHoverNear: jest.fn(),
+  isWatched: false,
+  isAdjacent: true,
+  actionsRemaining: 2,
+  isGrabPhase: false,
+  line: "short" as const,
+  onAskDestination: jest.fn(),
+  onWatchSeat: jest.fn(),
+  onGrabSeat: jest.fn(),
 };
 
 describe("Seat", () => {
@@ -16,11 +20,11 @@ describe("Seat", () => {
   });
 
   describe("empty seat", () => {
-    it("displays 'Empty!' for seat with no occupant", () => {
+    it("displays 'Empty' for seat with no occupant", () => {
       const seat: SeatType = { id: 0, occupant: null };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      expect(screen.getByText("Empty!")).toBeInTheDocument();
+      expect(screen.getByText("Empty")).toBeInTheDocument();
     });
 
     it("has empty state data attribute", () => {
@@ -30,14 +34,14 @@ describe("Seat", () => {
       expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "empty");
     });
 
-    it("has emerald gradient styling for empty seat", () => {
+    it("has stone gradient styling for empty seat", () => {
       const seat: SeatType = { id: 0, occupant: null };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
       expect(screen.getByTestId("seat-0")).toHaveClass(
         "bg-gradient-to-b",
-        "from-emerald-100",
-        "to-emerald-200"
+        "from-stone-100",
+        "to-stone-200"
       );
     });
   });
@@ -171,14 +175,14 @@ describe("Seat", () => {
   });
 
   describe("popover interactions", () => {
-    it("opens popover when clicking empty seat while standing", () => {
+    it("does not open popover when clicking empty seat (not in grab phase)", () => {
       const seat: SeatType = { id: 0, occupant: null };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
       fireEvent.click(screen.getByTestId("seat-0"));
 
-      expect(screen.getByTestId("seat-popover")).toBeInTheDocument();
-      expect(screen.getByTestId("claim-seat-button")).toBeInTheDocument();
+      // Empty seats don't open popovers outside grab phase
+      expect(screen.queryByTestId("seat-popover")).not.toBeInTheDocument();
     });
 
     it("opens popover when clicking occupied seat while standing", () => {
@@ -223,10 +227,14 @@ describe("Seat", () => {
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={true}
-          isHovered={false}
-          onRevealDestination={jest.fn()}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          isWatched={false}
+          isAdjacent={true}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
+          onAskDestination={jest.fn()}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 
@@ -235,8 +243,8 @@ describe("Seat", () => {
       expect(screen.queryByTestId("seat-popover")).not.toBeInTheDocument();
     });
 
-    it("calls onRevealDestination when clicking 'Ask destination?' button", () => {
-      const onRevealDestination = jest.fn();
+    it("calls onAskDestination when clicking 'Ask destination?' button", () => {
+      const onAskDestination = jest.fn();
       const seat: SeatType = {
         id: 1,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
@@ -246,54 +254,64 @@ describe("Seat", () => {
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={false}
-          isHovered={false}
-          onRevealDestination={onRevealDestination}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          isWatched={false}
+          isAdjacent={true}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
+          onAskDestination={onAskDestination}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 
       fireEvent.click(screen.getByTestId("seat-1"));
       fireEvent.click(screen.getByTestId("ask-destination-button"));
 
-      expect(onRevealDestination).toHaveBeenCalledWith(1);
+      expect(onAskDestination).toHaveBeenCalledWith(1);
     });
 
-    it("calls onClaimSeat when clicking 'Claim Seat' button", () => {
-      const onClaimSeat = jest.fn();
+    it("calls onGrabSeat when clicking empty seat during grab phase", () => {
+      const onGrabSeat = jest.fn();
       const seat: SeatType = { id: 0, occupant: null };
       render(
         <Seat
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={false}
-          isHovered={false}
-          onRevealDestination={jest.fn()}
-          onClaimSeat={onClaimSeat}
-          onHoverNear={jest.fn()}
+          isWatched={false}
+          isAdjacent={true}
+          actionsRemaining={2}
+          isGrabPhase={true}
+          line="short"
+          onAskDestination={jest.fn()}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={onGrabSeat}
         />
       );
 
       fireEvent.click(screen.getByTestId("seat-0"));
-      fireEvent.click(screen.getByTestId("claim-seat-button"));
 
-      expect(onClaimSeat).toHaveBeenCalledWith(0);
+      expect(onGrabSeat).toHaveBeenCalledWith(0);
     });
 
     it("closes popover after clicking action button", () => {
-      const seat: SeatType = { id: 0, occupant: null };
+      const seat: SeatType = {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      fireEvent.click(screen.getByTestId("seat-0"));
+      fireEvent.click(screen.getByTestId("seat-1"));
       expect(screen.getByTestId("seat-popover")).toBeInTheDocument();
 
-      fireEvent.click(screen.getByTestId("claim-seat-button"));
+      fireEvent.click(screen.getByTestId("ask-destination-button"));
       expect(screen.queryByTestId("seat-popover")).not.toBeInTheDocument();
     });
 
-    it("has clickable cursor when seat is clickable", () => {
+    it("has clickable cursor when grab phase is active", () => {
       const seat: SeatType = { id: 0, occupant: null };
-      render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
+      render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} isGrabPhase={true} />);
 
       expect(screen.getByTestId("seat-0")).toHaveClass("cursor-pointer");
     });
@@ -305,10 +323,14 @@ describe("Seat", () => {
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={true}
-          isHovered={false}
-          onRevealDestination={jest.fn()}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          isWatched={false}
+          isAdjacent={true}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
+          onAskDestination={jest.fn()}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 
@@ -316,33 +338,42 @@ describe("Seat", () => {
     });
 
     it("supports keyboard navigation for clickable seats", () => {
-      const seat: SeatType = { id: 0, occupant: null };
+      const seat: SeatType = {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      const seatElement = screen.getByTestId("seat-0");
+      const seatElement = screen.getByTestId("seat-1");
       expect(seatElement).toHaveAttribute("type", "button");
     });
 
-    it("opens popover on Enter key press", () => {
-      const seat: SeatType = { id: 0, occupant: null };
+    it("opens popover on Enter key press for occupied seat", () => {
+      const seat: SeatType = {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      fireEvent.keyDown(screen.getByTestId("seat-0"), { key: "Enter" });
+      fireEvent.keyDown(screen.getByTestId("seat-1"), { key: "Enter" });
 
       expect(screen.getByTestId("seat-popover")).toBeInTheDocument();
     });
 
-    it("opens popover on Space key press", () => {
-      const seat: SeatType = { id: 0, occupant: null };
+    it("opens popover on Space key press for occupied seat", () => {
+      const seat: SeatType = {
+        id: 1,
+        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
+      };
       render(<Seat seat={seat} isPlayerSeat={false} {...defaultProps} />);
 
-      fireEvent.keyDown(screen.getByTestId("seat-0"), { key: " " });
+      fireEvent.keyDown(screen.getByTestId("seat-1"), { key: " " });
 
       expect(screen.getByTestId("seat-popover")).toBeInTheDocument();
     });
 
-    it("calls onHoverNear when clicking 'Hover Near' button", () => {
-      const onHoverNear = jest.fn();
+    it("calls onWatchSeat when clicking 'Watch Seat' button", () => {
+      const onWatchSeat = jest.fn();
       const seat: SeatType = {
         id: 1,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
@@ -352,22 +383,26 @@ describe("Seat", () => {
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={false}
-          isHovered={false}
-          onRevealDestination={jest.fn()}
-          onClaimSeat={jest.fn()}
-          onHoverNear={onHoverNear}
+          isWatched={false}
+          isAdjacent={true}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
+          onAskDestination={jest.fn()}
+          onWatchSeat={onWatchSeat}
+          onGrabSeat={jest.fn()}
         />
       );
 
       fireEvent.click(screen.getByTestId("seat-1"));
-      fireEvent.click(screen.getByTestId("hover-near-button"));
+      fireEvent.click(screen.getByTestId("watch-seat-button"));
 
-      expect(onHoverNear).toHaveBeenCalledWith(1);
+      expect(onWatchSeat).toHaveBeenCalledWith(1);
     });
   });
 
-  describe("hovered seat", () => {
-    it("displays 'Watching...' for hovered occupied seat", () => {
+  describe("watched seat", () => {
+    it("has watched state data attribute", () => {
       const seat: SeatType = {
         id: 0,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
@@ -377,17 +412,21 @@ describe("Seat", () => {
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={false}
-          isHovered={true}
-          onRevealDestination={jest.fn()}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          isWatched={true}
+          isAdjacent={true}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
+          onAskDestination={jest.fn()}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 
-      expect(screen.getByText("Watching...")).toBeInTheDocument();
+      expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "watched");
     });
 
-    it("has hovered state data attribute", () => {
+    it("has purple gradient styling for watched seat", () => {
       const seat: SeatType = {
         id: 0,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
@@ -397,30 +436,14 @@ describe("Seat", () => {
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={false}
-          isHovered={true}
-          onRevealDestination={jest.fn()}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
-        />
-      );
-
-      expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "hovered");
-    });
-
-    it("has purple gradient styling for hovered seat", () => {
-      const seat: SeatType = {
-        id: 0,
-        occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
-      };
-      render(
-        <Seat
-          seat={seat}
-          isPlayerSeat={false}
-          isPlayerSeated={false}
-          isHovered={true}
-          onRevealDestination={jest.fn()}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          isWatched={true}
+          isAdjacent={true}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
+          onAskDestination={jest.fn()}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 
@@ -431,25 +454,29 @@ describe("Seat", () => {
       );
     });
 
-    it("does not show hovered state for empty seat", () => {
+    it("does not show watched state for empty seat", () => {
       const seat: SeatType = { id: 0, occupant: null };
       render(
         <Seat
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={false}
-          isHovered={true}
-          onRevealDestination={jest.fn()}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          isWatched={true}
+          isAdjacent={true}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
+          onAskDestination={jest.fn()}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 
-      // Empty seats don't get hovered state
+      // Empty seats don't get watched state
       expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "empty");
     });
 
-    it("shows watching indicator when seat is hovered", () => {
+    it("shows eye indicator when seat is watched", () => {
       const seat: SeatType = {
         id: 0,
         occupant: { id: "npc-0", destination: 3, destinationRevealed: false, characterSprite: 0 },
@@ -459,14 +486,19 @@ describe("Seat", () => {
           seat={seat}
           isPlayerSeat={false}
           isPlayerSeated={false}
-          isHovered={true}
-          onRevealDestination={jest.fn()}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          isWatched={true}
+          isAdjacent={true}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
+          onAskDestination={jest.fn()}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 
-      expect(screen.getByText("Watching...")).toBeInTheDocument();
+      // The eye indicator is shown with the 👁️ emoji
+      expect(screen.getByText("👁️")).toBeInTheDocument();
     });
   });
 });

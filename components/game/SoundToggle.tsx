@@ -12,13 +12,13 @@ export function SoundToggle() {
   return (
     <button
       onClick={toggleMute}
-      className="rounded-full p-2 transition-colors hover:bg-gray-100"
+      className="rounded-full p-2 transition-colors hover:bg-white/20"
       aria-label={isMuted ? "Unmute sounds" : "Mute sounds"}
       data-testid="sound-toggle"
     >
       {isMuted ? (
         <svg
-          className="h-6 w-6 text-gray-600"
+          className="h-6 w-6 text-white"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -39,7 +39,7 @@ export function SoundToggle() {
         </svg>
       ) : (
         <svg
-          className="h-6 w-6 text-gray-600"
+          className="h-6 w-6 text-white"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

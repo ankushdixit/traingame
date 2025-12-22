@@ -7,7 +7,13 @@
 
 import { useState, useCallback, useRef } from "react";
 
-export type TransitionPhase = "idle" | "shaking" | "departing" | "claiming" | "settling";
+export type TransitionPhase =
+  | "idle"
+  | "traveling"
+  | "arriving"
+  | "departing"
+  | "claiming"
+  | "settling";
 
 export interface TransitionState {
   phase: TransitionPhase;
@@ -38,16 +44,26 @@ const INITIAL_STATE: TransitionState = {
 };
 
 // Animation phase durations in milliseconds
-// shaking = train journey (sounds play during this phase)
+// traveling = train journey (sounds play, progress bar animates)
+// arriving = train has arrived at station (brief pause)
 // departing = NPCs exit after train arrives
 // claiming = standing NPCs grab vacated seats
 // settling = final settle before idle
-const PHASE_DURATIONS = {
-  shaking: 2500,
-  departing: 400,
-  claiming: 200,
-  settling: 100,
+export const PHASE_DURATIONS = {
+  traveling: 1800, // Progress bar animation syncs with train sounds
+  arriving: 200, // Brief pause after arrival
+  departing: 400, // NPCs exit seats
+  claiming: 200, // Standing NPCs grab seats
+  settling: 100, // Final settle
 };
+
+// Calculate total animation duration
+export const TOTAL_ANIMATION_DURATION =
+  PHASE_DURATIONS.traveling +
+  PHASE_DURATIONS.arriving +
+  PHASE_DURATIONS.departing +
+  PHASE_DURATIONS.claiming +
+  PHASE_DURATIONS.settling;
 
 /**
  * Hook for controlling station transition animations.
@@ -59,31 +75,42 @@ export function useTransitionController(): UseTransitionControllerReturn {
 
   const startTransition = useCallback(
     (departingIds: string[], claimingId: string | null, claimedSeatId: number | null) => {
-      // Start shaking phase
+      // Start traveling phase (train journey - sounds play, progress bar animates)
       setState({
-        phase: "shaking",
+        phase: "traveling",
         departingNpcIds: departingIds,
         claimingNpcId: claimingId,
         claimedSeatId,
         playerClaimSuccess: false,
       });
 
-      // Phase: departing (after shake completes)
+      // Phase: arriving (train has arrived at next station)
+      setTimeout(() => {
+        setState((s) => ({ ...s, phase: "arriving" }));
+      }, PHASE_DURATIONS.traveling);
+
+      // Phase: departing (NPCs exit after train arrives)
       setTimeout(() => {
         setState((s) => ({ ...s, phase: "departing" }));
-      }, PHASE_DURATIONS.shaking);
+      }, PHASE_DURATIONS.traveling + PHASE_DURATIONS.arriving);
 
-      // Phase: claiming (after departures complete)
-      setTimeout(() => {
-        setState((s) => ({ ...s, phase: "claiming" }));
-      }, PHASE_DURATIONS.shaking + PHASE_DURATIONS.departing);
+      // Phase: claiming (standing NPCs grab vacated seats)
+      setTimeout(
+        () => {
+          setState((s) => ({ ...s, phase: "claiming" }));
+        },
+        PHASE_DURATIONS.traveling + PHASE_DURATIONS.arriving + PHASE_DURATIONS.departing
+      );
 
-      // Phase: settling (after claims complete)
+      // Phase: settling (final settle before idle)
       setTimeout(
         () => {
           setState((s) => ({ ...s, phase: "settling" }));
         },
-        PHASE_DURATIONS.shaking + PHASE_DURATIONS.departing + PHASE_DURATIONS.claiming
+        PHASE_DURATIONS.traveling +
+          PHASE_DURATIONS.arriving +
+          PHASE_DURATIONS.departing +
+          PHASE_DURATIONS.claiming
       );
 
       // Phase: idle (after settling, execute pending interactions)
@@ -95,7 +122,8 @@ export function useTransitionController(): UseTransitionControllerReturn {
 
           setState(INITIAL_STATE);
         },
-        PHASE_DURATIONS.shaking +
+        PHASE_DURATIONS.traveling +
+          PHASE_DURATIONS.arriving +
           PHASE_DURATIONS.departing +
           PHASE_DURATIONS.claiming +
           PHASE_DURATIONS.settling

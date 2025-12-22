@@ -20,10 +20,14 @@ jest.mock("@/contexts/SoundContext", () => ({
 }));
 
 const defaultHandlers = {
-  onRevealDestination: jest.fn(),
-  onClaimSeat: jest.fn(),
-  onHoverNear: jest.fn(),
-  hoveredSeatId: null,
+  onAskDestination: jest.fn(),
+  onWatchSeat: jest.fn(),
+  onGrabSeat: jest.fn(),
+  playerWatchedSeatId: null,
+  playerStandingSpot: 0,
+  actionsRemaining: 2,
+  isGrabPhase: false,
+  line: "short" as const,
 };
 
 describe("Game View Integration", () => {
@@ -108,15 +112,11 @@ describe("Game View Integration", () => {
     it("player seat is highlighted when playerSeatId is set", () => {
       const state = generateInitialState(0, 5);
 
-      // Find an empty seat
-      const emptySeat = state.seats.find((s) => s.occupant === null);
-      expect(emptySeat).toBeDefined();
-
-      // Simulate player sitting
+      // All seats start full, so simulate player sitting after claiming a seat
       const seatedState = {
         ...state,
         playerSeated: true,
-        seatId: emptySeat!.id,
+        seatId: 0,
       };
 
       render(
@@ -139,7 +139,7 @@ describe("Game View Integration", () => {
       );
 
       // Player's seat should be highlighted
-      expect(screen.getByTestId(`seat-${emptySeat!.id}`)).toHaveAttribute("data-state", "player");
+      expect(screen.getByTestId(`seat-0`)).toHaveAttribute("data-state", "player");
 
       // Player status should show seated
       expect(screen.getByTestId("player-status")).toHaveTextContent(/Seated/);
@@ -252,12 +252,16 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={null}
           isPlayerSeated={false}
-          hoveredSeatId={null}
+          playerWatchedSeatId={null}
+          playerStandingSpot={0}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
           standingArea={<div>Aisle</div>}
           statusBar={<div>Status</div>}
-          onRevealDestination={onRevealDestination}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          onAskDestination={onRevealDestination}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 
@@ -282,12 +286,16 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={null}
           isPlayerSeated={false}
-          hoveredSeatId={null}
+          playerWatchedSeatId={null}
+          playerStandingSpot={0}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
           standingArea={<div>Aisle</div>}
           statusBar={<div>Status</div>}
-          onRevealDestination={onRevealDestination}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          onAskDestination={onRevealDestination}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 
@@ -317,12 +325,16 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={null}
           isPlayerSeated={false}
-          hoveredSeatId={null}
+          playerWatchedSeatId={null}
+          playerStandingSpot={0}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
           standingArea={<div>Aisle</div>}
           statusBar={<div>Status</div>}
-          onRevealDestination={onRevealDestination}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          onAskDestination={onRevealDestination}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 
@@ -335,12 +347,16 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={null}
           isPlayerSeated={false}
-          hoveredSeatId={null}
+          playerWatchedSeatId={null}
+          playerStandingSpot={0}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
           standingArea={<div>Aisle</div>}
           statusBar={<div>Status</div>}
-          onRevealDestination={onRevealDestination}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          onAskDestination={onRevealDestination}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 
@@ -356,12 +372,16 @@ describe("Game View Integration", () => {
           seats={state.seats}
           playerSeatId={null}
           isPlayerSeated={false}
-          hoveredSeatId={null}
+          playerWatchedSeatId={null}
+          playerStandingSpot={0}
+          actionsRemaining={2}
+          isGrabPhase={false}
+          line="short"
           standingArea={<div>Aisle</div>}
           statusBar={<div>Status</div>}
-          onRevealDestination={onRevealDestination}
-          onClaimSeat={jest.fn()}
-          onHoverNear={jest.fn()}
+          onAskDestination={onRevealDestination}
+          onWatchSeat={jest.fn()}
+          onGrabSeat={jest.fn()}
         />
       );
 

@@ -3,18 +3,17 @@
  * Matches single-shot design with blue gradient
  */
 
-import { STATIONS } from "@/lib/constants";
-
 interface NextStationButtonProps {
-  currentStation: number;
   onAdvance: () => void;
   disabled: boolean;
+  nextStationName: string;
 }
 
-export function NextStationButton({ currentStation, onAdvance, disabled }: NextStationButtonProps) {
-  const nextStationIndex = currentStation + 1;
-  const nextStation = STATIONS[nextStationIndex];
-
+export function NextStationButton({
+  onAdvance,
+  disabled,
+  nextStationName,
+}: NextStationButtonProps) {
   return (
     <button
       onClick={onAdvance}
@@ -47,7 +46,7 @@ export function NextStationButton({ currentStation, onAdvance, disabled }: NextS
           Moving...
         </span>
       ) : (
-        <>🚃 Next Station: {nextStation}</>
+        <>🚃 Next Station: {nextStationName}</>
       )}
     </button>
   );

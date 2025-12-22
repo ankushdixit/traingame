@@ -1,19 +1,24 @@
 /**
  * StandingArea component - displays standing NPCs and player (if not seated)
- * Matches single-shot design with 6 standing spots, grab handles, and "Aisle" label
+ * Updated for new game mechanics:
+ * - Player can click empty spots to move (costs 1 action)
+ * - Shows which positions are adjacent to seats
  */
 
 import { StandingNPC } from "@/lib/types";
 import { TransitionState } from "@/lib/useTransitionController";
 import { renderCharacter, PlayerCharacter } from "./characters";
+import { getAdjacentSeats } from "@/lib/constants";
 
 interface StandingAreaProps {
   standingNPCs: StandingNPC[];
   lastClaimMessage: string | null;
   transitionState?: TransitionState;
   isPlayerSeated: boolean;
-  /** Player's standing spot index (0-5) when not seated */
-  playerStandingSpot?: number;
+  playerStandingSpot: number;
+  onMovePosition: (newSpot: number) => void;
+  actionsRemaining: number;
+  isGrabPhase: boolean;
 }
 
 interface StandingSpotProps {
@@ -21,6 +26,9 @@ interface StandingSpotProps {
   occupant: StandingNPC | null;
   isPlayer: boolean;
   isMovingToSeat: boolean;
+  isEmpty: boolean;
+  canMoveTo: boolean;
+  onClick: () => void;
 }
 
 function GrabHandle() {
@@ -32,14 +40,27 @@ function GrabHandle() {
   );
 }
 
-function StandingSpot({ index, occupant, isPlayer, isMovingToSeat }: StandingSpotProps) {
+// eslint-disable-next-line complexity
+function StandingSpot({
+  index,
+  occupant,
+  isPlayer,
+  isMovingToSeat,
+  isEmpty,
+  canMoveTo,
+  onClick,
+}: StandingSpotProps) {
+  const adjacentSeats = getAdjacentSeats(index);
+
   return (
     <div className="flex flex-col items-center">
       {/* Handle bar */}
       <GrabHandle />
 
       {/* Standing spot */}
-      <div
+      <button
+        onClick={onClick}
+        disabled={!canMoveTo}
         className={`
           w-16 h-20 rounded-lg border-2 border-dashed flex flex-col items-center justify-center transition-all mt-1
           ${
@@ -47,11 +68,15 @@ function StandingSpot({ index, occupant, isPlayer, isMovingToSeat }: StandingSpo
               ? "border-amber-400 bg-amber-100/50"
               : occupant
                 ? "border-stone-400 bg-stone-200/50"
-                : "border-stone-300 bg-stone-100/30"
+                : canMoveTo
+                  ? "border-blue-400 bg-blue-100/30 hover:bg-blue-200/50 cursor-pointer"
+                  : "border-stone-300 bg-stone-100/30"
           }
           ${isMovingToSeat ? "animate-move-to-seat" : ""}
+          ${canMoveTo && isEmpty ? "hover:scale-105" : ""}
         `}
         data-testid={`standing-spot-${index}`}
+        type="button"
       >
         {isPlayer ? (
           <div className="relative" data-testid="player-standing">
@@ -67,9 +92,25 @@ function StandingSpot({ index, occupant, isPlayer, isMovingToSeat }: StandingSpo
             <div className="w-8 h-12">{renderCharacter(occupant.characterSprite, false)}</div>
           </div>
         ) : (
-          <span className="text-stone-300 text-xs">#{index + 1}</span>
+          <div className="flex flex-col items-center">
+            {canMoveTo ? (
+              <>
+                <span className="text-blue-500 text-lg">👆</span>
+                <span className="text-blue-500 text-[8px]">Move</span>
+              </>
+            ) : (
+              <span className="text-stone-300 text-xs">#{index + 1}</span>
+            )}
+          </div>
         )}
-      </div>
+      </button>
+
+      {/* Adjacent seats indicator */}
+      {isPlayer && (
+        <div className="text-[8px] text-stone-500 mt-0.5">
+          Near #{adjacentSeats.map((s) => s + 1).join(", #")}
+        </div>
+      )}
     </div>
   );
 }
@@ -79,7 +120,10 @@ export function StandingArea({
   lastClaimMessage,
   transitionState,
   isPlayerSeated,
-  playerStandingSpot = 0,
+  playerStandingSpot,
+  onMovePosition,
+  actionsRemaining,
+  isGrabPhase,
 }: StandingAreaProps) {
   // Check if an NPC is currently moving to claim a seat
   const claimingNpcId = transitionState?.claimingNpcId;
@@ -90,7 +134,17 @@ export function StandingArea({
     const npcInSpot = standingNPCs.find((npc) => npc.standingSpot === index);
     const isPlayerHere = !isPlayerSeated && playerStandingSpot === index;
     const isMovingToSeat = isClaimingPhase && npcInSpot?.id === claimingNpcId;
-    return { index, occupant: npcInSpot || null, isPlayer: isPlayerHere, isMovingToSeat };
+    const isEmpty = !npcInSpot && !isPlayerHere;
+    const canMoveTo = isEmpty && actionsRemaining > 0 && !isPlayerSeated && !isGrabPhase;
+
+    return {
+      index,
+      occupant: npcInSpot || null,
+      isPlayer: isPlayerHere,
+      isMovingToSeat,
+      isEmpty,
+      canMoveTo,
+    };
   });
 
   return (
@@ -109,6 +163,13 @@ export function StandingArea({
             occupant={spot.occupant}
             isPlayer={spot.isPlayer}
             isMovingToSeat={spot.isMovingToSeat}
+            isEmpty={spot.isEmpty}
+            canMoveTo={spot.canMoveTo}
+            onClick={() => {
+              if (spot.canMoveTo) {
+                onMovePosition(spot.index);
+              }
+            }}
           />
         ))}
       </div>

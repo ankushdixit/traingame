@@ -28,17 +28,20 @@ interface TrainSeatProps {
 function getSeatColorClasses(displayState: SeatDisplayState): string {
   switch (displayState) {
     case "empty":
-      // Empty seat - emerald/green with pulse animation
-      return "bg-gradient-to-b from-emerald-100 to-emerald-200 border-emerald-400 hover:from-emerald-200 hover:to-emerald-300 animate-pulse";
+      // Empty seat - neutral stone (not available)
+      return "bg-gradient-to-b from-stone-100 to-stone-200 border-stone-300";
+    case "grabbable":
+      // Grabbable during grab phase - bright emerald with animation
+      return "bg-gradient-to-b from-emerald-100 to-emerald-200 border-emerald-400 hover:from-emerald-200 hover:to-emerald-300";
     case "occupied":
       // Occupied seat - rose/pink
       return "bg-gradient-to-b from-rose-100 to-rose-200 border-rose-300 hover:from-rose-200 hover:to-rose-300";
     case "occupied-known":
       // Known destination - still rose but slightly different
       return "bg-gradient-to-b from-rose-100 to-rose-200 border-rose-300";
-    case "hovered":
-      // Watching seat - purple tint
-      return "bg-gradient-to-b from-purple-100 to-purple-200 border-purple-300";
+    case "watched":
+      // Seat being watched by player - purple tint with eye indicator
+      return "bg-gradient-to-b from-purple-100 to-purple-200 border-purple-400 ring-2 ring-purple-300";
     case "player":
       // Player seat - amber/gold with ring
       return "bg-gradient-to-b from-amber-200 to-amber-300 border-amber-500 ring-4 ring-amber-400 shadow-lg shadow-amber-200/50";

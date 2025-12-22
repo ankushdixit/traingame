@@ -3,9 +3,9 @@ import { NextStationButton } from "../NextStationButton";
 
 describe("NextStationButton", () => {
   const defaultProps = {
-    currentStation: 0,
     onAdvance: jest.fn(),
     disabled: false,
+    nextStationName: "Marine Lines",
   };
 
   beforeEach(() => {
@@ -14,7 +14,7 @@ describe("NextStationButton", () => {
 
   describe("button text", () => {
     it("shows 'Next Station: [station]' for all stations", () => {
-      render(<NextStationButton {...defaultProps} currentStation={0} />);
+      render(<NextStationButton {...defaultProps} nextStationName="Marine Lines" />);
 
       expect(screen.getByTestId("next-station-button")).toHaveTextContent(
         "🚃 Next Station: Marine Lines"
@@ -30,10 +30,8 @@ describe("NextStationButton", () => {
         { current: 4, next: "Dadar" },
       ];
 
-      expectedStations.forEach(({ current, next }) => {
-        const { unmount } = render(
-          <NextStationButton {...defaultProps} currentStation={current} />
-        );
+      expectedStations.forEach(({ next }) => {
+        const { unmount } = render(<NextStationButton {...defaultProps} nextStationName={next} />);
 
         expect(screen.getByTestId("next-station-button")).toHaveTextContent(
           `🚃 Next Station: ${next}`

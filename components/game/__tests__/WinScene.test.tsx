@@ -34,7 +34,7 @@ describe("WinScene", () => {
     render(<WinScene {...defaultProps} destination="Dadar" />);
 
     expect(screen.getByTestId("game-end-message")).toHaveTextContent(
-      "You made it to Dadar comfortably seated!"
+      "Now you can ride to Dadar in comfort!"
     );
   });
 

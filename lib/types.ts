@@ -22,14 +22,22 @@ export interface BoardingConfig {
 }
 
 /**
+ * Response time configuration for NPCs
+ */
+export interface ResponseTimeConfig {
+  min: number; // Minimum response time in ms
+  max: number; // Maximum response time in ms
+}
+
+/**
  * Configuration for each difficulty level
  */
 export interface DifficultyConfig {
   name: Difficulty;
   displayName: string;
-  seatedNpcRange: [number, number]; // [min, max]
+  seatedNpcRange: [number, number]; // [min, max] - always [6, 6] in new design
   standingNpcRange: [number, number]; // Standing NPC count range
-  npcClaimChance: number; // Probability that standing NPC claims empty seat
+  npcResponseTime: ResponseTimeConfig; // NPC response time range for grab competition
   boardingConfig: BoardingConfig; // Configuration for intermediate station boarding
 }
 
@@ -50,19 +58,19 @@ export const DIFFICULTY_OPTIONS: DifficultyOption[] = [
   {
     value: "easy",
     label: "Easy",
-    description: "Plenty of seats, few competitors",
+    description: "2-3 competitors, slower reactions",
     emoji: "😌",
   },
   {
     value: "normal",
     label: "Normal",
-    description: "One seat, some competition",
+    description: "3-4 competitors, moderate speed",
     emoji: "😤",
   },
   {
     value: "rush",
     label: "Rush Hour",
-    description: "No seats, fierce competition",
+    description: "5-6 competitors, lightning fast!",
     emoji: "🔥",
   },
 ];
@@ -72,9 +80,9 @@ export const DIFFICULTY_OPTIONS: DifficultyOption[] = [
  */
 export interface StandingNPC {
   id: string;
-  targetSeatId: number | null; // Seat they're watching (or null for random)
-  claimPriority: number; // 0-1, used with difficulty's npcClaimChance
-  characterSprite: number; // For future visual feature
+  watchedSeatId: number | null; // Seat they're watching (hidden from player)
+  responseTimeBase: number; // Base response time in ms (calculated from difficulty range)
+  characterSprite: number; // Visual representation index
   standingSpot: number; // Position in the aisle (0-5)
 }
 
@@ -114,9 +122,10 @@ export interface GameState {
   seats: Seat[];
   gameStatus: "playing" | "won" | "lost";
   standingNPCs: StandingNPC[];
-  hoveredSeatId: number | null; // Seat player is "hovering near"
+  playerWatchedSeatId: number | null; // Seat player is watching (must be adjacent)
+  actionsRemaining: number; // Actions left this turn (max 2)
   difficulty: Difficulty;
   line: Line; // Journey length (short or full)
-  lastClaimMessage: string | null; // "A passenger grabbed the seat!" or null
+  lastClaimMessage: string | null; // Message when NPC grabs seat
   lastBoardingMessage: string | null; // Message when passengers board at intermediate stations
 }

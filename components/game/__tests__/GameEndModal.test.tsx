@@ -36,7 +36,7 @@ describe("GameEndModal", () => {
       render(<GameEndModal {...defaultProps} destination="Grant Road" />);
 
       expect(screen.getByTestId("game-end-message")).toHaveTextContent(
-        "You made it to Grant Road comfortably seated!"
+        "Now you can ride to Grant Road in comfort!"
       );
     });
 
