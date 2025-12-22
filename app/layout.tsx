@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { ClientProviders } from "@/components/ClientProviders";
 import { SolokitBadge } from "@/components/SolokitBadge";
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body>
         <ClientProviders>{children}</ClientProviders>
         <SolokitBadge />
+        <Analytics />
       </body>
     </html>
   );
