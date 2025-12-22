@@ -48,6 +48,6 @@ describe("Home Page", () => {
     render(<Home />);
 
     expect(screen.getByText("How to Play")).toBeInTheDocument();
-    expect(screen.getByText(/Tap seats to see options/)).toBeInTheDocument();
+    expect(screen.getByText(/Grab a seat before reaching your destination/)).toBeInTheDocument();
   });
 });

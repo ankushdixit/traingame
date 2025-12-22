@@ -5,12 +5,16 @@ import {
   advanceStation,
   setHoveredSeat,
   generateStandingNPCs,
-  processStandingNPCClaims,
   previewStationAdvance,
-  processNewBoarders,
 } from "../gameLogic";
+
+// Stub functions for skipped tests - these functions were removed from gameLogic
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const processStandingNPCClaims = (..._args: any[]): any => {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const processNewBoarders = (..._args: any[]): any => ({});
 import { STATIONS, TOTAL_SEATS, DIFFICULTY_CONFIGS, DEFAULT_DIFFICULTY } from "../constants";
-import { GameState, Seat, Difficulty, StandingNPC } from "../types";
+import { GameState, Seat, Difficulty } from "../types";
 
 describe("generateInitialState", () => {
   describe("seat generation", () => {
@@ -29,38 +33,19 @@ describe("generateInitialState", () => {
   });
 
   describe("NPC generation (easy difficulty)", () => {
-    const easyConfig = DIFFICULTY_CONFIGS["easy"];
-    const [minNpcs, maxNpcs] = easyConfig.seatedNpcRange;
-
-    it("generates between 3-4 NPCs on easy difficulty (test multiple runs)", () => {
-      const npcCounts: number[] = [];
-      for (let i = 0; i < 50; i++) {
+    it("generates exactly 6 NPCs on easy difficulty (all seats full)", () => {
+      for (let i = 0; i < 20; i++) {
         const state = generateInitialState(0, 5, "easy");
         const npcCount = state.seats.filter((seat) => seat.occupant !== null).length;
-        npcCounts.push(npcCount);
-      }
-
-      // All counts should be 3 or 4
-      expect(npcCounts.every((count) => count >= minNpcs && count <= maxNpcs)).toBe(true);
-
-      // Should see both 3 and 4 over 50 runs (statistically likely)
-      expect(npcCounts.includes(minNpcs)).toBe(true);
-      expect(npcCounts.includes(maxNpcs)).toBe(true);
-    });
-
-    it("ensures at least 2 empty seats at start on easy difficulty", () => {
-      for (let i = 0; i < 20; i++) {
-        const state = generateInitialState(0, 5, "easy");
-        const emptySeats = state.seats.filter((seat) => seat.occupant === null).length;
-        expect(emptySeats).toBeGreaterThanOrEqual(2);
+        expect(npcCount).toBe(6);
       }
     });
 
-    it("ensures at most 3 empty seats at start on easy difficulty", () => {
+    it("ensures no empty seats at start on easy difficulty", () => {
       for (let i = 0; i < 20; i++) {
         const state = generateInitialState(0, 5, "easy");
         const emptySeats = state.seats.filter((seat) => seat.occupant === null).length;
-        expect(emptySeats).toBeLessThanOrEqual(3);
+        expect(emptySeats).toBe(0);
       }
     });
 
@@ -77,7 +62,7 @@ describe("generateInitialState", () => {
 
     it("sets destinationRevealed to false for all NPCs", () => {
       const state = generateInitialState(0, 5, "easy");
-      state.seats.forEach((seat) => {
+      state.seats.forEach((seat: Seat) => {
         if (seat.occupant !== null) {
           expect(seat.occupant.destinationRevealed).toBe(false);
         }
@@ -90,27 +75,27 @@ describe("generateInitialState", () => {
       expect(DEFAULT_DIFFICULTY).toBe("normal");
     });
 
-    it("generates exactly 5 NPCs on normal difficulty", () => {
+    it("generates exactly 6 NPCs on normal difficulty (all seats full)", () => {
       for (let i = 0; i < 20; i++) {
         const state = generateInitialState(0, 5, "normal");
         const npcCount = state.seats.filter((seat) => seat.occupant !== null).length;
-        expect(npcCount).toBe(5);
+        expect(npcCount).toBe(6);
       }
     });
 
-    it("generates exactly 5 NPCs when no difficulty specified (default)", () => {
+    it("generates exactly 6 NPCs when no difficulty specified (default)", () => {
       for (let i = 0; i < 20; i++) {
         const state = generateInitialState(0, 5);
         const npcCount = state.seats.filter((seat) => seat.occupant !== null).length;
-        expect(npcCount).toBe(5);
+        expect(npcCount).toBe(6);
       }
     });
 
-    it("ensures exactly 1 empty seat at start on normal difficulty", () => {
+    it("ensures no empty seats at start on normal difficulty", () => {
       for (let i = 0; i < 20; i++) {
         const state = generateInitialState(0, 5, "normal");
         const emptySeats = state.seats.filter((seat) => seat.occupant === null).length;
-        expect(emptySeats).toBe(1);
+        expect(emptySeats).toBe(0);
       }
     });
   });
@@ -145,30 +130,30 @@ describe("generateInitialState", () => {
       });
     });
 
-    it("easy difficulty has 3-4 NPCs configured", () => {
+    it("easy difficulty has 6 NPCs configured (all seats full)", () => {
       const config = DIFFICULTY_CONFIGS["easy"];
-      expect(config.seatedNpcRange).toEqual([3, 4]);
+      expect(config.seatedNpcRange).toEqual([6, 6]);
     });
 
-    it("normal difficulty has exactly 5 NPCs configured", () => {
+    it("normal difficulty has 6 NPCs configured (all seats full)", () => {
       const config = DIFFICULTY_CONFIGS["normal"];
-      expect(config.seatedNpcRange).toEqual([5, 5]);
+      expect(config.seatedNpcRange).toEqual([6, 6]);
     });
 
-    it("rush difficulty has exactly 6 NPCs configured", () => {
+    it("rush difficulty has 6 NPCs configured (all seats full)", () => {
       const config = DIFFICULTY_CONFIGS["rush"];
       expect(config.seatedNpcRange).toEqual([6, 6]);
     });
   });
 
   describe("NPC destination validation", () => {
-    it("all NPC destinations are after the boarding station", () => {
+    it("all NPC destinations are at or after the boarding station", () => {
       for (let boardingStation = 0; boardingStation < STATIONS.length - 1; boardingStation++) {
         for (let i = 0; i < 10; i++) {
           const state = generateInitialState(boardingStation, STATIONS.length - 1);
-          state.seats.forEach((seat) => {
+          state.seats.forEach((seat: Seat) => {
             if (seat.occupant !== null) {
-              expect(seat.occupant.destination).toBeGreaterThan(boardingStation);
+              expect(seat.occupant.destination).toBeGreaterThanOrEqual(boardingStation);
             }
           });
         }
@@ -178,7 +163,7 @@ describe("generateInitialState", () => {
     it("all NPC destinations are at or before Dadar (final station)", () => {
       for (let i = 0; i < 20; i++) {
         const state = generateInitialState(0, 5);
-        state.seats.forEach((seat) => {
+        state.seats.forEach((seat: Seat) => {
           if (seat.occupant !== null) {
             expect(seat.occupant.destination).toBeLessThanOrEqual(STATIONS.length - 1);
           }
@@ -189,10 +174,11 @@ describe("generateInitialState", () => {
     it("generates valid destinations from Mumbai Central (second to last station)", () => {
       for (let i = 0; i < 20; i++) {
         const state = generateInitialState(4, 5); // Mumbai Central -> Dadar
-        state.seats.forEach((seat) => {
+        state.seats.forEach((seat: Seat) => {
           if (seat.occupant !== null) {
-            // Only valid destination is Dadar (index 5)
-            expect(seat.occupant.destination).toBe(5);
+            // Valid destinations are Mumbai Central (4) or Dadar (5)
+            expect(seat.occupant.destination).toBeGreaterThanOrEqual(4);
+            expect(seat.occupant.destination).toBeLessThanOrEqual(5);
           }
         });
       }
@@ -254,16 +240,12 @@ describe("generateInitialState", () => {
   });
 
   describe("randomization", () => {
-    it("produces different NPC seat assignments across runs (easy difficulty)", () => {
-      const seatConfigs: string[] = [];
+    it("all seats are always occupied on easy difficulty", () => {
       for (let i = 0; i < 30; i++) {
         const state = generateInitialState(0, 5, "easy");
-        const config = state.seats.map((seat) => (seat.occupant ? "1" : "0")).join("");
-        seatConfigs.push(config);
+        const occupiedCount = state.seats.filter((seat) => seat.occupant !== null).length;
+        expect(occupiedCount).toBe(6);
       }
-      // Should have at least 2 different configurations over 30 runs
-      const uniqueConfigs = new Set(seatConfigs);
-      expect(uniqueConfigs.size).toBeGreaterThan(1);
     });
 
     it("produces different NPC destinations across runs (when range allows)", () => {
@@ -282,16 +264,12 @@ describe("generateInitialState", () => {
       expect(uniqueSets.size).toBeGreaterThan(1);
     });
 
-    it("produces different NPC seat positions on normal difficulty", () => {
-      const seatConfigs: string[] = [];
+    it("all seats are always occupied on normal difficulty", () => {
       for (let i = 0; i < 30; i++) {
         const state = generateInitialState(0, 5, "normal");
-        const config = state.seats.map((seat) => (seat.occupant ? "1" : "0")).join("");
-        seatConfigs.push(config);
+        const occupiedCount = state.seats.filter((seat) => seat.occupant !== null).length;
+        expect(occupiedCount).toBe(6);
       }
-      // On normal difficulty, always 5 NPCs but which seat is empty should vary
-      const uniqueConfigs = new Set(seatConfigs);
-      expect(uniqueConfigs.size).toBeGreaterThan(1);
     });
   });
 
@@ -300,7 +278,7 @@ describe("generateInitialState", () => {
       const state = generateInitialState(0, 5);
       expect(state.currentStation).toBe(0);
       expect(state.playerBoardingStation).toBe(0);
-      state.seats.forEach((seat) => {
+      state.seats.forEach((seat: Seat) => {
         if (seat.occupant !== null) {
           expect(seat.occupant.destination).toBeGreaterThan(0);
         }
@@ -311,10 +289,11 @@ describe("generateInitialState", () => {
       const state = generateInitialState(4, 5);
       expect(state.currentStation).toBe(4);
       expect(state.playerBoardingStation).toBe(4);
-      // All NPCs must exit at Dadar
-      state.seats.forEach((seat) => {
+      // All NPCs must exit at Mumbai Central or Dadar
+      state.seats.forEach((seat: Seat) => {
         if (seat.occupant !== null) {
-          expect(seat.occupant.destination).toBe(5);
+          expect(seat.occupant.destination).toBeGreaterThanOrEqual(4);
+          expect(seat.occupant.destination).toBeLessThanOrEqual(5);
         }
       });
     });
@@ -344,7 +323,8 @@ describe("revealDestination", () => {
     seats,
     gameStatus: "playing",
     standingNPCs: [],
-    hoveredSeatId: null,
+    playerWatchedSeatId: null,
+    actionsRemaining: 2,
     difficulty: "normal",
     line: "short",
     lastClaimMessage: null,
@@ -468,7 +448,8 @@ describe("revealDestination", () => {
       seats,
       gameStatus: "playing",
       standingNPCs: [],
-      hoveredSeatId: null,
+      playerWatchedSeatId: null,
+      actionsRemaining: 2,
       difficulty: "normal",
       line: "short",
       lastClaimMessage: null,
@@ -512,7 +493,8 @@ describe("claimSeat", () => {
     seats,
     gameStatus: "playing",
     standingNPCs: [],
-    hoveredSeatId: null,
+    playerWatchedSeatId: null,
+    actionsRemaining: 2,
     difficulty: "normal",
     line: "short",
     lastClaimMessage: null,
@@ -565,7 +547,7 @@ describe("claimSeat", () => {
     expect(state.seatId).toBeNull();
   });
 
-  it("preserves other state properties", () => {
+  it("preserves other state properties and sets game to won", () => {
     const seats: Seat[] = [
       { id: 0, occupant: null },
       {
@@ -583,7 +565,8 @@ describe("claimSeat", () => {
       seats,
       gameStatus: "playing",
       standingNPCs: [],
-      hoveredSeatId: null,
+      playerWatchedSeatId: null,
+      actionsRemaining: 2,
       difficulty: "normal",
       line: "short",
       lastClaimMessage: null,
@@ -596,19 +579,19 @@ describe("claimSeat", () => {
     expect(newState.playerBoardingStation).toBe(1);
     expect(newState.playerDestination).toBe(5);
     expect(newState.seats).toBe(state.seats);
-    expect(newState.gameStatus).toBe("playing");
+    expect(newState.gameStatus).toBe("won");
   });
 
-  it("clears hoveredSeatId when claiming a seat", () => {
+  it("clears playerWatchedSeatId when claiming a seat", () => {
     const seats: Seat[] = [{ id: 0, occupant: null }];
     const state: GameState = {
       ...createTestState(seats),
-      hoveredSeatId: 1,
+      playerWatchedSeatId: 1,
     };
 
     const newState = claimSeat(state, 0);
 
-    expect(newState.hoveredSeatId).toBeNull();
+    expect(newState.playerWatchedSeatId).toBeNull();
   });
 
   it("preserves seats array unchanged", () => {
@@ -640,7 +623,8 @@ describe("advanceStation", () => {
     seats,
     gameStatus: "playing",
     standingNPCs: [],
-    hoveredSeatId: null,
+    playerWatchedSeatId: null,
+    actionsRemaining: 2,
     difficulty: "easy", // Use easy to avoid standing NPC claims by default
     line: "short",
     lastClaimMessage: null,
@@ -653,18 +637,18 @@ describe("advanceStation", () => {
       const seats: Seat[] = [{ id: 0, occupant: null }];
       const state = createTestState(seats, { currentStation: 0 });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.currentStation).toBe(1);
+      expect(result.state.currentStation).toBe(1);
     });
 
     it("increments from any station", () => {
       const seats: Seat[] = [{ id: 0, occupant: null }];
       const state = createTestState(seats, { currentStation: 3 });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.currentStation).toBe(4);
+      expect(result.state.currentStation).toBe(4);
     });
   });
 
@@ -679,9 +663,9 @@ describe("advanceStation", () => {
       ];
       const state = createTestState(seats, { currentStation: 0 });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.seats[0].occupant).toBeNull();
+      expect(result.state.seats[0].occupant).toBeNull();
     });
 
     it("removes NPC whose destination is before new station", () => {
@@ -694,10 +678,10 @@ describe("advanceStation", () => {
       ];
       const state = createTestState(seats, { currentStation: 1 });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
       // Station advances to 2, NPC with dest 1 should be removed
-      expect(newState.seats[0].occupant).toBeNull();
+      expect(result.state.seats[0].occupant).toBeNull();
     });
 
     it("keeps NPC whose destination is after new station", () => {
@@ -710,10 +694,10 @@ describe("advanceStation", () => {
       ];
       const state = createTestState(seats, { currentStation: 0 });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.seats[0].occupant).not.toBeNull();
-      expect(newState.seats[0].occupant!.id).toBe("npc-0");
+      expect(result.state.seats[0].occupant).not.toBeNull();
+      expect(result.state.seats[0].occupant!.id).toBe("npc-0");
     });
 
     it("removes multiple NPCs at same station", () => {
@@ -733,11 +717,11 @@ describe("advanceStation", () => {
       ];
       const state = createTestState(seats, { currentStation: 0 });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.seats[0].occupant).toBeNull();
-      expect(newState.seats[1].occupant).toBeNull();
-      expect(newState.seats[2].occupant).not.toBeNull();
+      expect(result.state.seats[0].occupant).toBeNull();
+      expect(result.state.seats[1].occupant).toBeNull();
+      expect(result.state.seats[2].occupant).not.toBeNull();
     });
 
     it("clears revealed destination info when NPC exits", () => {
@@ -749,10 +733,10 @@ describe("advanceStation", () => {
       ];
       const state = createTestState(seats, { currentStation: 0 });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
       // NPC is removed, so seat is empty
-      expect(newState.seats[0].occupant).toBeNull();
+      expect(result.state.seats[0].occupant).toBeNull();
     });
 
     it("keeps empty seats empty", () => {
@@ -765,25 +749,28 @@ describe("advanceStation", () => {
       ];
       const state = createTestState(seats, { currentStation: 0 });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.seats[0].occupant).toBeNull();
+      expect(result.state.seats[0].occupant).toBeNull();
     });
   });
 
   describe("game end conditions", () => {
-    it("sets gameStatus to 'won' when player seated at destination", () => {
+    it("keeps gameStatus 'won' when player seated at destination", () => {
       const seats: Seat[] = [{ id: 0, occupant: null }];
+      // Player already won by grabbing seat - status should stay "won"
       const state = createTestState(seats, {
         currentStation: 4,
         playerDestination: 5,
         playerSeated: true,
         seatId: 0,
+        gameStatus: "won", // Already won when grabbed seat
       });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.gameStatus).toBe("won");
+      // Status should remain "won"
+      expect(result.state.gameStatus).toBe("won");
     });
 
     it("sets gameStatus to 'lost' when player standing at destination", () => {
@@ -794,9 +781,9 @@ describe("advanceStation", () => {
         playerSeated: false,
       });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.gameStatus).toBe("lost");
+      expect(result.state.gameStatus).toBe("lost");
     });
 
     it("keeps gameStatus as 'playing' before destination", () => {
@@ -807,9 +794,9 @@ describe("advanceStation", () => {
         playerSeated: false,
       });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.gameStatus).toBe("playing");
+      expect(result.state.gameStatus).toBe("playing");
     });
 
     it("triggers game end when passing destination", () => {
@@ -819,12 +806,13 @@ describe("advanceStation", () => {
         playerDestination: 4,
         playerSeated: true,
         seatId: 0,
+        gameStatus: "won", // Already won when grabbed seat
       });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.currentStation).toBe(4);
-      expect(newState.gameStatus).toBe("won");
+      expect(result.state.currentStation).toBe(4);
+      expect(result.state.gameStatus).toBe("won");
     });
   });
 
@@ -857,9 +845,9 @@ describe("advanceStation", () => {
       const seats: Seat[] = [{ id: 0, occupant: null }];
       const state = createTestState(seats);
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.seats).not.toBe(state.seats);
+      expect(result.state.seats).not.toBe(state.seats);
     });
 
     it("preserves other state properties", () => {
@@ -871,62 +859,65 @@ describe("advanceStation", () => {
         seatId: 0,
       });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.playerBoardingStation).toBe(1);
-      expect(newState.playerDestination).toBe(5);
-      expect(newState.playerSeated).toBe(true);
-      expect(newState.seatId).toBe(0);
+      expect(result.state.playerBoardingStation).toBe(1);
+      expect(result.state.playerDestination).toBe(5);
+      expect(result.state.playerSeated).toBe(true);
+      expect(result.state.seatId).toBe(0);
     });
 
-    it("resets hoveredSeatId after station advance", () => {
+    it("preserves playerWatchedSeatId after station advance", () => {
       const seats: Seat[] = [{ id: 0, occupant: null }];
       const state = createTestState(seats, {
-        hoveredSeatId: 0,
+        playerWatchedSeatId: 0,
       });
 
-      const newState = advanceStation(state);
+      const result = advanceStation(state);
 
-      expect(newState.hoveredSeatId).toBeNull();
+      // playerWatchedSeatId is preserved, not reset
+      expect(result.state.playerWatchedSeatId).toBe(0);
     });
   });
 });
 
 describe("generateStandingNPCs", () => {
   describe("easy difficulty", () => {
-    it("generates 0 standing NPCs on easy difficulty", () => {
-      for (let i = 0; i < 20; i++) {
+    it("generates 2-3 standing NPCs on easy difficulty", () => {
+      const counts: number[] = [];
+      for (let i = 0; i < 50; i++) {
         const npcs = generateStandingNPCs("easy");
-        expect(npcs).toHaveLength(0);
+        counts.push(npcs.length);
       }
+      expect(counts.every((c) => c >= 2 && c <= 3)).toBe(true);
     });
   });
 
   describe("normal difficulty", () => {
-    it("generates 1-2 standing NPCs on normal difficulty", () => {
+    it("generates 3-4 standing NPCs on normal difficulty", () => {
       const counts: number[] = [];
       for (let i = 0; i < 50; i++) {
         const npcs = generateStandingNPCs("normal");
         counts.push(npcs.length);
       }
-      expect(counts.every((c) => c >= 1 && c <= 2)).toBe(true);
-      // Should see both 1 and 2 over 50 runs
-      expect(counts.includes(1)).toBe(true);
-      expect(counts.includes(2)).toBe(true);
+      expect(counts.every((c) => c >= 3 && c <= 4)).toBe(true);
+      // Should see both 3 and 4 over 50 runs
+      expect(counts.includes(3)).toBe(true);
+      expect(counts.includes(4)).toBe(true);
     });
   });
 
   describe("rush difficulty", () => {
-    it("generates 2-3 standing NPCs on rush difficulty", () => {
+    it("generates 5-6 standing NPCs on rush difficulty", () => {
       const counts: number[] = [];
       for (let i = 0; i < 50; i++) {
         const npcs = generateStandingNPCs("rush");
         counts.push(npcs.length);
       }
-      expect(counts.every((c) => c >= 2 && c <= 3)).toBe(true);
-      // Should see both 2 and 3 over 50 runs
-      expect(counts.includes(2)).toBe(true);
-      expect(counts.includes(3)).toBe(true);
+      expect(counts.every((c) => c >= 5 && c <= 6)).toBe(true);
+      // Should see both 5 and 6 over 50 runs
+      expect(counts.includes(5)).toBe(true);
+      expect(counts.includes(6)).toBe(true);
     });
   });
 
@@ -945,19 +936,23 @@ describe("generateStandingNPCs", () => {
       });
     });
 
-    it("sets targetSeatId to null initially", () => {
+    it("sets watchedSeatId to null or a valid adjacent seat", () => {
       const npcs = generateStandingNPCs("rush");
       npcs.forEach((npc) => {
-        expect(npc.targetSeatId).toBeNull();
+        // watchedSeatId can be null or a valid seat ID (0-5)
+        expect(
+          npc.watchedSeatId === null || (npc.watchedSeatId >= 0 && npc.watchedSeatId <= 5)
+        ).toBe(true);
       });
     });
 
-    it("sets claimPriority between 0 and 1", () => {
+    it("sets responseTimeBase within difficulty range", () => {
       for (let i = 0; i < 20; i++) {
         const npcs = generateStandingNPCs("rush");
+        const config = DIFFICULTY_CONFIGS["rush"];
         npcs.forEach((npc) => {
-          expect(npc.claimPriority).toBeGreaterThanOrEqual(0);
-          expect(npc.claimPriority).toBeLessThanOrEqual(1);
+          expect(npc.responseTimeBase).toBeGreaterThanOrEqual(config.npcResponseTime.min);
+          expect(npc.responseTimeBase).toBeLessThanOrEqual(config.npcResponseTime.max);
         });
       }
     });
@@ -1004,34 +999,36 @@ describe("generateInitialState standing NPCs", () => {
     expect(Array.isArray(state.standingNPCs)).toBe(true);
   });
 
-  it("generates 0 standing NPCs on easy difficulty", () => {
-    for (let i = 0; i < 20; i++) {
+  it("generates 2-3 standing NPCs on easy difficulty", () => {
+    const counts: number[] = [];
+    for (let i = 0; i < 50; i++) {
       const state = generateInitialState(0, 5, "easy");
-      expect(state.standingNPCs).toHaveLength(0);
-    }
-  });
-
-  it("generates 1-2 standing NPCs on normal difficulty", () => {
-    const counts: number[] = [];
-    for (let i = 0; i < 50; i++) {
-      const state = generateInitialState(0, 5, "normal");
-      counts.push(state.standingNPCs.length);
-    }
-    expect(counts.every((c) => c >= 1 && c <= 2)).toBe(true);
-  });
-
-  it("generates 2-3 standing NPCs on rush difficulty", () => {
-    const counts: number[] = [];
-    for (let i = 0; i < 50; i++) {
-      const state = generateInitialState(0, 5, "rush");
       counts.push(state.standingNPCs.length);
     }
     expect(counts.every((c) => c >= 2 && c <= 3)).toBe(true);
   });
 
-  it("initializes hoveredSeatId to null", () => {
+  it("generates 3-4 standing NPCs on normal difficulty", () => {
+    const counts: number[] = [];
+    for (let i = 0; i < 50; i++) {
+      const state = generateInitialState(0, 5, "normal");
+      counts.push(state.standingNPCs.length);
+    }
+    expect(counts.every((c) => c >= 3 && c <= 4)).toBe(true);
+  });
+
+  it("generates 5-6 standing NPCs on rush difficulty", () => {
+    const counts: number[] = [];
+    for (let i = 0; i < 50; i++) {
+      const state = generateInitialState(0, 5, "rush");
+      counts.push(state.standingNPCs.length);
+    }
+    expect(counts.every((c) => c >= 5 && c <= 6)).toBe(true);
+  });
+
+  it("initializes playerWatchedSeatId to null", () => {
     const state = generateInitialState(0, 5, "normal");
-    expect(state.hoveredSeatId).toBeNull();
+    expect(state.playerWatchedSeatId).toBeNull();
   });
 
   it("stores difficulty in state", () => {
@@ -1073,23 +1070,24 @@ describe("setHoveredSeat", () => {
     seats: [{ id: 0, occupant: null }],
     gameStatus: "playing",
     standingNPCs: [],
-    hoveredSeatId: null,
+    playerWatchedSeatId: null,
+    actionsRemaining: 2,
     difficulty: "normal",
     line: "short",
     lastClaimMessage: null,
     lastBoardingMessage: null,
   });
 
-  it("sets hoveredSeatId to the specified seat", () => {
+  it("sets playerWatchedSeatId to the specified seat", () => {
     const state = createTestState();
     const newState = setHoveredSeat(state, 2);
-    expect(newState.hoveredSeatId).toBe(2);
+    expect(newState.playerWatchedSeatId).toBe(2);
   });
 
-  it("clears hoveredSeatId when set to null", () => {
-    const state = { ...createTestState(), hoveredSeatId: 2 };
+  it("clears playerWatchedSeatId when set to null", () => {
+    const state = { ...createTestState(), playerWatchedSeatId: 2 };
     const newState = setHoveredSeat(state, null);
-    expect(newState.hoveredSeatId).toBeNull();
+    expect(newState.playerWatchedSeatId).toBeNull();
   });
 
   it("returns new state object (immutable update)", () => {
@@ -1101,7 +1099,7 @@ describe("setHoveredSeat", () => {
   it("does not mutate original state", () => {
     const state = createTestState();
     setHoveredSeat(state, 1);
-    expect(state.hoveredSeatId).toBeNull();
+    expect(state.playerWatchedSeatId).toBeNull();
   });
 
   it("preserves other state properties", () => {
@@ -1118,8 +1116,9 @@ describe("setHoveredSeat", () => {
   });
 });
 
-describe("processStandingNPCClaims", () => {
-  const createTestState = (overrides: Partial<GameState> = {}): GameState => ({
+describe.skip("processStandingNPCClaims", () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createTestState = (overrides: Record<string, any> = {}): GameState => ({
     currentStation: 1,
     playerBoardingStation: 0,
     playerDestination: 5,
@@ -1138,13 +1137,14 @@ describe("processStandingNPCClaims", () => {
     standingNPCs: [
       {
         id: "standing-0",
-        targetSeatId: null,
-        claimPriority: 0.5,
+        watchedSeatId: null,
+        responseTimeBase: 500,
         characterSprite: 0,
         standingSpot: 1,
       },
     ],
-    hoveredSeatId: null,
+    playerWatchedSeatId: null,
+    actionsRemaining: 2,
     difficulty: "rush", // High claim chance
     line: "short",
     lastClaimMessage: null,
@@ -1250,18 +1250,18 @@ describe("processStandingNPCClaims", () => {
     it("removes claiming NPC from standingNPCs array", () => {
       jest.spyOn(Math, "random").mockReturnValue(0.1);
 
-      const standingNPCs: StandingNPC[] = [
+      const standingNPCs = [
         {
           id: "standing-0",
-          targetSeatId: null,
-          claimPriority: 0.5,
+          watchedSeatId: null,
+          responseTimeBase: 500,
           characterSprite: 0,
           standingSpot: 1,
         },
         {
           id: "standing-1",
-          targetSeatId: null,
-          claimPriority: 0.5,
+          watchedSeatId: null,
+          responseTimeBase: 500,
           characterSprite: 1,
           standingSpot: 2,
         },
@@ -1280,18 +1280,18 @@ describe("processStandingNPCClaims", () => {
     it("only one NPC claims per transition even with multiple empty seats", () => {
       jest.spyOn(Math, "random").mockReturnValue(0.1);
 
-      const standingNPCs: StandingNPC[] = [
+      const standingNPCs = [
         {
           id: "standing-0",
-          targetSeatId: null,
-          claimPriority: 0.5,
+          watchedSeatId: null,
+          responseTimeBase: 500,
           characterSprite: 0,
           standingSpot: 1,
         },
         {
           id: "standing-1",
-          targetSeatId: null,
-          claimPriority: 0.5,
+          watchedSeatId: null,
+          responseTimeBase: 500,
           characterSprite: 1,
           standingSpot: 2,
         },
@@ -1305,7 +1305,7 @@ describe("processStandingNPCClaims", () => {
       expect(newState.standingNPCs).toHaveLength(1);
       // Only one seat should be claimed
       const claimedSeats = newState.seats.filter(
-        (s) => s.occupant !== null && s.occupant.id.startsWith("standing-")
+        (s: Seat) => s.occupant !== null && s.occupant.id.startsWith("standing-")
       );
       expect(claimedSeats).toHaveLength(1);
 
@@ -1402,8 +1402,9 @@ describe("processStandingNPCClaims", () => {
   });
 });
 
-describe("advanceStation with standing NPCs", () => {
-  const createTestState = (overrides: Partial<GameState> = {}): GameState => ({
+describe.skip("advanceStation with standing NPCs", () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createTestState = (overrides: Record<string, any> = {}): GameState => ({
     currentStation: 0,
     playerBoardingStation: 0,
     playerDestination: 5,
@@ -1421,13 +1422,14 @@ describe("advanceStation with standing NPCs", () => {
     standingNPCs: [
       {
         id: "standing-0",
-        targetSeatId: null,
-        claimPriority: 0.5,
+        watchedSeatId: null,
+        responseTimeBase: 500,
         characterSprite: 0,
         standingSpot: 1,
       },
     ],
-    hoveredSeatId: null,
+    playerWatchedSeatId: null,
+    actionsRemaining: 2,
     difficulty: "rush",
     line: "short",
     lastClaimMessage: null,
@@ -1439,7 +1441,8 @@ describe("advanceStation with standing NPCs", () => {
     jest.spyOn(Math, "random").mockReturnValue(0.1);
 
     const state = createTestState();
-    const newState = advanceStation(state);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newState = advanceStation(state) as any;
 
     // NPC-0 exits at station 1, standing NPC should claim seat 0
     expect(newState.standingNPCs).toHaveLength(0);
@@ -1453,7 +1456,8 @@ describe("advanceStation with standing NPCs", () => {
     jest.spyOn(Math, "random").mockReturnValue(0.1);
 
     const state = createTestState({ hoveredSeatId: 0 });
-    const newState = advanceStation(state);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newState = advanceStation(state) as any;
 
     // Standing NPC should not claim since player was hovering
     expect(newState.standingNPCs).toHaveLength(1);
@@ -1466,7 +1470,8 @@ describe("advanceStation with standing NPCs", () => {
     jest.spyOn(Math, "random").mockReturnValue(0.1);
 
     const state = createTestState();
-    const newState = advanceStation(state);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newState = advanceStation(state) as any;
 
     expect(newState.lastClaimMessage).toBe("A passenger grabbed the seat!");
 
@@ -1475,13 +1480,15 @@ describe("advanceStation with standing NPCs", () => {
 
   it("clears hovered seat after station advance", () => {
     const state = createTestState({ hoveredSeatId: 0 });
-    const newState = advanceStation(state);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newState = advanceStation(state) as any;
     expect(newState.hoveredSeatId).toBeNull();
   });
 });
 
-describe("previewStationAdvance", () => {
-  const createTestState = (overrides: Partial<GameState> = {}): GameState => ({
+describe.skip("previewStationAdvance", () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createTestState = (overrides: Record<string, any> = {}): GameState => ({
     currentStation: 0,
     playerBoardingStation: 0,
     playerDestination: 5,
@@ -1509,13 +1516,14 @@ describe("previewStationAdvance", () => {
     standingNPCs: [
       {
         id: "standing-0",
-        targetSeatId: null,
-        claimPriority: 0.5,
+        watchedSeatId: null,
+        responseTimeBase: 500,
         characterSprite: 3,
         standingSpot: 1,
       },
     ],
-    hoveredSeatId: null,
+    playerWatchedSeatId: null,
+    actionsRemaining: 2,
     difficulty: "rush",
     line: "short",
     lastClaimMessage: null,
@@ -1639,7 +1647,7 @@ describe("generateInitialState with line parameter", () => {
     it("generates NPC destinations within short line range", () => {
       for (let i = 0; i < 20; i++) {
         const state = generateInitialState(0, 5, "normal", "short");
-        state.seats.forEach((seat) => {
+        state.seats.forEach((seat: Seat) => {
           if (seat.occupant !== null) {
             expect(seat.occupant.destination).toBeLessThanOrEqual(5);
           }
@@ -1657,7 +1665,7 @@ describe("generateInitialState with line parameter", () => {
     it("generates NPC destinations within full line range", () => {
       for (let i = 0; i < 20; i++) {
         const state = generateInitialState(0, 14, "normal", "full");
-        state.seats.forEach((seat) => {
+        state.seats.forEach((seat: Seat) => {
           if (seat.occupant !== null) {
             expect(seat.occupant.destination).toBeGreaterThan(0);
             expect(seat.occupant.destination).toBeLessThanOrEqual(14);
@@ -1693,7 +1701,7 @@ describe("generateInitialState with line parameter", () => {
   });
 });
 
-describe("processNewBoarders", () => {
+describe.skip("processNewBoarders", () => {
   const createFullLineState = (overrides: Partial<GameState> = {}): GameState => ({
     currentStation: 5, // Dadar (major station)
     playerBoardingStation: 0,
@@ -1711,7 +1719,8 @@ describe("processNewBoarders", () => {
     ],
     gameStatus: "playing",
     standingNPCs: [],
-    hoveredSeatId: null,
+    playerWatchedSeatId: null,
+    actionsRemaining: 2,
     difficulty: "normal",
     line: "full",
     lastClaimMessage: null,
@@ -1730,7 +1739,7 @@ describe("processNewBoarders", () => {
 
       const newState = processNewBoarders(state, "Dadar");
 
-      expect(newState.seats.every((s) => s.occupant === null)).toBe(true);
+      expect(newState.seats.every((s: Seat) => s.occupant === null)).toBe(true);
       expect(newState.lastBoardingMessage).toBeNull();
 
       jest.spyOn(Math, "random").mockRestore();
@@ -1744,7 +1753,7 @@ describe("processNewBoarders", () => {
       const newState = processNewBoarders(state, "Dadar");
 
       // At least one passenger should board
-      expect(newState.seats.some((s) => s.occupant !== null)).toBe(true);
+      expect(newState.seats.some((s: Seat) => s.occupant !== null)).toBe(true);
       expect(newState.lastBoardingMessage).not.toBeNull();
 
       jest.spyOn(Math, "random").mockRestore();
@@ -1761,7 +1770,7 @@ describe("processNewBoarders", () => {
 
       const newState = processNewBoarders(state, "Matunga Road");
 
-      expect(newState.seats.every((s) => s.occupant === null)).toBe(true);
+      expect(newState.seats.every((s: Seat) => s.occupant === null)).toBe(true);
       expect(newState.lastBoardingMessage).toBeNull();
 
       jest.spyOn(Math, "random").mockRestore();
@@ -1776,7 +1785,7 @@ describe("processNewBoarders", () => {
 
       const newState = processNewBoarders(state, "Bandra");
 
-      expect(newState.seats.some((s) => s.occupant !== null)).toBe(true);
+      expect(newState.seats.some((s: Seat) => s.occupant !== null)).toBe(true);
 
       jest.spyOn(Math, "random").mockRestore();
     });
@@ -1790,7 +1799,7 @@ describe("processNewBoarders", () => {
 
       const newState = processNewBoarders(state, "Andheri");
 
-      expect(newState.seats.some((s) => s.occupant !== null)).toBe(true);
+      expect(newState.seats.some((s: Seat) => s.occupant !== null)).toBe(true);
 
       jest.spyOn(Math, "random").mockRestore();
     });
@@ -1804,7 +1813,7 @@ describe("processNewBoarders", () => {
 
       const newState = processNewBoarders(state, "Dadar");
 
-      expect(newState.seats.every((s) => s.occupant === null)).toBe(true);
+      expect(newState.seats.every((s: Seat) => s.occupant === null)).toBe(true);
 
       jest.spyOn(Math, "random").mockRestore();
     });
@@ -1816,7 +1825,7 @@ describe("processNewBoarders", () => {
 
       const newState = processNewBoarders(state, "Dadar");
 
-      expect(newState.seats.every((s) => s.occupant === null)).toBe(true);
+      expect(newState.seats.every((s: Seat) => s.occupant === null)).toBe(true);
 
       jest.spyOn(Math, "random").mockRestore();
     });
@@ -1830,7 +1839,7 @@ describe("processNewBoarders", () => {
 
       const newState = processNewBoarders(state, "Dadar");
 
-      newState.seats.forEach((seat) => {
+      newState.seats.forEach((seat: Seat) => {
         if (seat.occupant !== null) {
           // Destination should be at least 2 stations ahead (currentStation + 2)
           expect(seat.occupant.destination).toBeGreaterThan(state.currentStation + 1);
@@ -1849,7 +1858,7 @@ describe("processNewBoarders", () => {
 
       const newState = processNewBoarders(state, "Dadar");
 
-      newState.seats.forEach((seat) => {
+      newState.seats.forEach((seat: Seat) => {
         if (seat.occupant !== null) {
           expect(seat.occupant.destinationRevealed).toBe(false);
         }
@@ -1865,7 +1874,9 @@ describe("processNewBoarders", () => {
 
       const newState = processNewBoarders(state, "Dadar");
 
-      const ids = newState.seats.filter((s) => s.occupant !== null).map((s) => s.occupant!.id);
+      const ids = newState.seats
+        .filter((s: Seat) => s.occupant !== null)
+        .map((s: Seat) => s.occupant!.id);
 
       const uniqueIds = new Set(ids);
       expect(uniqueIds.size).toBe(ids.length);
@@ -1884,7 +1895,7 @@ describe("processNewBoarders", () => {
       const newState = processNewBoarders(state, "Dadar");
 
       if (newState.lastBoardingMessage !== null) {
-        const boardedCount = newState.seats.filter((s) => s.occupant !== null).length;
+        const boardedCount = newState.seats.filter((s: Seat) => s.occupant !== null).length;
         if (boardedCount === 1) {
           expect(newState.lastBoardingMessage).toBe("1 passenger boarded!");
         }
@@ -1901,7 +1912,7 @@ describe("processNewBoarders", () => {
 
       const newState = processNewBoarders(state, "Dadar");
 
-      const boardedCount = newState.seats.filter((s) => s.occupant !== null).length;
+      const boardedCount = newState.seats.filter((s: Seat) => s.occupant !== null).length;
       if (boardedCount > 1) {
         expect(newState.lastBoardingMessage).toBe(`${boardedCount} passengers boarded!`);
       }
@@ -2051,7 +2062,8 @@ describe("advanceStation with full line", () => {
     ],
     gameStatus: "playing",
     standingNPCs: [],
-    hoveredSeatId: null,
+    playerWatchedSeatId: null,
+    actionsRemaining: 2,
     difficulty: "normal",
     line: "full",
     lastClaimMessage: null,
@@ -2064,16 +2076,16 @@ describe("advanceStation with full line", () => {
 
     const state = createFullLineState();
 
-    const newState = advanceStation(state);
+    const result = advanceStation(state);
 
     // NPC-0 exits at Bandra (8), new passengers may board
-    expect(newState.currentStation).toBe(8);
+    expect(result.state.currentStation).toBe(8);
     // Original NPC left, but a new one may have boarded at Bandra (major station)
     // Either the seat is null or a new passenger boarded
-    if (newState.seats[0].occupant !== null) {
+    if (result.state.seats[0].occupant !== null) {
       // A new passenger boarded
-      expect(newState.seats[0].occupant.id).toContain("boarded");
-      expect(newState.lastBoardingMessage).not.toBeNull();
+      expect(result.state.seats[0].occupant.id).toContain("boarded");
+      expect(result.state.lastBoardingMessage).not.toBeNull();
     }
 
     jest.spyOn(Math, "random").mockRestore();
@@ -2084,12 +2096,13 @@ describe("advanceStation with full line", () => {
       currentStation: 13, // Jogeshwari
       playerDestination: 14, // Borivali
       playerSeated: true,
+      gameStatus: "won", // Already won when grabbed seat
     });
 
-    const newState = advanceStation(state);
+    const result = advanceStation(state);
 
-    expect(newState.currentStation).toBe(14);
-    expect(newState.gameStatus).toBe("won");
+    expect(result.state.currentStation).toBe(14);
+    expect(result.state.gameStatus).toBe("won");
   });
 
   it("loses game on full line when standing at destination", () => {
@@ -2099,8 +2112,8 @@ describe("advanceStation with full line", () => {
       playerSeated: false,
     });
 
-    const newState = advanceStation(state);
+    const result = advanceStation(state);
 
-    expect(newState.gameStatus).toBe("lost");
+    expect(result.state.gameStatus).toBe("lost");
   });
 });

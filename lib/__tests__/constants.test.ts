@@ -86,16 +86,17 @@ describe("DIFFICULTY_CONFIGS", () => {
       expect(config.displayName).toBe("Easy");
     });
 
-    it("has 3-4 seated NPCs range", () => {
-      expect(config.seatedNpcRange).toEqual([3, 4]);
+    it("has 6 seated NPCs (all seats full)", () => {
+      expect(config.seatedNpcRange).toEqual([6, 6]);
     });
 
-    it("has 0-0 standing NPCs range", () => {
-      expect(config.standingNpcRange).toEqual([0, 0]);
+    it("has 2-3 standing NPCs range", () => {
+      expect(config.standingNpcRange).toEqual([2, 3]);
     });
 
-    it("has low NPC claim chance", () => {
-      expect(config.npcClaimChance).toBe(0.2);
+    it("has NPC response time configuration", () => {
+      expect(config.npcResponseTime).toBeDefined();
+      expect(config.npcResponseTime.min).toBeLessThanOrEqual(config.npcResponseTime.max);
     });
   });
 
@@ -107,16 +108,17 @@ describe("DIFFICULTY_CONFIGS", () => {
       expect(config.displayName).toBe("Normal");
     });
 
-    it("has exactly 5 seated NPCs", () => {
-      expect(config.seatedNpcRange).toEqual([5, 5]);
+    it("has 6 seated NPCs (all seats full)", () => {
+      expect(config.seatedNpcRange).toEqual([6, 6]);
     });
 
-    it("has 1-2 standing NPCs range", () => {
-      expect(config.standingNpcRange).toEqual([1, 2]);
+    it("has 3-4 standing NPCs range", () => {
+      expect(config.standingNpcRange).toEqual([3, 4]);
     });
 
-    it("has medium NPC claim chance", () => {
-      expect(config.npcClaimChance).toBe(0.5);
+    it("has NPC response time configuration", () => {
+      expect(config.npcResponseTime).toBeDefined();
+      expect(config.npcResponseTime.min).toBeLessThanOrEqual(config.npcResponseTime.max);
     });
   });
 
@@ -128,16 +130,17 @@ describe("DIFFICULTY_CONFIGS", () => {
       expect(config.displayName).toBe("Rush Hour");
     });
 
-    it("has exactly 6 seated NPCs", () => {
+    it("has 6 seated NPCs (all seats full)", () => {
       expect(config.seatedNpcRange).toEqual([6, 6]);
     });
 
-    it("has 2-3 standing NPCs range", () => {
-      expect(config.standingNpcRange).toEqual([2, 3]);
+    it("has 5-6 standing NPCs range", () => {
+      expect(config.standingNpcRange).toEqual([5, 6]);
     });
 
-    it("has high NPC claim chance", () => {
-      expect(config.npcClaimChance).toBe(0.8);
+    it("has NPC response time configuration", () => {
+      expect(config.npcResponseTime).toBeDefined();
+      expect(config.npcResponseTime.min).toBeLessThanOrEqual(config.npcResponseTime.max);
     });
   });
 

@@ -76,7 +76,7 @@ describe("Journey Progress Integration", () => {
       expect(currentDot).toHaveClass("bg-blue-500");
 
       // Advance station
-      state = advanceStation(state);
+      state = advanceStation(state).state;
 
       rerender(
         <JourneyProgress
@@ -112,10 +112,10 @@ describe("Journey Progress Integration", () => {
       expect(currentDot).not.toHaveClass("animate-pulse");
 
       // Advance to station 4 (1 station from destination 5)
-      state = advanceStation(state); // 1
-      state = advanceStation(state); // 2
-      state = advanceStation(state); // 3
-      state = advanceStation(state); // 4
+      state = advanceStation(state).state; // 1
+      state = advanceStation(state).state; // 2
+      state = advanceStation(state).state; // 3
+      state = advanceStation(state).state; // 4
 
       rerender(
         <JourneyProgress
@@ -148,7 +148,7 @@ describe("Journey Progress Integration", () => {
       expect(currentDot).toHaveClass("animate-pulse");
 
       // Advance to destination
-      state = advanceStation(state);
+      state = advanceStation(state).state;
 
       rerender(
         <JourneyProgress
@@ -187,7 +187,7 @@ describe("Journey Progress Integration", () => {
 
       // Advance through each station
       for (let i = 1; i <= 5; i++) {
-        state = advanceStation(state);
+        state = advanceStation(state).state;
 
         rerender(
           <JourneyProgress

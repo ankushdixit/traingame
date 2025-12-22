@@ -40,7 +40,7 @@ describe("TrainSeat", () => {
   });
 
   describe("color classes by state", () => {
-    it("has emerald gradient for empty state", () => {
+    it("has stone gradient for empty state", () => {
       render(
         <TrainSeat {...defaultProps} displayState="empty">
           Content
@@ -49,8 +49,8 @@ describe("TrainSeat", () => {
 
       expect(screen.getByTestId("seat-0")).toHaveClass(
         "bg-gradient-to-b",
-        "from-emerald-100",
-        "to-emerald-200"
+        "from-stone-100",
+        "to-stone-200"
       );
     });
 
@@ -82,9 +82,9 @@ describe("TrainSeat", () => {
       );
     });
 
-    it("has purple gradient for hovered state", () => {
+    it("has purple gradient for watched state", () => {
       render(
-        <TrainSeat {...defaultProps} displayState="hovered">
+        <TrainSeat {...defaultProps} displayState="watched">
           Content
         </TrainSeat>
       );

@@ -4,10 +4,14 @@ import { Seat } from "@/lib/types";
 
 const defaultProps = {
   isPlayerSeated: false,
-  hoveredSeatId: null,
-  onRevealDestination: jest.fn(),
-  onClaimSeat: jest.fn(),
-  onHoverNear: jest.fn(),
+  playerWatchedSeatId: null,
+  playerStandingSpot: 0,
+  actionsRemaining: 2,
+  isGrabPhase: false,
+  line: "short" as const,
+  onAskDestination: jest.fn(),
+  onWatchSeat: jest.fn(),
+  onGrabSeat: jest.fn(),
 };
 
 describe("Compartment", () => {
@@ -158,12 +162,16 @@ describe("Compartment", () => {
         seats={seats}
         playerSeatId={null}
         isPlayerSeated={true}
-        hoveredSeatId={null}
+        playerWatchedSeatId={null}
+        playerStandingSpot={0}
+        actionsRemaining={2}
+        isGrabPhase={false}
+        line="short"
         standingArea={<div>Aisle</div>}
         statusBar={<div>Status</div>}
-        onRevealDestination={jest.fn()}
-        onClaimSeat={jest.fn()}
-        onHoverNear={jest.fn()}
+        onAskDestination={jest.fn()}
+        onWatchSeat={jest.fn()}
+        onGrabSeat={jest.fn()}
       />
     );
 
@@ -173,7 +181,7 @@ describe("Compartment", () => {
     }
   });
 
-  it("passes hoveredSeatId correctly to seats", () => {
+  it("passes playerWatchedSeatId correctly to seats", () => {
     const seats: Seat[] = [
       {
         id: 0,
@@ -193,18 +201,22 @@ describe("Compartment", () => {
         seats={seats}
         playerSeatId={null}
         isPlayerSeated={false}
-        hoveredSeatId={0}
+        playerWatchedSeatId={0}
+        playerStandingSpot={0}
+        actionsRemaining={2}
+        isGrabPhase={false}
+        line="short"
         standingArea={<div>Aisle</div>}
         statusBar={<div>Status</div>}
-        onRevealDestination={jest.fn()}
-        onClaimSeat={jest.fn()}
-        onHoverNear={jest.fn()}
+        onAskDestination={jest.fn()}
+        onWatchSeat={jest.fn()}
+        onGrabSeat={jest.fn()}
       />
     );
 
-    // Seat 0 is hovered (occupied) - should show hovered state
-    expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "hovered");
-    // Seat 1 is not hovered
+    // Seat 0 is watched (occupied) - should show watched state
+    expect(screen.getByTestId("seat-0")).toHaveAttribute("data-state", "watched");
+    // Seat 1 is not watched
     expect(screen.getByTestId("seat-1")).toHaveAttribute("data-state", "occupied");
   });
 });

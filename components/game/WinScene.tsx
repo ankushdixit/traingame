@@ -40,7 +40,7 @@ export function WinScene({
       </h1>
 
       <p className="text-stone-600 mb-4" data-testid="game-end-message">
-        You made it to {destination} comfortably seated!
+        Now you can ride to {destination} in comfort!
       </p>
 
       {/* Character and stats */}

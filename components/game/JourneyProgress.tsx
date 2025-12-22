@@ -11,6 +11,8 @@ export interface JourneyProgressProps {
   destination: number;
   boardingStation: number;
   isAnimating?: boolean;
+  /** Target station to animate towards (used during transition) */
+  targetStation?: number;
 }
 
 interface StationDotProps {
@@ -44,8 +46,8 @@ function getStationDotClasses(props: StationDotProps): string {
 function getStationNameClasses(props: StationDotProps): string {
   const { isCurrent, isPassed, isDestination, compact } = props;
   const base = compact
-    ? "mt-1 text-[10px] font-medium text-center max-w-[45px] leading-tight truncate"
-    : "mt-1 text-xs font-medium text-center max-w-[60px] leading-tight";
+    ? "mt-1 text-[10px] font-medium text-center max-w-[50px] leading-tight break-words"
+    : "mt-1 text-xs font-medium text-center max-w-[70px] leading-tight break-words";
 
   if (isDestination) return `${base} text-red-600 font-bold`;
   if (isCurrent) return `${base} text-blue-600 font-bold`;
@@ -60,13 +62,22 @@ function getStationIcon(isCurrent: boolean, isDestination: boolean, compact: boo
   return "";
 }
 
+// eslint-disable-next-line complexity
 function StationDot(props: StationDotProps) {
   const { index, station, isCurrent, isDestination, isBoarding, compact } = props;
   const showLabel = !compact || isCurrent || isDestination || isBoarding;
   const icon = getStationIcon(isCurrent, isDestination && !isCurrent, compact);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center group relative">
+      {/* Tooltip positioned ABOVE the dot for compact stations */}
+      {!showLabel && (
+        <div className="absolute bottom-full mb-1 hidden group-hover:block z-20 pointer-events-none">
+          <div className="bg-stone-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap shadow-lg">
+            {station}
+          </div>
+        </div>
+      )}
       <div className={getStationDotClasses(props)} data-testid={`station-dot-${index}`}>
         {icon && <span>{icon}</span>}
       </div>
@@ -84,9 +95,14 @@ export function JourneyProgress({
   destination,
   boardingStation,
   isAnimating = false,
+  targetStation,
 }: JourneyProgressProps) {
   const isUrgent = destination - currentStation === 1;
-  const progressPercent = (currentStation / (stations.length - 1)) * 100;
+
+  // When animating, progress towards target station; otherwise show current
+  const displayStation =
+    isAnimating && targetStation !== undefined ? targetStation : currentStation;
+  const progressPercent = (displayStation / (stations.length - 1)) * 100;
 
   // Use compact mode for more than 8 stations
   const isCompact = stations.length > 8;
@@ -98,33 +114,38 @@ export function JourneyProgress({
       data-compact={isCompact}
       aria-label="Journey progress indicator"
     >
-      <div className="relative h-2 bg-stone-300 rounded-full">
-        <div
-          className={`absolute left-0 top-0 h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full ${
-            isAnimating
-              ? "transition-all duration-[3200ms] ease-linear"
-              : "transition-all duration-500"
-          }`}
-          style={{ width: `${progressPercent}%` }}
-          data-testid="progress-line"
-          aria-hidden="true"
-        />
-      </div>
-
-      <div className={`relative mt-2 flex justify-between ${isCompact ? "min-w-max" : ""}`}>
-        {stations.map((station, index) => (
-          <StationDot
-            key={station}
-            index={index}
-            station={station}
-            isCurrent={index === currentStation}
-            isPassed={index < currentStation}
-            isDestination={index === destination}
-            isBoarding={index === boardingStation}
-            isUrgent={isUrgent}
-            compact={isCompact}
+      {/* Container for both progress bar and dots to ensure alignment */}
+      <div className={isCompact ? "min-w-max" : ""}>
+        {/* Progress bar - positioned to align with dot centers */}
+        <div className="relative h-2 bg-stone-300 rounded-full mx-1.5">
+          <div
+            className={`absolute left-0 top-0 h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full ${
+              isAnimating
+                ? "transition-all duration-[1800ms] ease-out"
+                : "transition-all duration-500"
+            }`}
+            style={{ width: `${progressPercent}%` }}
+            data-testid="progress-line"
+            aria-hidden="true"
           />
-        ))}
+        </div>
+
+        {/* Station dots */}
+        <div className="relative mt-2 flex justify-between">
+          {stations.map((station, index) => (
+            <StationDot
+              key={station}
+              index={index}
+              station={station}
+              isCurrent={index === currentStation}
+              isPassed={index < currentStation}
+              isDestination={index === destination}
+              isBoarding={index === boardingStation}
+              isUrgent={isUrgent}
+              compact={isCompact}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
