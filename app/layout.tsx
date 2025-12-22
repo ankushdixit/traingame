@@ -8,7 +8,6 @@ import { SolokitBadge } from "@/components/SolokitBadge";
 export const metadata: Metadata = {
   title: "Mumbai Local Train Game",
   description: "A strategy game where you compete for a seat on a Mumbai local train",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
 export default function RootLayout({
