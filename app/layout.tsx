@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { ClientProviders } from "@/components/ClientProviders";
+import { SolokitBadge } from "@/components/SolokitBadge";
 
 export const metadata: Metadata = {
-  title: "Full-Stack Next.js App",
-  description: "A simple full-stack Next.js application with Prisma and Zod",
+  title: "Mumbai Local Train Game",
+  description: "A strategy game where you compete for a seat on a Mumbai local train",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
@@ -18,6 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ClientProviders>{children}</ClientProviders>
+        <SolokitBadge />
       </body>
     </html>
   );
