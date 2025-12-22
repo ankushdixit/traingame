@@ -200,7 +200,9 @@ describe("StationSelectForm", () => {
       await user.selectOptions(destinationSelect, "5"); // Dadar
       await user.click(submitButton);
 
-      expect(mockPush).toHaveBeenCalledWith("/game?boarding=0&destination=5&difficulty=normal");
+      expect(mockPush).toHaveBeenCalledWith(
+        "/game?boarding=0&destination=5&difficulty=normal&line=short"
+      );
     });
 
     it("navigates with correct params for different station selection", async () => {
@@ -215,7 +217,9 @@ describe("StationSelectForm", () => {
       await user.selectOptions(destinationSelect, "4"); // Mumbai Central
       await user.click(submitButton);
 
-      expect(mockPush).toHaveBeenCalledWith("/game?boarding=2&destination=4&difficulty=normal");
+      expect(mockPush).toHaveBeenCalledWith(
+        "/game?boarding=2&destination=4&difficulty=normal&line=short"
+      );
     });
 
     it("navigates with selected difficulty in URL", async () => {
@@ -232,7 +236,9 @@ describe("StationSelectForm", () => {
       await user.click(easyButton);
       await user.click(submitButton);
 
-      expect(mockPush).toHaveBeenCalledWith("/game?boarding=0&destination=5&difficulty=easy");
+      expect(mockPush).toHaveBeenCalledWith(
+        "/game?boarding=0&destination=5&difficulty=easy&line=short"
+      );
     });
 
     it("does not navigate when form is invalid", async () => {

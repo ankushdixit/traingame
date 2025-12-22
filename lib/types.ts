@@ -8,6 +8,20 @@
 export type Difficulty = "easy" | "normal" | "rush";
 
 /**
+ * Line type for journey length selection
+ */
+export type Line = "short" | "full";
+
+/**
+ * Configuration for NPC boarding at intermediate stations
+ */
+export interface BoardingConfig {
+  minBoard: number;
+  maxBoard: number;
+  boardingChance: number;
+}
+
+/**
  * Configuration for each difficulty level
  */
 export interface DifficultyConfig {
@@ -16,6 +30,7 @@ export interface DifficultyConfig {
   seatedNpcRange: [number, number]; // [min, max]
   standingNpcRange: [number, number]; // Standing NPC count range
   npcClaimChance: number; // Probability that standing NPC claims empty seat
+  boardingConfig: BoardingConfig; // Configuration for intermediate station boarding
 }
 
 /**
@@ -101,5 +116,7 @@ export interface GameState {
   standingNPCs: StandingNPC[];
   hoveredSeatId: number | null; // Seat player is "hovering near"
   difficulty: Difficulty;
+  line: Line; // Journey length (short or full)
   lastClaimMessage: string | null; // "A passenger grabbed the seat!" or null
+  lastBoardingMessage: string | null; // Message when passengers board at intermediate stations
 }

@@ -7,6 +7,7 @@ import {
   generateStandingNPCs,
   processStandingNPCClaims,
   previewStationAdvance,
+  processNewBoarders,
 } from "../gameLogic";
 import { STATIONS, TOTAL_SEATS, DIFFICULTY_CONFIGS, DEFAULT_DIFFICULTY } from "../constants";
 import { GameState, Seat, Difficulty, StandingNPC } from "../types";
@@ -345,7 +346,9 @@ describe("revealDestination", () => {
     standingNPCs: [],
     hoveredSeatId: null,
     difficulty: "normal",
+    line: "short",
     lastClaimMessage: null,
+    lastBoardingMessage: null,
   });
 
   it("sets destinationRevealed to true for the specified seat", () => {
@@ -467,7 +470,9 @@ describe("revealDestination", () => {
       standingNPCs: [],
       hoveredSeatId: null,
       difficulty: "normal",
+      line: "short",
       lastClaimMessage: null,
+      lastBoardingMessage: null,
     };
 
     const newState = revealDestination(state, 0);
@@ -509,7 +514,9 @@ describe("claimSeat", () => {
     standingNPCs: [],
     hoveredSeatId: null,
     difficulty: "normal",
+    line: "short",
     lastClaimMessage: null,
+    lastBoardingMessage: null,
   });
 
   it("sets playerSeated to true", () => {
@@ -578,7 +585,9 @@ describe("claimSeat", () => {
       standingNPCs: [],
       hoveredSeatId: null,
       difficulty: "normal",
+      line: "short",
       lastClaimMessage: null,
+      lastBoardingMessage: null,
     };
 
     const newState = claimSeat(state, 0);
@@ -633,7 +642,9 @@ describe("advanceStation", () => {
     standingNPCs: [],
     hoveredSeatId: null,
     difficulty: "easy", // Use easy to avoid standing NPC claims by default
+    line: "short",
     lastClaimMessage: null,
+    lastBoardingMessage: null,
     ...overrides,
   });
 
@@ -1064,7 +1075,9 @@ describe("setHoveredSeat", () => {
     standingNPCs: [],
     hoveredSeatId: null,
     difficulty: "normal",
+    line: "short",
     lastClaimMessage: null,
+    lastBoardingMessage: null,
   });
 
   it("sets hoveredSeatId to the specified seat", () => {
@@ -1133,7 +1146,9 @@ describe("processStandingNPCClaims", () => {
     ],
     hoveredSeatId: null,
     difficulty: "rush", // High claim chance
+    line: "short",
     lastClaimMessage: null,
+    lastBoardingMessage: null,
     ...overrides,
   });
 
@@ -1414,7 +1429,9 @@ describe("advanceStation with standing NPCs", () => {
     ],
     hoveredSeatId: null,
     difficulty: "rush",
+    line: "short",
     lastClaimMessage: null,
+    lastBoardingMessage: null,
     ...overrides,
   });
 
@@ -1500,7 +1517,9 @@ describe("previewStationAdvance", () => {
     ],
     hoveredSeatId: null,
     difficulty: "rush",
+    line: "short",
     lastClaimMessage: null,
+    lastBoardingMessage: null,
     ...overrides,
   });
 
@@ -1607,5 +1626,481 @@ describe("previewStationAdvance", () => {
     expect([0, 4]).toContain(preview.claimedSeatId);
 
     jest.spyOn(Math, "random").mockRestore();
+  });
+});
+
+describe("generateInitialState with line parameter", () => {
+  describe("short line (default)", () => {
+    it("generates state with line set to short by default", () => {
+      const state = generateInitialState(0, 5);
+      expect(state.line).toBe("short");
+    });
+
+    it("generates NPC destinations within short line range", () => {
+      for (let i = 0; i < 20; i++) {
+        const state = generateInitialState(0, 5, "normal", "short");
+        state.seats.forEach((seat) => {
+          if (seat.occupant !== null) {
+            expect(seat.occupant.destination).toBeLessThanOrEqual(5);
+          }
+        });
+      }
+    });
+  });
+
+  describe("full line", () => {
+    it("generates state with line set to full", () => {
+      const state = generateInitialState(0, 14, "normal", "full");
+      expect(state.line).toBe("full");
+    });
+
+    it("generates NPC destinations within full line range", () => {
+      for (let i = 0; i < 20; i++) {
+        const state = generateInitialState(0, 14, "normal", "full");
+        state.seats.forEach((seat) => {
+          if (seat.occupant !== null) {
+            expect(seat.occupant.destination).toBeGreaterThan(0);
+            expect(seat.occupant.destination).toBeLessThanOrEqual(14);
+          }
+        });
+      }
+    });
+
+    it("supports destinations beyond Dadar (station 5)", () => {
+      const foundBeyondDadar: boolean[] = [];
+      for (let i = 0; i < 50; i++) {
+        const state = generateInitialState(0, 14, "normal", "full");
+        const beyondDadar = state.seats.some(
+          (seat) => seat.occupant !== null && seat.occupant.destination > 5
+        );
+        foundBeyondDadar.push(beyondDadar);
+      }
+      // Should find at least some NPCs going beyond Dadar
+      expect(foundBeyondDadar.some((v) => v)).toBe(true);
+    });
+  });
+
+  describe("lastBoardingMessage initialization", () => {
+    it("initializes lastBoardingMessage to null", () => {
+      const state = generateInitialState(0, 5, "normal", "short");
+      expect(state.lastBoardingMessage).toBeNull();
+    });
+
+    it("initializes lastBoardingMessage to null on full line", () => {
+      const state = generateInitialState(0, 14, "normal", "full");
+      expect(state.lastBoardingMessage).toBeNull();
+    });
+  });
+});
+
+describe("processNewBoarders", () => {
+  const createFullLineState = (overrides: Partial<GameState> = {}): GameState => ({
+    currentStation: 5, // Dadar (major station)
+    playerBoardingStation: 0,
+    playerDestination: 14,
+    playerSeated: true,
+    seatId: 0,
+    playerStandingSpot: 0,
+    seats: [
+      { id: 0, occupant: null },
+      { id: 1, occupant: null },
+      { id: 2, occupant: null },
+      { id: 3, occupant: null },
+      { id: 4, occupant: null },
+      { id: 5, occupant: null },
+    ],
+    gameStatus: "playing",
+    standingNPCs: [],
+    hoveredSeatId: null,
+    difficulty: "normal",
+    line: "full",
+    lastClaimMessage: null,
+    lastBoardingMessage: null,
+    ...overrides,
+  });
+
+  describe("line restriction", () => {
+    it("does not board new passengers on short line", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1); // Would board on full line
+
+      const state = createFullLineState({
+        line: "short",
+        currentStation: 5, // Dadar
+      });
+
+      const newState = processNewBoarders(state, "Dadar");
+
+      expect(newState.seats.every((s) => s.occupant === null)).toBe(true);
+      expect(newState.lastBoardingMessage).toBeNull();
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+
+    it("boards passengers on full line at major stations", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      const state = createFullLineState();
+
+      const newState = processNewBoarders(state, "Dadar");
+
+      // At least one passenger should board
+      expect(newState.seats.some((s) => s.occupant !== null)).toBe(true);
+      expect(newState.lastBoardingMessage).not.toBeNull();
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+  });
+
+  describe("station restriction", () => {
+    it("does not board at non-major stations", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      const state = createFullLineState({
+        currentStation: 6, // Matunga Road (not major)
+      });
+
+      const newState = processNewBoarders(state, "Matunga Road");
+
+      expect(newState.seats.every((s) => s.occupant === null)).toBe(true);
+      expect(newState.lastBoardingMessage).toBeNull();
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+
+    it("boards at Bandra (major station)", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      const state = createFullLineState({
+        currentStation: 8, // Bandra
+      });
+
+      const newState = processNewBoarders(state, "Bandra");
+
+      expect(newState.seats.some((s) => s.occupant !== null)).toBe(true);
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+
+    it("boards at Andheri (major station)", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      const state = createFullLineState({
+        currentStation: 12, // Andheri
+      });
+
+      const newState = processNewBoarders(state, "Andheri");
+
+      expect(newState.seats.some((s) => s.occupant !== null)).toBe(true);
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+  });
+
+  describe("boarding probability", () => {
+    it("respects difficulty boarding chance", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.6); // Above normal's 0.5
+
+      const state = createFullLineState({ difficulty: "normal" });
+
+      const newState = processNewBoarders(state, "Dadar");
+
+      expect(newState.seats.every((s) => s.occupant === null)).toBe(true);
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+
+    it("easy difficulty has lower boarding chance", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.4); // Above easy's 0.3
+
+      const state = createFullLineState({ difficulty: "easy" });
+
+      const newState = processNewBoarders(state, "Dadar");
+
+      expect(newState.seats.every((s) => s.occupant === null)).toBe(true);
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+  });
+
+  describe("boarded NPC properties", () => {
+    it("assigns valid destinations to boarded NPCs", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      const state = createFullLineState();
+
+      const newState = processNewBoarders(state, "Dadar");
+
+      newState.seats.forEach((seat) => {
+        if (seat.occupant !== null) {
+          // Destination should be at least 2 stations ahead (currentStation + 2)
+          expect(seat.occupant.destination).toBeGreaterThan(state.currentStation + 1);
+          // And within the line length
+          expect(seat.occupant.destination).toBeLessThanOrEqual(14);
+        }
+      });
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+
+    it("sets destinationRevealed to false for boarded NPCs", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      const state = createFullLineState();
+
+      const newState = processNewBoarders(state, "Dadar");
+
+      newState.seats.forEach((seat) => {
+        if (seat.occupant !== null) {
+          expect(seat.occupant.destinationRevealed).toBe(false);
+        }
+      });
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+
+    it("assigns unique IDs to boarded NPCs", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      const state = createFullLineState();
+
+      const newState = processNewBoarders(state, "Dadar");
+
+      const ids = newState.seats.filter((s) => s.occupant !== null).map((s) => s.occupant!.id);
+
+      const uniqueIds = new Set(ids);
+      expect(uniqueIds.size).toBe(ids.length);
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+  });
+
+  describe("boarding message", () => {
+    it("sets singular message for 1 passenger", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      // Use easy difficulty which has minBoard: 0, maxBoard: 1
+      const state = createFullLineState({ difficulty: "easy" });
+
+      const newState = processNewBoarders(state, "Dadar");
+
+      if (newState.lastBoardingMessage !== null) {
+        const boardedCount = newState.seats.filter((s) => s.occupant !== null).length;
+        if (boardedCount === 1) {
+          expect(newState.lastBoardingMessage).toBe("1 passenger boarded!");
+        }
+      }
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+
+    it("sets plural message for multiple passengers", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      // Use rush difficulty which has minBoard: 1, maxBoard: 3
+      const state = createFullLineState({ difficulty: "rush" });
+
+      const newState = processNewBoarders(state, "Dadar");
+
+      const boardedCount = newState.seats.filter((s) => s.occupant !== null).length;
+      if (boardedCount > 1) {
+        expect(newState.lastBoardingMessage).toBe(`${boardedCount} passengers boarded!`);
+      }
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+  });
+
+  describe("seat availability", () => {
+    it("only fills empty seats", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      const state = createFullLineState({
+        seats: [
+          {
+            id: 0,
+            occupant: {
+              id: "npc-0",
+              destination: 10,
+              destinationRevealed: false,
+              characterSprite: 0,
+            },
+          },
+          {
+            id: 1,
+            occupant: {
+              id: "npc-1",
+              destination: 12,
+              destinationRevealed: false,
+              characterSprite: 1,
+            },
+          },
+          { id: 2, occupant: null },
+          { id: 3, occupant: null },
+          {
+            id: 4,
+            occupant: {
+              id: "npc-2",
+              destination: 14,
+              destinationRevealed: false,
+              characterSprite: 2,
+            },
+          },
+          { id: 5, occupant: null },
+        ],
+      });
+
+      const newState = processNewBoarders(state, "Dadar");
+
+      // Original NPCs should still be there
+      expect(newState.seats[0].occupant?.id).toBe("npc-0");
+      expect(newState.seats[1].occupant?.id).toBe("npc-1");
+      expect(newState.seats[4].occupant?.id).toBe("npc-2");
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+
+    it("does not board when no empty seats", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+      const state = createFullLineState({
+        seats: [
+          {
+            id: 0,
+            occupant: {
+              id: "npc-0",
+              destination: 10,
+              destinationRevealed: false,
+              characterSprite: 0,
+            },
+          },
+          {
+            id: 1,
+            occupant: {
+              id: "npc-1",
+              destination: 11,
+              destinationRevealed: false,
+              characterSprite: 1,
+            },
+          },
+          {
+            id: 2,
+            occupant: {
+              id: "npc-2",
+              destination: 12,
+              destinationRevealed: false,
+              characterSprite: 2,
+            },
+          },
+          {
+            id: 3,
+            occupant: {
+              id: "npc-3",
+              destination: 13,
+              destinationRevealed: false,
+              characterSprite: 3,
+            },
+          },
+          {
+            id: 4,
+            occupant: {
+              id: "npc-4",
+              destination: 14,
+              destinationRevealed: false,
+              characterSprite: 4,
+            },
+          },
+          {
+            id: 5,
+            occupant: {
+              id: "npc-5",
+              destination: 14,
+              destinationRevealed: false,
+              characterSprite: 5,
+            },
+          },
+        ],
+      });
+
+      const newState = processNewBoarders(state, "Dadar");
+
+      expect(newState.lastBoardingMessage).toBeNull();
+
+      jest.spyOn(Math, "random").mockRestore();
+    });
+  });
+});
+
+describe("advanceStation with full line", () => {
+  const createFullLineState = (overrides: Partial<GameState> = {}): GameState => ({
+    currentStation: 7, // Mahim, approaching Bandra
+    playerBoardingStation: 0,
+    playerDestination: 14,
+    playerSeated: true,
+    seatId: 0,
+    playerStandingSpot: 0,
+    seats: [
+      {
+        id: 0,
+        occupant: { id: "npc-0", destination: 8, destinationRevealed: false, characterSprite: 0 },
+      },
+      { id: 1, occupant: null },
+      { id: 2, occupant: null },
+      { id: 3, occupant: null },
+      { id: 4, occupant: null },
+      { id: 5, occupant: null },
+    ],
+    gameStatus: "playing",
+    standingNPCs: [],
+    hoveredSeatId: null,
+    difficulty: "normal",
+    line: "full",
+    lastClaimMessage: null,
+    lastBoardingMessage: null,
+    ...overrides,
+  });
+
+  it("processes new boarders at major stations", () => {
+    jest.spyOn(Math, "random").mockReturnValue(0.1);
+
+    const state = createFullLineState();
+
+    const newState = advanceStation(state);
+
+    // NPC-0 exits at Bandra (8), new passengers may board
+    expect(newState.currentStation).toBe(8);
+    // Original NPC left, but a new one may have boarded at Bandra (major station)
+    // Either the seat is null or a new passenger boarded
+    if (newState.seats[0].occupant !== null) {
+      // A new passenger boarded
+      expect(newState.seats[0].occupant.id).toContain("boarded");
+      expect(newState.lastBoardingMessage).not.toBeNull();
+    }
+
+    jest.spyOn(Math, "random").mockRestore();
+  });
+
+  it("correctly uses full line stations count for game end check", () => {
+    const state = createFullLineState({
+      currentStation: 13, // Jogeshwari
+      playerDestination: 14, // Borivali
+      playerSeated: true,
+    });
+
+    const newState = advanceStation(state);
+
+    expect(newState.currentStation).toBe(14);
+    expect(newState.gameStatus).toBe("won");
+  });
+
+  it("loses game on full line when standing at destination", () => {
+    const state = createFullLineState({
+      currentStation: 13,
+      playerDestination: 14,
+      playerSeated: false,
+    });
+
+    const newState = advanceStation(state);
+
+    expect(newState.gameStatus).toBe("lost");
   });
 });

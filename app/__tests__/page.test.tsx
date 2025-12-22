@@ -21,10 +21,12 @@ describe("Home Page", () => {
     expect(screen.getByText("Can you find a seat before your stop?")).toBeInTheDocument();
   });
 
-  it("renders the train emoji", () => {
+  it("renders train emojis", () => {
     render(<Home />);
 
-    expect(screen.getByText("🚃")).toBeInTheDocument();
+    // Multiple train emojis exist on the page (in header and LineSelector)
+    const trainEmojis = screen.getAllByText("🚃");
+    expect(trainEmojis.length).toBeGreaterThan(0);
   });
 
   it("renders the station selection form", () => {

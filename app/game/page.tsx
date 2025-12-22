@@ -14,8 +14,8 @@ import {
   setHoveredSeat,
   previewStationAdvance,
 } from "@/lib/gameLogic";
-import { GameState, Difficulty } from "@/lib/types";
-import { STATIONS, DEFAULT_DIFFICULTY } from "@/lib/constants";
+import { GameState, Difficulty, Line } from "@/lib/types";
+import { getStations, DEFAULT_DIFFICULTY, DEFAULT_LINE } from "@/lib/constants";
 import { useTransitionController } from "@/lib/useTransitionController";
 import { useSound } from "@/contexts/SoundContext";
 import { GameHeader } from "@/components/game/GameHeader";
@@ -38,6 +38,7 @@ export default function GamePage() {
     const boardingParam = searchParams.get("boarding");
     const destinationParam = searchParams.get("destination");
     const difficultyParam = searchParams.get("difficulty");
+    const lineParam = searchParams.get("line");
 
     if (boardingParam === null || destinationParam === null) {
       return null;
@@ -57,7 +58,12 @@ export default function GamePage() {
         ? (difficultyParam as Difficulty)
         : DEFAULT_DIFFICULTY;
 
-    return generateInitialState(boarding, destination, difficulty);
+    // Validate line parameter
+    const validLines: Line[] = ["short", "full"];
+    const line: Line =
+      lineParam && validLines.includes(lineParam as Line) ? (lineParam as Line) : DEFAULT_LINE;
+
+    return generateInitialState(boarding, destination, difficulty, line);
   }, [searchParams]);
 
   const [gameState, setGameState] = useState<GameState | null>(initialState);
@@ -200,7 +206,7 @@ export default function GamePage() {
       {/* Journey Progress */}
       <div className="max-w-2xl mx-auto bg-white shadow-md">
         <JourneyProgress
-          stations={STATIONS}
+          stations={getStations(gameState.line)}
           currentStation={gameState.currentStation}
           destination={gameState.playerDestination}
           boardingStation={gameState.playerBoardingStation}
@@ -261,7 +267,7 @@ export default function GamePage() {
       {isGameOver && (
         <GameEndModal
           status={gameState.gameStatus as "won" | "lost"}
-          destination={STATIONS[gameState.playerDestination]}
+          destination={getStations(gameState.line)[gameState.playerDestination]}
           stationsStanding={gameState.currentStation - gameState.playerBoardingStation}
           totalStations={gameState.playerDestination - gameState.playerBoardingStation}
           difficulty={gameState.difficulty}

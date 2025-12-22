@@ -58,8 +58,10 @@ describe("Station Selection Integration", () => {
     // Submit form
     await user.click(screen.getByRole("button", { name: /Board Train/i }));
 
-    // Verify navigation with difficulty
-    expect(mockPush).toHaveBeenCalledWith("/game?boarding=0&destination=5&difficulty=normal");
+    // Verify navigation with difficulty and line
+    expect(mockPush).toHaveBeenCalledWith(
+      "/game?boarding=0&destination=5&difficulty=normal&line=short"
+    );
   });
 
   it("prevents invalid submissions via disabled button", async () => {
@@ -100,7 +102,9 @@ describe("Station Selection Integration", () => {
     await user.selectOptions(screen.getByLabelText(/Destination/i), "5");
     await user.click(screen.getByRole("button", { name: /Board Train/i }));
 
-    expect(mockPush).toHaveBeenCalledWith("/game?boarding=3&destination=5&difficulty=normal");
+    expect(mockPush).toHaveBeenCalledWith(
+      "/game?boarding=3&destination=5&difficulty=normal&line=short"
+    );
   });
 
   it("includes selected difficulty in navigation URL", async () => {
@@ -117,8 +121,10 @@ describe("Station Selection Integration", () => {
     // Submit form
     await user.click(screen.getByRole("button", { name: /Board Train/i }));
 
-    // Verify navigation with rush difficulty
-    expect(mockPush).toHaveBeenCalledWith("/game?boarding=0&destination=5&difficulty=rush");
+    // Verify navigation with rush difficulty and line
+    expect(mockPush).toHaveBeenCalledWith(
+      "/game?boarding=0&destination=5&difficulty=rush&line=short"
+    );
   });
 
   it("remembers difficulty selection across renders", async () => {
