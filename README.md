@@ -1,147 +1,146 @@
-# traingame
+# Mumbai Local Train Game
 
-A Full-Stack Product (Next.js) project built with Session-Driven Development.
+A strategy game where you compete for a seat on a Mumbai local train before reaching your destination.
+
+**Play Now:** https://traingame.ankushdixit.com
+
+## The Game
+
+You're standing in a crowded Mumbai local train compartment. All 6 seats are taken. Your mission: get a seat before you reach your destination — or arrive standing (and lose).
+
+### How to Play
+
+1. **Choose your journey** — Select boarding and destination stations
+2. **Pick difficulty** — Easy, Normal, or Rush Hour
+3. **Use your actions** — You get 2 actions per turn:
+   - **Ask** — Find out which station an NPC is getting off
+   - **Watch** — Mark a seat for a grab speed bonus
+   - **Move** — Reposition in the aisle (6 standing spots)
+4. **Advance** — Click "Next Station" to progress
+5. **Grab seats** — When NPCs exit, race to claim their seat
+6. **Win** — Get seated before your destination
+
+### Strategy Tips
+
+- Use **Ask** to discover who's leaving soon
+- **Watch** a seat for a 300ms speed advantage when grabbing
+- Position yourself **adjacent** to seats likely to open (-150ms bonus)
+- On Rush Hour, NPCs are faster — plan ahead!
+
+## Features
+
+- **Two game modes** — Short Line (6 stations) or Full Line (15 stations)
+- **3 difficulty levels** — Easy, Normal, Rush Hour
+- **8 unique NPC characters** — Each with distinct appearances
+- **Turn-based strategy** — Plan your moves carefully
+- **Grab competition** — Real-time seat claiming with speed bonuses
+- **Sound effects** — Train sounds, announcements, win/lose jingles
+- **Mobile responsive** — Works on desktop and mobile
 
 ## Tech Stack
 
-- **Framework**: Next.js 16.0.7
-- **Language**: TypeScript 5.9.3
-- **Frontend**: React 19.2.1
-- **Database**: Prisma 6.19.0
-- **Validation**: Zod 4.1.12
-- **Styling**: Tailwind CSS 4.1.17
+| Component     | Technology                   |
+| ------------- | ---------------------------- |
+| **Framework** | Next.js 16.0.10              |
+| **Language**  | TypeScript 5.9.3             |
+| **UI**        | React 19.2.1                 |
+| **Styling**   | Tailwind CSS 4.1.17          |
+| **Testing**   | Jest + React Testing Library |
+| **E2E**       | Playwright                   |
 
-## Quality Gates: Comprehensive
+## Quality
 
-- ✓ Linting (ESLint/Ruff)
-- ✓ Formatting (Prettier/Ruff)
-- ✓ Type checking (TypeScript strict/Pyright)
-- ✓ Basic unit tests (Jest/pytest)
-- ✓ 80% test coverage minimum
-- ✓ Pre-commit hooks (Husky + lint-staged)
-- ✓ Secret scanning (git-secrets, detect-secrets)
-- ✓ Dependency vulnerability scanning
-- ✓ Basic SAST (ESLint security/bandit)
-- ✓ License compliance checking
-- ✓ Code complexity enforcement
-- ✓ Code duplication detection
-- ✓ Dead code detection
-- ✓ Type coverage enforcement (>90%)
-- ✓ Mutation testing (>75% score)
-- ✓ Integration tests required
-- ✓ Unit test coverage (>80%)
-- ✓ E2E tests (Playwright)
+| Metric            | Result              |
+| ----------------- | ------------------- |
+| **Test Coverage** | 89%                 |
+| **Tests**         | 704 passing         |
+| **Components**    | 53 React components |
+| **Type Checking** | TypeScript strict   |
 
-**Test Coverage Target**: 90%
-
-## Getting Started
+## Quick Start
 
 ```bash
+# Clone the repo
+git clone https://github.com/ankushdixit/traingame.git
+cd traingame
+
 # Install dependencies
 npm install
 
-# Run development server
+# Start development server
 npm run dev
 ```
 
 Visit http://localhost:3000
 
-### Environment Setup
-
-```bash
-# Copy environment template
-cp .env.local.example .env.local
-# Edit .env.local with your database connection and other settings
-```
-
-### Database Setup
-
-```bash
-# Generate Prisma client
-npx prisma generate
-
-# Run database migrations
-npx prisma migrate dev
-
-# (Optional) Open Prisma Studio to view data
-npx prisma studio
-```
-
 ## Testing
 
 ```bash
-# Run tests
+# Run all tests
 npm test
 
-# Run tests with coverage
+# With coverage
 npm run test:coverage
 
-# Run linting
+# E2E tests
+npm run test:e2e
+
+# Linting
 npm run lint
 
-# Run type checking
+# Type checking
 npm run type-check
 ```
 
-### E2E Testing
+## Project Structure
 
-Playwright browsers are installed during project setup. To run E2E tests:
-
-```bash
-# Run E2E tests
-npm run test:e2e
-
-# Run E2E tests with UI
-npm run test:e2e -- --ui
-
-# Run specific test file
-npm run test:e2e -- tests/e2e/example.spec.ts
+```
+traingame/
+├── app/                  # Next.js App Router
+│   ├── game/            # Main game page
+│   └── api/             # API routes
+├── components/          # React components (53 total)
+│   ├── game/            # Game UI components
+│   └── characters/      # NPC sprite components
+├── lib/                 # Core game logic
+│   ├── gameLogic.ts     # State management
+│   ├── grabCompetition.ts # Seat claiming mechanics
+│   └── constants.ts     # Stations, difficulty configs
+├── hooks/               # Custom React hooks
+├── contexts/            # React Context (sound management)
+└── tests/               # Test files (44 total)
 ```
 
-If browsers need to be reinstalled:
+## Game Mechanics
 
-```bash
-npx playwright install --with-deps
-```
+### Difficulty Levels
 
-## Additional Features
+| Difficulty | Standing NPCs | NPC Speed          | Boarding Rate |
+| ---------- | ------------- | ------------------ | ------------- |
+| Easy       | 2-3           | Slow (300-600ms)   | 30%           |
+| Normal     | 3-4           | Medium (250-550ms) | 50%           |
+| Rush Hour  | 5-6           | Fast (200-500ms)   | 70%           |
 
-- ✓ **GitHub Actions CI/CD**: Automated testing and deployment workflows
-- ✓ **Environment Templates**: .env files and .editorconfig for all editors
+### Speed Bonuses
 
-## Documentation
+| Action           | Bonus  |
+| ---------------- | ------ |
+| Watching a seat  | -300ms |
+| Adjacent to seat | -150ms |
+| Far from seat    | +150ms |
 
-See `ARCHITECTURE.md` for detailed technical documentation including:
+## Background
 
-- Architecture decisions and trade-offs
-- Project structure reference
-- Code patterns and examples
-- Database workflow
-- Troubleshooting guides
+This project was built live during [The Anti-Vibe-Coding Challenge](https://antivibecode.ankushdixit.com) on December 20, 2024 — a public experiment in structured AI development using Claude Code and Solokit.
 
-## Session-Driven Development
+The goal: build a production-ready app with 90%+ test coverage, live, from an audience-submitted idea.
 
-This project uses Session-Driven Development (Solokit) for organized, AI-augmented development.
+**Result:** 89% coverage, 704 tests, fully playable game.
 
-### Commands
+## License
 
-- `/sk:work-new` - Create a new work item
-- `/sk:work-list` - List all work items
-- `/sk:start` - Start working on a work item
-- `/sk:status` - Check current session status
-- `/sk:validate` - Validate quality gates
-- `/sk:end` - Complete current session
-- `/sk:learn` - Capture a learning
-
-### Documentation
-
-See `.session/` directory for:
-
-- Work item specifications (`.session/specs/`)
-- Session briefings (`.session/briefings/`)
-- Session summaries (`.session/history/`)
-- Captured learnings (`.session/tracking/learnings.json`)
+MIT
 
 ---
 
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+Built with [Solokit](https://github.com/anthropics/solokit) + [Claude Code](https://claude.com/claude-code)
