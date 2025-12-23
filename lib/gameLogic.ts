@@ -275,8 +275,16 @@ export function unwatchSeat(state: GameState): GameState {
 }
 
 /**
+ * Maximum distance a player can move in one action.
+ * Player can only move to spots within this distance.
+ */
+const MAX_MOVE_DISTANCE = 2;
+
+/**
  * Move to a different standing position (costs 1 action).
+ * If the target spot is occupied by an NPC, swap positions with them.
  * Auto-clears watch if moving to non-adjacent column.
+ * Movement is limited to spots within MAX_MOVE_DISTANCE (2) of current position.
  *
  * @param state - Current game state
  * @param newSpot - New standing spot (0-5)
@@ -287,15 +295,34 @@ export function movePosition(state: GameState, newSpot: number): GameState {
   if (newSpot < 0 || newSpot > 5) return state;
   if (newSpot === state.playerStandingSpot) return state;
 
-  // Check if spot is occupied by NPC
-  const isOccupied = state.standingNPCs.some((npc) => npc.standingSpot === newSpot);
-  if (isOccupied) return state;
+  // Check distance constraint - can only move up to 2 spots
+  const distance = Math.abs(newSpot - state.playerStandingSpot);
+  if (distance > MAX_MOVE_DISTANCE) return state;
 
   // Check if watch should be cleared (moving to different column)
   const oldColumn = getPositionColumn(state.playerStandingSpot);
   const newColumn = getPositionColumn(newSpot);
   const clearWatch = oldColumn !== newColumn;
 
+  // Check if spot is occupied by NPC - if so, swap positions
+  const npcInSpot = state.standingNPCs.find((npc) => npc.standingSpot === newSpot);
+
+  if (npcInSpot) {
+    // Swap positions: player takes NPC's spot, NPC takes player's old spot
+    const updatedNPCs = state.standingNPCs.map((npc) =>
+      npc.id === npcInSpot.id ? { ...npc, standingSpot: state.playerStandingSpot } : npc
+    );
+
+    return {
+      ...state,
+      playerStandingSpot: newSpot,
+      standingNPCs: updatedNPCs,
+      playerWatchedSeatId: clearWatch ? null : state.playerWatchedSeatId,
+      actionsRemaining: state.actionsRemaining - 1,
+    };
+  }
+
+  // Empty spot - just move there
   return {
     ...state,
     playerStandingSpot: newSpot,

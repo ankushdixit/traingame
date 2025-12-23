@@ -28,6 +28,7 @@ interface StandingSpotProps {
   isMovingToSeat: boolean;
   isEmpty: boolean;
   canMoveTo: boolean;
+  canSwapWith: boolean;
   onClick: () => void;
 }
 
@@ -46,11 +47,13 @@ function StandingSpot({
   occupant,
   isPlayer,
   isMovingToSeat,
-  isEmpty,
+  isEmpty: _isEmpty,
   canMoveTo,
+  canSwapWith,
   onClick,
 }: StandingSpotProps) {
   const adjacentSeats = getAdjacentSeats(index);
+  const isInteractive = canMoveTo || canSwapWith;
 
   return (
     <div className="flex flex-col items-center">
@@ -60,20 +63,22 @@ function StandingSpot({
       {/* Standing spot */}
       <button
         onClick={onClick}
-        disabled={!canMoveTo}
+        disabled={!isInteractive}
         className={`
           w-16 h-20 rounded-lg border-2 border-dashed flex flex-col items-center justify-center transition-all mt-1
           ${
             isPlayer
               ? "border-amber-400 bg-amber-100/50"
-              : occupant
-                ? "border-stone-400 bg-stone-200/50"
-                : canMoveTo
-                  ? "border-blue-400 bg-blue-100/30 hover:bg-blue-200/50 cursor-pointer"
-                  : "border-stone-300 bg-stone-100/30"
+              : canSwapWith
+                ? "border-green-400 bg-green-100/30 hover:bg-green-200/50 cursor-pointer"
+                : occupant
+                  ? "border-stone-400 bg-stone-200/50"
+                  : canMoveTo
+                    ? "border-blue-400 bg-blue-100/30 hover:bg-blue-200/50 cursor-pointer"
+                    : "border-stone-300 bg-stone-100/30"
           }
           ${isMovingToSeat ? "animate-move-to-seat" : ""}
-          ${canMoveTo && isEmpty ? "hover:scale-105" : ""}
+          ${isInteractive ? "hover:scale-105" : ""}
         `}
         data-testid={`standing-spot-${index}`}
         type="button"
@@ -88,8 +93,13 @@ function StandingSpot({
             </div>
           </div>
         ) : occupant ? (
-          <div data-testid={`standing-npc-${occupant.id}`}>
+          <div className="relative" data-testid={`standing-npc-${occupant.id}`}>
             <div className="w-8 h-12">{renderCharacter(occupant.characterSprite, false)}</div>
+            {canSwapWith && (
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[7px] px-1 rounded">
+                Swap
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center">
@@ -129,13 +139,25 @@ export function StandingArea({
   const claimingNpcId = transitionState?.claimingNpcId;
   const isClaimingPhase = transitionState?.phase === "claiming";
 
+  // Maximum distance player can move in one action
+  const MAX_MOVE_DISTANCE = 2;
+
+  // Pre-compute whether player can interact with any spots
+  const playerCanInteract = actionsRemaining > 0 && !isPlayerSeated && !isGrabPhase;
+
+  // Helper to check if a spot is within movement range
+  const isSpotInRange = (spotIndex: number) => {
+    const distance = Math.abs(spotIndex - playerStandingSpot);
+    return distance <= MAX_MOVE_DISTANCE && distance > 0;
+  };
+
   // Create array of 6 standing spots
   const spots = [...Array(6)].map((_, index) => {
     const npcInSpot = standingNPCs.find((npc) => npc.standingSpot === index);
     const isPlayerHere = !isPlayerSeated && playerStandingSpot === index;
     const isMovingToSeat = isClaimingPhase && npcInSpot?.id === claimingNpcId;
     const isEmpty = !npcInSpot && !isPlayerHere;
-    const canMoveTo = isEmpty && actionsRemaining > 0 && !isPlayerSeated && !isGrabPhase;
+    const canInteract = playerCanInteract && isSpotInRange(index);
 
     return {
       index,
@@ -143,7 +165,8 @@ export function StandingArea({
       isPlayer: isPlayerHere,
       isMovingToSeat,
       isEmpty,
-      canMoveTo,
+      canMoveTo: isEmpty && canInteract,
+      canSwapWith: !!npcInSpot && canInteract,
     };
   });
 
@@ -165,8 +188,9 @@ export function StandingArea({
             isMovingToSeat={spot.isMovingToSeat}
             isEmpty={spot.isEmpty}
             canMoveTo={spot.canMoveTo}
+            canSwapWith={spot.canSwapWith}
             onClick={() => {
-              if (spot.canMoveTo) {
+              if (spot.canMoveTo || spot.canSwapWith) {
                 onMovePosition(spot.index);
               }
             }}
