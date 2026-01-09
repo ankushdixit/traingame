@@ -1,3 +1,4 @@
+import Image from "next/image";
 import StationSelectForm from "@/components/StationSelectForm";
 
 /**
@@ -12,9 +13,15 @@ export default function Home() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🚃</div>
-          <h1 className="text-3xl font-bold text-stone-800 mb-2">Mumbai Local</h1>
-          <p className="text-stone-600">Can you find a seat before your stop?</p>
+          <Image
+            src="/logo.png"
+            alt="Mumbai Local Rush"
+            width={220}
+            height={220}
+            className="mx-auto"
+            priority
+          />
+          <p className="text-stone-600 mt-2">Can you find a seat before your stop?</p>
         </div>
 
         {/* Setup Card */}

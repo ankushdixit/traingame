@@ -20,10 +20,10 @@ const defaultProps = {
 
 describe("GameHeader", () => {
   describe("game title display", () => {
-    it("displays Mumbai Local title", () => {
+    it("displays Mumbai Local Rush title", () => {
       render(<GameHeader {...defaultProps} />);
 
-      expect(screen.getByTestId("game-title")).toHaveTextContent("Mumbai Local");
+      expect(screen.getByTestId("game-title")).toHaveTextContent("Mumbai Local Rush");
     });
   });
 
