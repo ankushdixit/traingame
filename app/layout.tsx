@@ -6,7 +6,7 @@ import { ClientProviders } from "@/components/ClientProviders";
 import { SolokitBadge } from "@/components/SolokitBadge";
 
 export const metadata: Metadata = {
-  title: "Mumbai Local Train Game",
+  title: "Mumbai Local Rush",
   description: "A strategy game where you compete for a seat on a Mumbai local train",
 };
 

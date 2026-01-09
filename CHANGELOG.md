@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- New "Mumbai Local Rush" logo replacing train emoji and text on home page
+- Logo image asset at `/public/logo.png`
+
+### Changed
+
+- Rebranded from "Mumbai Local" to "Mumbai Local Rush" across the app
+- Updated page title metadata to "Mumbai Local Rush"
+- Updated game header to display "Mumbai Local Rush"
+
+---
+
+### Added
+
 - Extended journey option: choice between Short Line (6 stations) and Full Line (15 stations)
 - LineSelector component for selecting journey length with visual toggle
 - Full Western Line stations: Churchgate to Borivali (15 stations total)

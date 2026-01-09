@@ -9,10 +9,10 @@ jest.mock("next/navigation", () => ({
 }));
 
 describe("Home Page", () => {
-  it("renders the game title", () => {
+  it("renders the game logo", () => {
     render(<Home />);
 
-    expect(screen.getByRole("heading", { name: "Mumbai Local" })).toBeInTheDocument();
+    expect(screen.getByAltText("Mumbai Local Rush")).toBeInTheDocument();
   });
 
   it("renders the tagline", () => {
@@ -24,7 +24,7 @@ describe("Home Page", () => {
   it("renders train emojis", () => {
     render(<Home />);
 
-    // Multiple train emojis exist on the page (in header and LineSelector)
+    // Train emojis exist in LineSelector and buttons
     const trainEmojis = screen.getAllByText("🚃");
     expect(trainEmojis.length).toBeGreaterThan(0);
   });

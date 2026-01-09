@@ -31,7 +31,7 @@ export function GameHeader({
       <div className="max-w-2xl mx-auto flex justify-between items-center">
         <div>
           <h1 className="text-xl font-bold" data-testid="game-title">
-            Mumbai Local
+            Mumbai Local Rush
           </h1>
           <p className="text-rose-200 text-sm" data-testid="difficulty-display">
             {difficultyOption?.emoji} {difficultyOption?.label}
